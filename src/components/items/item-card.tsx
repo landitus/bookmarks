@@ -1,64 +1,56 @@
-import { Item } from "@/lib/types"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Archive, Layers, Trash2 } from "lucide-react"
-import Image from "next/image"
+import { Item } from "@/lib/types";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import Image from "next/image";
+import { ItemActions } from "./item-actions";
+import Link from "next/link";
 
 interface ItemCardProps {
-  item: Item
+  item: Item;
 }
 
 export function ItemCard({ item }: ItemCardProps) {
   return (
-    <Card className="overflow-hidden flex flex-col h-full">
-      <div className="relative aspect-video bg-muted">
-        {item.image_url ? (
-          <Image
-            src={item.image_url}
-            alt={item.title}
-            fill
-            className="object-cover"
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-            No Preview
+    <Card className="group overflow-hidden flex flex-col h-full hover:shadow-lg transition-shadow duration-200">
+      <Link href={item.url} target="_blank" rel="noopener noreferrer">
+        <div className="relative aspect-video bg-muted">
+          {item.image_url ? (
+            <Image
+              src={item.image_url}
+              alt={item.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-200"
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+              No Preview
+            </div>
+          )}
+          <div className="absolute top-2 right-2 bg-black/75 text-white text-[10px] px-2 py-1 rounded uppercase font-bold tracking-wider">
+            {item.type}
           </div>
-        )}
-        <div className="absolute top-2 right-2 bg-black/75 text-white text-[10px] px-2 py-1 rounded uppercase font-bold tracking-wider">
-          {item.type}
         </div>
-      </div>
-      
-      <CardHeader className="p-4 pb-0">
-        <h3 className="font-semibold leading-tight line-clamp-2 mb-1" title={item.title}>
-          {item.title}
-        </h3>
-        <p className="text-xs text-muted-foreground truncate">
-          {item.url}
-        </p>
+      </Link>
+
+      <CardHeader className="p-4 pb-2 flex-row items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <Link href={item.url} target="_blank" rel="noopener noreferrer">
+            <h3
+              className="font-semibold leading-tight line-clamp-2 mb-1 hover:underline"
+              title={item.title}
+            >
+              {item.title}
+            </h3>
+          </Link>
+          <p className="text-xs text-muted-foreground truncate">{item.url}</p>
+        </div>
+        <ItemActions itemId={item.id} currentStatus={item.status} />
       </CardHeader>
-      
-      <CardContent className="p-4 flex-grow">
+
+      <CardContent className="p-4 pt-2 flex-grow">
         <p className="text-sm text-muted-foreground line-clamp-3">
-           {item.description || "No description available."}
+          {item.description || "No description available."}
         </p>
       </CardContent>
-
-      <CardFooter className="p-2 bg-muted/20 flex justify-between">
-         <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-            <Layers className="h-4 w-4" />
-            <span className="sr-only">Move to Queue</span>
-         </Button>
-         <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-            <Archive className="h-4 w-4" />
-            <span className="sr-only">Archive</span>
-         </Button>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:text-destructive">
-            <Trash2 className="h-4 w-4" />
-            <span className="sr-only">Delete</span>
-         </Button>
-      </CardFooter>
     </Card>
-  )
+  );
 }
-

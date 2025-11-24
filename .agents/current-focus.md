@@ -1,29 +1,33 @@
 # Current Focus
 
 **Last Updated:** November 24, 2025
-**Session:** Authentication & UI Polish Complete
+**Session:** Phase 3 Complete - Core MVP Ready!
 
 ## 🎯 Current Session Focus
-
-**Phase 2 Complete!** Now moving to Phase 3: Organization (Queue & Library views).
+**Phase 3 Complete!** The core workflow (Capture → Consume → Keep) is now fully functional.
 
 ## ✅ What We Just Completed
+**Phase 3: Organization (Queue & Library)**
+- ✅ Created `Queue` view for items ready to consume.
+- ✅ Created `Library` view for permanent collection.
+- ✅ Built `ItemActions` dropdown component with context-aware options.
+- ✅ Wired up `updateItemStatus` to move items between states.
+- ✅ Enhanced `ItemCard` with:
+  - Clickable links to original URLs
+  - Hover effects (shadow + image zoom)
+  - Three-dot menu for actions
+  - Clean, minimal design
 
-**Phase 2: Capture & Inbox + Authentication**
+## 🎉 MVP Complete!
+The core v0.1 features are now working:
+1. ✅ **Capture**: Paste URL → Auto-scrape metadata → Save to Inbox
+2. ✅ **Organize**: Move items between Inbox/Queue/Library/Archive
+3. ✅ **Consume**: Click cards to open URLs in new tabs
+4. ✅ **Auth**: Secure user accounts with names
 
-- ✅ Implemented Server Actions for Item CRUD (`createItem`, `getInboxItems`).
-- ✅ Built `Inbox` view with grid layout and empty state.
-- ✅ Integrated `metascraper` for automatic metadata extraction (title, description, image).
-- ✅ Implemented Supabase Auth (email/password with name field).
-- ✅ Created beautiful auth layout (separate from main app, centered).
-- ✅ Built elegant User Menu with avatar, dropdown, and profile info.
-- ✅ Polished UI with modern design patterns (Linear/Raycast-inspired).
-
-## 🔄 Next Steps
-
-**Phase 3: Organization**
-
-1. Implement `Queue` view (items user wants to consume).
-2. Implement `Library` view (permanent collection).
-3. Add item action buttons (Move to Queue, Archive, etc.).
-4. Wire up `updateItemStatus` server action to UI.
+## 🔄 Next Steps (Phase 4: Polish & Projects)
+1. Implement Projects (collections/boards).
+2. Add Topics/Tags (AI-generated or manual).
+3. Polish empty states and loading states.
+4. Add keyboard shortcuts.
+5. Build Archive view.
