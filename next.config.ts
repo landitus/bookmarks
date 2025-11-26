@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: [
+    "re2",
+    "metascraper",
+    "metascraper-description",
+    "metascraper-image",
+    "metascraper-title",
+    "metascraper-url",
+  ],
   images: {
     remotePatterns: [
       {
