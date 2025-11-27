@@ -6,6 +6,7 @@ import { createItem } from "@/lib/actions/items";
 import { Plus, Search, Loader2 } from "lucide-react";
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface AddItemInputProps {
   onSearch?: (query: string) => void;
@@ -40,11 +41,16 @@ export function AddItemInput({
       // Add status to formData
       formData.append("status", targetStatus);
       startTransition(async () => {
-        await createItem(formData);
-        setValue("");
-        onSearch?.(""); // Clear search query in parent
-        formRef.current?.reset();
-        router.refresh();
+        const result = await createItem(formData);
+        if (result.success) {
+          toast.success("Bookmark added successfully");
+          setValue("");
+          onSearch?.(""); // Clear search query in parent
+          formRef.current?.reset();
+          router.refresh();
+        } else {
+          toast.error(result.message || "Failed to add bookmark");
+        }
       });
     }
   };

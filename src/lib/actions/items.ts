@@ -35,12 +35,14 @@ export async function getInboxItems(): Promise<Item[]> {
   return data as Item[];
 }
 
-export async function createItem(formData: FormData) {
+export async function createItem(formData: FormData): Promise<{ success: boolean; message?: string }> {
   const supabase = await createClient();
   const url = formData.get("url") as string;
   const status = (formData.get("status") as string) || "inbox";
 
-  if (!url) return;
+  if (!url) {
+    return { success: false, message: "URL is required" };
+  }
 
   // Get authenticated user
   const {
@@ -53,6 +55,24 @@ export async function createItem(formData: FormData) {
     console.warn("No authenticated user - using service role for development");
     // For now, we'll skip this and let the DB handle it
     // You'll need to temporarily disable RLS or create a test user
+  }
+
+  // Check if URL already exists for this user
+  const duplicateQuery = supabase
+    .from("items")
+    .select("id")
+    .eq("url", url);
+  
+  if (user?.id) {
+    duplicateQuery.eq("user_id", user.id);
+  } else {
+    duplicateQuery.is("user_id", null);
+  }
+  
+  const { data: existingItem } = await duplicateQuery.maybeSingle();
+
+  if (existingItem) {
+    return { success: false, message: "This bookmark already exists" };
   }
 
   // Scrape metadata
@@ -91,10 +111,11 @@ export async function createItem(formData: FormData) {
 
   if (error) {
     console.error("Error creating item:", error);
-    throw new Error(`Failed to create item: ${error.message}`);
+    return { success: false, message: `Failed to create item: ${error.message}` };
   }
 
   revalidatePath("/inbox");
+  return { success: true };
 }
 
 export async function updateItemStatus(id: string, status: string) {
