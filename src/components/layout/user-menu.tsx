@@ -47,7 +47,7 @@ export function UserMenu({ user }: UserMenuProps) {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="group w-full justify-start gap-3 px-2 py-6 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200 ease-in-out"
+          className="group justify-start gap-3 h-8 w-8 p-0 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200 ease-in-out rounded-full"
         >
           <Avatar className="h-8 w-8 transition-transform duration-200 group-hover:scale-105 ring-1 ring-zinc-200 dark:ring-zinc-700">
             <AvatarImage
@@ -58,19 +58,14 @@ export function UserMenu({ user }: UserMenuProps) {
               {initials}
             </AvatarFallback>
           </Avatar>
-          <div className="flex flex-1 flex-col items-start text-left overflow-hidden">
-            <p className="font-medium text-sm leading-none text-zinc-900 dark:text-zinc-100 truncate w-full">
-              {displayName}
-            </p>
-          </div>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-60 p-1 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-xl rounded-xl"
-        align="start"
-        side="right"
-        sideOffset={12}
-        alignOffset={-4}
+        className="w-60 p-1 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-xl rounded-lg"
+        align="end"
+        side="bottom"
+        sideOffset={6}
+        alignOffset={0}
       >
         <div className="px-2 py-2 mb-1">
           <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
