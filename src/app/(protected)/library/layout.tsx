@@ -1,7 +1,8 @@
+import { TopNav } from "@/components/layout/top-nav";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
-export default async function ProtectedLayout({
+export default async function LibraryLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -15,5 +16,10 @@ export default async function ProtectedLayout({
     redirect("/login");
   }
 
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen flex flex-col">
+      <TopNav user={user} />
+      <main className="flex-1 p-8">{children}</main>
+    </div>
+  );
 }

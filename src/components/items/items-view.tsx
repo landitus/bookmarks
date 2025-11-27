@@ -5,16 +5,16 @@ import { Item } from "@/lib/types";
 import { ItemCard } from "@/components/items/item-card";
 import { LayoutGrid, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import { ItemActions } from "@/components/items/item-actions";
 import Link from "next/link";
 import Image from "next/image";
+import { AddItemInput } from "./add-item-input";
 
 interface ItemsViewProps {
   items: Item[];
   emptyState?: React.ReactNode;
-  title?: string;
-  description?: string;
-  headerActions?: React.ReactNode;
+  addItemTargetStatus?: "inbox" | "library";
 }
 
 type ViewType = "gallery" | "list";
@@ -22,11 +22,10 @@ type ViewType = "gallery" | "list";
 export function ItemsView({
   items,
   emptyState,
-  title,
-  description,
-  headerActions,
+  addItemTargetStatus = "inbox",
 }: ItemsViewProps) {
   const [view, setView] = useState<ViewType>("list");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const getDomain = (url: string) => {
     try {
@@ -49,7 +48,17 @@ export function ItemsView({
   const groupedItems = useMemo(() => {
     const groups: { [key: string]: Item[] } = {};
 
-    items.forEach((item) => {
+    const filteredItems = items.filter((item) => {
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
+      return (
+        item.title?.toLowerCase().includes(query) ||
+        item.url?.toLowerCase().includes(query) ||
+        item.description?.toLowerCase().includes(query)
+      );
+    });
+
+    filteredItems.forEach((item) => {
       const date = new Date(item.created_at);
       const now = new Date();
       const yesterday = new Date(now);
@@ -80,7 +89,7 @@ export function ItemsView({
     });
 
     return groups;
-  }, [items]);
+  }, [items, searchQuery]);
 
   // Custom sort order for the groups
   const sortedGroupKeys = useMemo(() => {
@@ -98,40 +107,45 @@ export function ItemsView({
     });
   }, [groupedItems]);
 
-  const DefaultEmptyState = () => (
-    <div className="flex flex-col items-center justify-center h-[50vh] border-2 border-dashed rounded-lg text-muted-foreground">
-      <p>No items found.</p>
-    </div>
-  );
-
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       <div className="space-y-6">
-        <div className="flex items-center justify-end">
-          <div className="flex items-center gap-1 border rounded-md p-1">
-            <Button
-              variant={view === "list" ? "secondary" : "ghost"}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setView("list")}
-              title="List view"
-            >
-              <List className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={view === "gallery" ? "secondary" : "ghost"}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setView("gallery")}
-              title="Gallery view"
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </Button>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1">
+            <AddItemInput
+              onSearch={setSearchQuery}
+              targetStatus={addItemTargetStatus}
+            />
+          </div>
+
+          <div className="flex items-center gap-4">
+            <ButtonGroup>
+              <Button
+                variant={view === "list" ? "secondary" : "outline"}
+                size="icon"
+                onClick={() => setView("list")}
+                title="List view"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={view === "gallery" ? "secondary" : "outline"}
+                size="icon"
+                onClick={() => setView("gallery")}
+                title="Gallery view"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+            </ButtonGroup>
           </div>
         </div>
 
         {items.length === 0 ? (
-          emptyState || <DefaultEmptyState />
+          emptyState || (
+            <div className="flex flex-col items-center justify-center h-[50vh] border-2 border-dashed rounded-lg text-muted-foreground">
+              <p>No items found.</p>
+            </div>
+          )
         ) : view === "gallery" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {items.map((item) => (

@@ -38,6 +38,7 @@ export async function getInboxItems(): Promise<Item[]> {
 export async function createItem(formData: FormData) {
   const supabase = await createClient();
   const url = formData.get("url") as string;
+  const status = (formData.get("status") as string) || "inbox";
 
   if (!url) return;
 
@@ -84,7 +85,7 @@ export async function createItem(formData: FormData) {
     description,
     image_url,
     type,
-    status: "inbox",
+    status,
     user_id: user?.id,
   });
 
