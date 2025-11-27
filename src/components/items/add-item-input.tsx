@@ -42,6 +42,7 @@ export function AddItemInput({
       startTransition(async () => {
         await createItem(formData);
         setValue("");
+        onSearch?.(""); // Clear search query in parent
         formRef.current?.reset();
         router.refresh();
       });
