@@ -20,8 +20,10 @@ export function TopNav({ user }: TopNavProps) {
             href="/library"
             className="flex items-center gap-2 font-bold text-xl"
           >
-            <div className="h-6 w-6 bg-primary rounded-md" />
-            Internet Shelf
+            <div className="h-6 w-6 bg-primary rounded-md flex items-center justify-center">
+              <span className="text-white text-sm font-bold">P</span>
+            </div>
+            Portable
           </Link>
         </div>
 
