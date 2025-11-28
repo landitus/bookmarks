@@ -193,12 +193,10 @@ export function ItemsView({
                         </span>
                       </div>
 
-                      <div className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <ItemActions
-                          itemId={item.id}
-                          currentStatus={item.status}
-                        />
-                      </div>
+                      <ItemActions
+                        itemId={item.id}
+                        currentStatus={item.status}
+                      />
                     </div>
                   ))}
                 </div>

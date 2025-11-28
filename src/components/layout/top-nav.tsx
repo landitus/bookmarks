@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 interface TopNavProps {
   user: {
@@ -25,6 +26,7 @@ interface TopNavProps {
 
 export function TopNav({ user }: TopNavProps) {
   const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
     { href: "/inbox", label: "Inbox", icon: Inbox },
@@ -76,9 +78,15 @@ export function TopNav({ user }: TopNavProps) {
 
         {/* Mobile Navigation Dropdown */}
         <div className="md:hidden absolute left-1/2 -translate-x-1/2">
-          <DropdownMenu>
+          <DropdownMenu open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="gap-1">
+              <Button
+                variant="ghost"
+                className={cn(
+                  "gap-1",
+                  mobileMenuOpen && "bg-accent text-accent-foreground"
+                )}
+              >
                 {ActiveIcon && <ActiveIcon className="h-4 w-4" />}
                 <span className="text-sm font-medium">{activeItem.label}</span>
                 <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />

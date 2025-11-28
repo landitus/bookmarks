@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { logout } from "@/lib/actions/auth";
 import { LogOut, Settings, Sparkles, User } from "lucide-react";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface UserMenuProps {
   user: {
@@ -24,6 +26,8 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ user }: UserMenuProps) {
+  const [open, setOpen] = useState(false);
+
   // Helper to format name like "Fernando Carrettoni"
   const getDisplayName = () => {
     if (user.user_metadata?.full_name) return user.user_metadata.full_name;
@@ -43,11 +47,14 @@ export function UserMenu({ user }: UserMenuProps) {
     .slice(0, 2);
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="group justify-start gap-3 h-8 w-8 p-0 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200 ease-in-out rounded-full"
+          className={cn(
+            "group justify-start gap-3 h-8 w-8 p-0 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200 ease-in-out rounded-full",
+            open && "bg-zinc-100 dark:bg-zinc-800"
+          )}
         >
           <Avatar className="h-8 w-8 transition-transform duration-200 group-hover:scale-105 ring-1 ring-zinc-200 dark:ring-zinc-700">
             <AvatarImage
