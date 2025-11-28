@@ -10,6 +10,7 @@ import { ItemActions } from "@/components/items/item-actions";
 import Link from "next/link";
 import Image from "next/image";
 import { AddItemInput } from "./add-item-input";
+import { cn } from "@/lib/utils";
 
 interface ItemsViewProps {
   items: Item[];
@@ -26,6 +27,7 @@ export function ItemsView({
 }: ItemsViewProps) {
   const [view, setView] = useState<ViewType>("list");
   const [searchQuery, setSearchQuery] = useState("");
+  const [openItemId, setOpenItemId] = useState<string | null>(null);
 
   const getDomain = (url: string) => {
     try {
@@ -163,7 +165,10 @@ export function ItemsView({
                   {groupedItems[groupKey].map((item) => (
                     <div
                       key={item.id}
-                      className="group flex items-center justify-between gap-4 p-1 rounded-lg hover:bg-accent/50 transition-colors pl-4"
+                      className={cn(
+                        "group flex items-center justify-between gap-4 p-1 rounded-lg hover:bg-accent/50 transition-colors pl-4",
+                        openItemId === item.id && "bg-accent/50"
+                      )}
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         {/* Favicon */}
@@ -196,6 +201,9 @@ export function ItemsView({
                       <ItemActions
                         itemId={item.id}
                         currentStatus={item.status}
+                        onOpenChange={(open) =>
+                          setOpenItemId(open ? item.id : null)
+                        }
                       />
                     </div>
                   ))}

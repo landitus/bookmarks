@@ -24,11 +24,21 @@ import { cn } from "@/lib/utils";
 interface ItemActionsProps {
   itemId: string;
   currentStatus: ItemStatus;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function ItemActions({ itemId, currentStatus }: ItemActionsProps) {
+export function ItemActions({
+  itemId,
+  currentStatus,
+  onOpenChange,
+}: ItemActionsProps) {
   const [isPending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
+
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    onOpenChange?.(newOpen);
+  };
 
   const handleStatusChange = (newStatus: ItemStatus) => {
     startTransition(async () => {
@@ -44,7 +54,7 @@ export function ItemActions({ itemId, currentStatus }: ItemActionsProps) {
         open && "opacity-100"
       )}
     >
-      <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenu open={open} onOpenChange={handleOpenChange}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
