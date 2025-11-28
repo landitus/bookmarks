@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Inbox, Layers, Library, Folder } from "lucide-react";
+import { BookMarked, Folder, Inbox, Layers2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "./user-menu";
 
@@ -27,13 +27,13 @@ export function Sidebar({ user }: SidebarProps) {
         </Button>
         <Button variant="ghost" asChild className="justify-start">
           <Link href="/queue">
-            <Layers className="mr-2 h-4 w-4" />
+            <Layers2 className="mr-2 h-4 w-4" />
             Queue
           </Link>
         </Button>
         <Button variant="ghost" asChild className="justify-start">
           <Link href="/library">
-            <Library className="mr-2 h-4 w-4" />
+            <BookMarked className="mr-2 h-4 w-4" />
             Library
           </Link>
         </Button>

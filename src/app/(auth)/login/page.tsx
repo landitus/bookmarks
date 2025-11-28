@@ -1,12 +1,12 @@
 import { AuthForm } from "@/components/auth/auth-form";
-import { Library } from "lucide-react";
+import { BookMarked } from "lucide-react";
 
 export default function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4">
       <div className="mb-8 flex flex-col items-center gap-2">
         <div className="flex items-center gap-2">
-          <Library className="h-8 w-8" />
+          <BookMarked className="h-8 w-8" />
           <h1 className="text-3xl font-bold tracking-tight">Internet Shelf</h1>
         </div>
         <p className="text-muted-foreground text-center max-w-md">

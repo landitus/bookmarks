@@ -10,7 +10,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Archive, Layers, Library, MoreVertical, Trash2 } from "lucide-react";
+import {
+  Archive,
+  BookMarked,
+  Layers2,
+  MoreVertical,
+  Trash2,
+} from "lucide-react";
 import { useTransition } from "react";
 import { ItemStatus } from "@/lib/types";
 
@@ -44,27 +50,27 @@ export function ItemActions({ itemId, currentStatus }: ItemActionsProps) {
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuLabel>Move to</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        
+
         {currentStatus !== "queue" && (
           <DropdownMenuItem
             onClick={() => handleStatusChange("queue")}
             disabled={isPending}
           >
-            <Layers className="mr-2 h-4 w-4" />
+            <Layers2 className="mr-2 h-4 w-4" />
             Queue
           </DropdownMenuItem>
         )}
-        
+
         {currentStatus !== "library" && (
           <DropdownMenuItem
             onClick={() => handleStatusChange("library")}
             disabled={isPending}
           >
-            <Library className="mr-2 h-4 w-4" />
+            <BookMarked className="mr-2 h-4 w-4" />
             Library
           </DropdownMenuItem>
         )}
-        
+
         {currentStatus !== "archive" && (
           <DropdownMenuItem
             onClick={() => handleStatusChange("archive")}
@@ -74,9 +80,9 @@ export function ItemActions({ itemId, currentStatus }: ItemActionsProps) {
             Archive
           </DropdownMenuItem>
         )}
-        
+
         <DropdownMenuSeparator />
-        
+
         <DropdownMenuItem
           className="text-destructive focus:text-destructive"
           disabled={isPending}
@@ -88,4 +94,3 @@ export function ItemActions({ itemId, currentStatus }: ItemActionsProps) {
     </DropdownMenu>
   );
 }
-
