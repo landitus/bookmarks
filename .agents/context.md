@@ -1,10 +1,10 @@
 # Project Context (Quick Reference)
 
-**Last Updated:** November 24, 2025
+**Last Updated:** November 28, 2025
 
 ## What We're Building
 
-**Internet Shelf** is a mixed-media bookmarking and consumption app. It replaces browser tabs and "watch later" lists with a single flow: **Capture → Consume → Keep**.
+**Portable** is a mixed-media bookmarking and consumption app. "A little pocket for the internet things you love." It replaces browser tabs and "watch later" lists with a single flow: **Capture → Consume → Keep**.
 
 ## Core Problem
 

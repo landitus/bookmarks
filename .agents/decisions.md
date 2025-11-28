@@ -44,7 +44,34 @@
 - **Decision:** All new saves go to Inbox first.
 - **Why:** Reduces friction at capture time. "Decide later."
 
+### Brand Name: "Portable"
+
+- **Decision:** App is called "Portable" with tagline "A little pocket for the internet things you love."
+- **Why:** Personal, friendly, memorable. Evokes portability and coziness.
+
 ## UI/UX Decisions
+
+### Visual Aesthetic: Warm & Minimal
+
+- **Decision:** Use warm cream background (#FFFBF7) with amber/orange/rose gradient accents.
+- **Why:**
+  1. **Differentiation:** Stands out from cold "tech" aesthetics.
+  2. **Personality:** Feels cozy, personal, inviting.
+  3. **Consistency:** Applied across landing and auth pages.
+- **Details:**
+  - Subtle noise texture for depth
+  - Animated gradient orbs (soft, not distracting)
+  - Neutral-900 for primary text/buttons
+  - Rounded corners (xl/2xl) throughout
+
+### Auth Page Hierarchy
+
+- **Decision:** Single title per page. Logo is icon-only, page title is the focal point.
+- **Why:** Avoids competing elements. "Welcome back" or "Create your account" is the single heading.
+- **Details:**
+  - Logo icon links back to home
+  - Cardless form design (cleaner, more modern)
+  - Rounded inputs with backdrop blur
 
 ### Auth Flow
 
