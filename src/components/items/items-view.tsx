@@ -11,11 +11,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { AddItemInput } from "./add-item-input";
 import { cn } from "@/lib/utils";
+import { usePathname } from "next/navigation";
 
 interface ItemsViewProps {
   items: Item[];
   emptyState?: React.ReactNode;
-  addItemTargetStatus?: "inbox" | "library";
+  addItemTargetStatus?: "inbox" | "queue" | "library";
 }
 
 type ViewType = "gallery" | "list";
@@ -23,11 +24,21 @@ type ViewType = "gallery" | "list";
 export function ItemsView({
   items,
   emptyState,
-  addItemTargetStatus = "inbox",
+  addItemTargetStatus,
 }: ItemsViewProps) {
+  const pathname = usePathname();
   const [view, setView] = useState<ViewType>("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [openItemId, setOpenItemId] = useState<string | null>(null);
+
+  // Auto-detect target status from pathname if not provided
+  const targetStatus =
+    addItemTargetStatus ||
+    (pathname === "/queue"
+      ? "queue"
+      : pathname === "/library"
+      ? "library"
+      : "inbox");
 
   const getDomain = (url: string) => {
     try {
@@ -116,7 +127,7 @@ export function ItemsView({
           <div className="flex-1">
             <AddItemInput
               onSearch={setSearchQuery}
-              targetStatus={addItemTargetStatus}
+              targetStatus={targetStatus}
             />
           </div>
 

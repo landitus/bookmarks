@@ -11,7 +11,7 @@ import { toast } from "sonner";
 interface AddItemInputProps {
   onSearch?: (query: string) => void;
   placeholder?: string;
-  targetStatus?: "inbox" | "library";
+  targetStatus?: "inbox" | "queue" | "library";
 }
 
 export function AddItemInput({

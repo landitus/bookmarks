@@ -7,6 +7,7 @@ export default async function QueuePage() {
   return (
     <ItemsView
       items={items}
+      addItemTargetStatus="queue"
       emptyState={
         <div className="flex flex-col items-center justify-center h-[50vh] border-2 border-dashed rounded-lg text-muted-foreground">
           <p>Your queue is empty.</p>
