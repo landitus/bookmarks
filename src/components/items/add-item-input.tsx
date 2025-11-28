@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Kbd } from "@/components/ui/kbd";
 import { createItem } from "@/lib/actions/items";
 import { Plus, Search, Loader2 } from "lucide-react";
 import { useRef, useState, useTransition } from "react";
@@ -29,7 +30,7 @@ export function AddItemInput({
     try {
       new URL(string);
       return true;
-    } catch (_) {
+    } catch {
       return false;
     }
   };
@@ -57,7 +58,6 @@ export function AddItemInput({
 
   return (
     <div className="relative w-full">
-      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
       <form
         ref={formRef}
         action={handleSubmit}
@@ -68,11 +68,29 @@ export function AddItemInput({
           }
         }}
       >
+        <div className="absolute left-2.5 top-2.5 flex items-center">
+          {isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          ) : isUrlValue ? (
+            <Button
+              type="submit"
+              variant="ghost"
+              size="icon"
+              className="h-4 w-4 p-0 text-muted-foreground hover:text-foreground hover:bg-transparent"
+              title="Add URL"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="sr-only">Add Item</span>
+            </Button>
+          ) : (
+            <Search className="h-4 w-4 text-muted-foreground" />
+          )}
+        </div>
         <Input
           type="text" // Changed to text to allow searching
           name="url"
           placeholder={placeholder}
-          className="pl-9 pr-10 w-full"
+          className="pl-9 pr-20 w-full"
           value={value}
           onChange={(e) => {
             setValue(e.target.value);
@@ -80,24 +98,11 @@ export function AddItemInput({
           }}
           autoComplete="off"
         />
-        <div className="absolute right-1 top-1 bottom-1 flex items-center">
-          {isPending ? (
-            <div className="h-8 w-8 flex items-center justify-center">
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-            </div>
-          ) : isUrlValue ? (
-            <Button
-              type="submit"
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
-              title="Add URL"
-            >
-              <Plus className="h-4 w-4" />
-              <span className="sr-only">Add Item</span>
-            </Button>
-          ) : null}
-        </div>
+        {isUrlValue && !isPending && (
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
+            <Kbd className="text-[10px]">Enter</Kbd>
+          </div>
+        )}
       </form>
     </div>
   );

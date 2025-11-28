@@ -7,7 +7,7 @@ export default function LoginPage() {
       <div className="mb-8 flex flex-col items-center gap-2">
         <div className="flex items-center gap-2">
           <BookMarked className="h-8 w-8" />
-          <h1 className="text-3xl font-bold tracking-tight">Internet Shelf</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Portable</h1>
         </div>
         <p className="text-muted-foreground text-center max-w-md">
           Your personal corner of the internet. Capture, consume, and curate the
