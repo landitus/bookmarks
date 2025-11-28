@@ -1,14 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { login, signup } from "@/lib/actions/auth";
@@ -36,26 +28,32 @@ export function AuthForm() {
   };
 
   return (
-    <Card className="w-full max-w-md shadow-lg">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">
-          {isSignUp ? "Create Account" : "Welcome Back"}
-        </CardTitle>
-        <CardDescription className="text-center">
+    <div className="w-full max-w-sm">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">
+          {isSignUp ? "Create your account" : "Welcome back"}
+        </h1>
+        <p className="text-[15px] text-neutral-500 mt-2">
           {isSignUp
-            ? "Enter your details to create your account"
-            : "Sign in to access your bookmarks"}
-        </CardDescription>
-      </CardHeader>
+            ? "Start saving the things you love"
+            : "Sign in to your pocket"}
+        </p>
+      </div>
+
+      {/* Form */}
       <form action={handleSubmit} name={isSignUp ? "signup" : "login"}>
-        <CardContent className="space-y-4">
+        <div className="space-y-4">
           {error && (
-            <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md border border-destructive/20">
+            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-xl border border-red-100">
               {error}
             </div>
           )}
+
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-neutral-700 text-sm">
+              Email
+            </Label>
             <Input
               id="email"
               name="email"
@@ -64,24 +62,32 @@ export function AuthForm() {
               required
               disabled={isPending}
               autoComplete="username"
+              className="h-11 rounded-xl border-neutral-200 bg-white/80 backdrop-blur-sm focus:border-neutral-400 focus:ring-neutral-400/20 placeholder:text-neutral-400"
             />
           </div>
+
           {isSignUp && (
             <div className="space-y-2">
-              <Label htmlFor="full_name">Full Name</Label>
+              <Label htmlFor="full_name" className="text-neutral-700 text-sm">
+                Full Name
+              </Label>
               <Input
                 id="full_name"
                 name="full_name"
                 type="text"
-                placeholder="John Doe"
+                placeholder="Your name"
                 required
                 disabled={isPending}
                 autoComplete="name"
+                className="h-11 rounded-xl border-neutral-200 bg-white/80 backdrop-blur-sm focus:border-neutral-400 focus:ring-neutral-400/20 placeholder:text-neutral-400"
               />
             </div>
           )}
+
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-neutral-700 text-sm">
+              Password
+            </Label>
             <Input
               id="password"
               name="password"
@@ -91,39 +97,30 @@ export function AuthForm() {
               disabled={isPending}
               autoComplete={isSignUp ? "new-password" : "current-password"}
               placeholder={isSignUp ? "At least 6 characters" : "••••••••"}
+              className="h-11 rounded-xl border-neutral-200 bg-white/80 backdrop-blur-sm focus:border-neutral-400 focus:ring-neutral-400/20 placeholder:text-neutral-400"
             />
-            {isSignUp && (
-              <p className="text-xs text-muted-foreground">
-                Minimum 6 characters
-              </p>
-            )}
           </div>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-3">
-          <Button type="submit" className="w-full" disabled={isPending}>
+        </div>
+
+        <div className="mt-6 space-y-3">
+          <Button
+            type="submit"
+            className="w-full h-11 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-medium shadow-lg shadow-neutral-900/10"
+            disabled={isPending}
+          >
             {isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 {isSignUp ? "Creating account..." : "Signing in..."}
               </>
             ) : (
-              <>{isSignUp ? "Create Account" : "Sign In"}</>
+              <>{isSignUp ? "Create account" : "Sign in"}</>
             )}
           </Button>
-          <div className="relative w-full">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Or
-              </span>
-            </div>
-          </div>
-          <Button
+
+          <button
             type="button"
-            variant="outline"
-            className="w-full"
+            className="w-full text-sm text-neutral-500 hover:text-neutral-700 transition-colors py-2"
             onClick={() => {
               setIsSignUp(!isSignUp);
               setError(null);
@@ -131,11 +128,11 @@ export function AuthForm() {
             disabled={isPending}
           >
             {isSignUp
-              ? "Already have an account? Sign in"
-              : "Don't have an account? Sign up"}
-          </Button>
-        </CardFooter>
+              ? "Already have an account? Sign in →"
+              : "Don't have an account? Sign up →"}
+          </button>
+        </div>
       </form>
-    </Card>
+    </div>
   );
 }
