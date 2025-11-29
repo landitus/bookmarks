@@ -194,7 +194,7 @@ export function ItemsView({ items, emptyState }: ItemsViewProps) {
                         openItemId === item.id && "bg-accent/50"
                       )}
                     >
-                      {/* Left side: Favicon + Badges + Title + Domain */}
+                      {/* Left side: Favicon + Title + Domain + Badges */}
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         <Image
                           src={getFaviconUrl(item.url)}
@@ -204,16 +204,6 @@ export function ItemsView({ items, emptyState }: ItemsViewProps) {
                           className="w-4 h-4 shrink-0"
                           unoptimized
                         />
-
-                        {/* Status badges */}
-                        <div className="flex items-center gap-1 shrink-0">
-                          {item.is_later && (
-                            <Clock className="h-3.5 w-3.5 text-blue-500" />
-                          )}
-                          {item.is_favorite && (
-                            <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                          )}
-                        </div>
 
                         <Link
                           href={item.url}
@@ -228,6 +218,18 @@ export function ItemsView({ items, emptyState }: ItemsViewProps) {
                         <span className="text-sm text-muted-foreground shrink-0">
                           {getDomain(item.url)}
                         </span>
+
+                        {/* Status badges */}
+                        {(item.is_later || item.is_favorite) && (
+                          <div className="flex items-center gap-1 shrink-0">
+                            {item.is_later && (
+                              <Clock className="h-3.5 w-3.5 text-blue-500" />
+                            )}
+                            {item.is_favorite && (
+                              <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       {/* Right side: Actions dropdown */}
