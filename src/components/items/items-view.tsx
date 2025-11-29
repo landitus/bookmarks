@@ -11,6 +11,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { AddItemInput } from "./add-item-input";
 import { cn } from "@/lib/utils";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
 // =============================================================================
 // TYPES
@@ -205,15 +210,61 @@ export function ItemsView({ items, emptyState }: ItemsViewProps) {
                           unoptimized
                         />
 
-                        <Link
-                          href={item.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-medium truncate hover:underline"
-                          title={item.title}
-                        >
-                          {item.title}
-                        </Link>
+                        <HoverCard openDelay={300} closeDelay={100}>
+                          <HoverCardTrigger asChild>
+                            <Link
+                              href={item.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-medium truncate hover:underline"
+                            >
+                              {item.title}
+                            </Link>
+                          </HoverCardTrigger>
+                          <HoverCardContent
+                            side="bottom"
+                            align="start"
+                            className="w-64 p-0 overflow-hidden rounded-lg shadow-xs"
+                          >
+                            {/* Preview image */}
+                            {item.image_url && (
+                              <div className="relative aspect-video bg-muted">
+                                <Image
+                                  src={item.image_url}
+                                  alt=""
+                                  fill
+                                  className="object-cover"
+                                  unoptimized
+                                />
+                              </div>
+                            )}
+                            {/* Content */}
+                            <div className="p-3 space-y-2">
+                              <h4 className="font-semibold text-sm leading-tight line-clamp-2">
+                                {item.title}
+                              </h4>
+                              {item.description && (
+                                <p className="text-xs text-muted-foreground line-clamp-3">
+                                  {item.description}
+                                </p>
+                              )}
+                              {/* Source */}
+                              <div className="flex items-center gap-2 pt-1">
+                                <Image
+                                  src={getFaviconUrl(item.url)}
+                                  alt=""
+                                  width={14}
+                                  height={14}
+                                  className="w-3.5 h-3.5"
+                                  unoptimized
+                                />
+                                <span className="text-xs text-muted-foreground">
+                                  {getDomain(item.url)}
+                                </span>
+                              </div>
+                            </div>
+                          </HoverCardContent>
+                        </HoverCard>
 
                         <span className="text-sm text-muted-foreground shrink-0">
                           {getDomain(item.url)}
