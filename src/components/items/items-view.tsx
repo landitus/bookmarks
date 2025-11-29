@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { Item } from "@/lib/types";
 import { ItemCard } from "@/components/items/item-card";
-import { LayoutGrid, List } from "lucide-react";
+import { LayoutGrid, List, Clock, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { ItemActions } from "@/components/items/item-actions";
@@ -11,7 +11,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { AddItemInput } from "./add-item-input";
 import { cn } from "@/lib/utils";
-import { usePathname } from "next/navigation";
 
 // =============================================================================
 // TYPES
@@ -20,7 +19,6 @@ import { usePathname } from "next/navigation";
 interface ItemsViewProps {
   items: Item[]; // Array of bookmark items to display
   emptyState?: React.ReactNode; // Custom empty state component
-  addItemTargetStatus?: "inbox" | "queue" | "library"; // Where new items should be added
 }
 
 type ViewType = "gallery" | "list"; // Toggle between card grid and list
@@ -29,40 +27,19 @@ type ViewType = "gallery" | "list"; // Toggle between card grid and list
 // COMPONENT
 // =============================================================================
 
-export function ItemsView({
-  items,
-  emptyState,
-  addItemTargetStatus,
-}: ItemsViewProps) {
-  const pathname = usePathname();
-
+export function ItemsView({ items, emptyState }: ItemsViewProps) {
   // ---------------------------------------------------------------------------
   // STATE
   // ---------------------------------------------------------------------------
   const [view, setView] = useState<ViewType>("list"); // Current view mode
   const [searchQuery, setSearchQuery] = useState(""); // Search filter text
-  const [openItemId, setOpenItemId] = useState<string | null>(null); // Track which item's menu is open (for hover state)
-
-  // ---------------------------------------------------------------------------
-  // DERIVED VALUES
-  // ---------------------------------------------------------------------------
-
-  // Auto-detect target status from URL path if not explicitly provided
-  // e.g., /queue -> "queue", /library -> "library", default -> "inbox"
-  const targetStatus =
-    addItemTargetStatus ||
-    (pathname === "/queue"
-      ? "queue"
-      : pathname === "/library"
-      ? "library"
-      : "inbox");
+  const [openItemId, setOpenItemId] = useState<string | null>(null); // Track which item's menu is open
 
   // ---------------------------------------------------------------------------
   // HELPER FUNCTIONS
   // ---------------------------------------------------------------------------
 
   // Extract clean domain from URL (removes "www." prefix)
-  // e.g., "https://www.example.com/page" -> "example.com"
   const getDomain = (url: string) => {
     try {
       const domain = new URL(url).hostname;
@@ -73,7 +50,6 @@ export function ItemsView({
   };
 
   // Get favicon URL using Google's favicon service
-  // Returns a 32x32 favicon for any domain
   const getFaviconUrl = (url: string) => {
     try {
       const domain = new URL(url).hostname;
@@ -87,12 +63,11 @@ export function ItemsView({
   // GROUPED ITEMS (for list view)
   // ---------------------------------------------------------------------------
 
-  // Group items by relative date: "Today", "Yesterday", or day name (e.g., "Monday")
-  // Also applies search filter
+  // Group items by relative date: "Today", "Yesterday", or day name
   const groupedItems = useMemo(() => {
     const groups: { [key: string]: Item[] } = {};
 
-    // Filter items by search query (matches title, url, or description)
+    // Filter items by search query
     const filteredItems = items.filter((item) => {
       if (!searchQuery) return true;
       const query = searchQuery.toLowerCase();
@@ -112,13 +87,12 @@ export function ItemsView({
 
       let key = "";
 
-      // Determine the group label
       if (date.toDateString() === now.toDateString()) {
         key = "Today";
       } else if (date.toDateString() === yesterday.toDateString()) {
         key = "Yesterday";
       } else {
-        key = date.toLocaleDateString("en-US", { weekday: "long" }); // e.g., "Monday"
+        key = date.toLocaleDateString("en-US", { weekday: "long" });
       }
 
       if (!groups[key]) {
@@ -138,7 +112,7 @@ export function ItemsView({
     return groups;
   }, [items, searchQuery]);
 
-  // Sort group keys: Today first, then Yesterday, then by most recent item date
+  // Sort group keys: Today first, then Yesterday, then by most recent
   const sortedGroupKeys = useMemo(() => {
     const keys = Object.keys(groupedItems);
     return keys.sort((a, b) => {
@@ -147,7 +121,6 @@ export function ItemsView({
       if (a === "Yesterday") return -1;
       if (b === "Yesterday") return 1;
 
-      // For other days, sort by the most recent item in each group
       const dateA = new Date(groupedItems[a][0].created_at).getTime();
       const dateB = new Date(groupedItems[b][0].created_at).getTime();
       return dateB - dateA;
@@ -161,19 +134,12 @@ export function ItemsView({
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       <div className="space-y-6">
-        {/* ---------------------------------------------------------------------
-            TOOLBAR: Search input + View toggle
-        --------------------------------------------------------------------- */}
+        {/* TOOLBAR: Search input + View toggle */}
         <div className="flex items-center justify-between gap-4">
-          {/* Search/Add input - takes remaining space */}
           <div className="flex-1">
-            <AddItemInput
-              onSearch={setSearchQuery}
-              targetStatus={targetStatus}
-            />
+            <AddItemInput onSearch={setSearchQuery} />
           </div>
 
-          {/* View toggle buttons (List | Gallery) */}
           <div className="flex items-center gap-4">
             <ButtonGroup>
               <Button
@@ -196,13 +162,8 @@ export function ItemsView({
           </div>
         </div>
 
-        {/* ---------------------------------------------------------------------
-            CONTENT: Empty state, Gallery view, or List view
-        --------------------------------------------------------------------- */}
-
+        {/* CONTENT: Empty state, Gallery view, or List view */}
         {items.length === 0 ? (
-          // EMPTY STATE
-          // Show custom empty state or default placeholder
           emptyState || (
             <div className="flex flex-col items-center justify-center h-[50vh] border-2 border-dashed rounded-lg text-muted-foreground">
               <p>No items found.</p>
@@ -210,7 +171,6 @@ export function ItemsView({
           )
         ) : view === "gallery" ? (
           // GALLERY VIEW
-          // Responsive grid of ItemCards (1-4 columns based on screen width)
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {items.map((item) => (
               <ItemCard key={item.id} item={item} />
@@ -218,30 +178,24 @@ export function ItemsView({
           </div>
         ) : (
           // LIST VIEW
-          // Items grouped by date with compact row layout
           <div className="space-y-8">
             {sortedGroupKeys.map((groupKey) => (
               <div key={groupKey} className="space-y-2">
-                {/* Date group header (e.g., "Today", "Yesterday", "Monday") */}
                 <h3 className="text-sm font-medium text-muted-foreground pl-2">
                   {groupKey}
                 </h3>
 
-                {/* Items in this date group */}
                 <div className="space-y-0">
                   {groupedItems[groupKey].map((item) => (
                     <div
                       key={item.id}
                       className={cn(
-                        // Base styles: horizontal layout with hover effect
                         "group flex items-center justify-between gap-4 p-1 rounded-lg hover:bg-accent/50 transition-colors pl-4",
-                        // Highlight row when its actions menu is open
                         openItemId === item.id && "bg-accent/50"
                       )}
                     >
-                      {/* Left side: Favicon + Title + Domain */}
+                      {/* Left side: Favicon + Badges + Title + Domain */}
                       <div className="flex items-center gap-3 min-w-0 flex-1">
-                        {/* Favicon (16x16, from Google's favicon service) */}
                         <Image
                           src={getFaviconUrl(item.url)}
                           alt=""
@@ -251,7 +205,16 @@ export function ItemsView({
                           unoptimized
                         />
 
-                        {/* Title (clickable, opens URL in new tab) */}
+                        {/* Status badges */}
+                        <div className="flex items-center gap-1 shrink-0">
+                          {item.is_later && (
+                            <Clock className="h-3.5 w-3.5 text-blue-500" />
+                          )}
+                          {item.is_favorite && (
+                            <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                          )}
+                        </div>
+
                         <Link
                           href={item.url}
                           target="_blank"
@@ -262,16 +225,16 @@ export function ItemsView({
                           {item.title}
                         </Link>
 
-                        {/* Domain (muted, e.g., "github.com") */}
                         <span className="text-sm text-muted-foreground shrink-0">
                           {getDomain(item.url)}
                         </span>
                       </div>
 
-                      {/* Right side: Actions dropdown (move to queue, archive, delete, etc.) */}
+                      {/* Right side: Actions dropdown */}
                       <ItemActions
                         itemId={item.id}
-                        currentStatus={item.status}
+                        isLater={item.is_later}
+                        isFavorite={item.is_favorite}
                         onOpenChange={(open) =>
                           setOpenItemId(open ? item.id : null)
                         }

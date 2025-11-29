@@ -12,13 +12,11 @@ import { toast } from "sonner";
 interface AddItemInputProps {
   onSearch?: (query: string) => void;
   placeholder?: string;
-  targetStatus?: "inbox" | "queue" | "library";
 }
 
 export function AddItemInput({
   onSearch,
   placeholder = "Search or add URL...",
-  targetStatus = "inbox",
 }: AddItemInputProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [value, setValue] = useState("");
@@ -39,8 +37,6 @@ export function AddItemInput({
 
   const handleSubmit = async (formData: FormData) => {
     if (isUrlValue) {
-      // Add status to formData
-      formData.append("status", targetStatus);
       startTransition(async () => {
         const result = await createItem(formData);
         if (result.success) {
@@ -87,7 +83,7 @@ export function AddItemInput({
           )}
         </div>
         <Input
-          type="text" // Changed to text to allow searching
+          type="text"
           name="url"
           placeholder={placeholder}
           className="pl-9 pr-20 w-full"

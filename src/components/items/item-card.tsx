@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import Image from "next/image";
 import { ItemActions } from "./item-actions";
 import Link from "next/link";
+import { Clock, Star } from "lucide-react";
 
 interface ItemCardProps {
   item: Item;
@@ -25,8 +26,22 @@ export function ItemCard({ item }: ItemCardProps) {
               No Preview
             </div>
           )}
+          {/* Type badge */}
           <div className="absolute top-2 right-2 bg-black/75 text-white text-[10px] px-2 py-1 rounded uppercase font-bold tracking-wider">
             {item.type}
+          </div>
+          {/* Status badges */}
+          <div className="absolute top-2 left-2 flex gap-1">
+            {item.is_later && (
+              <div className="bg-blue-500 text-white p-1 rounded">
+                <Clock className="h-3 w-3" />
+              </div>
+            )}
+            {item.is_favorite && (
+              <div className="bg-yellow-400 text-white p-1 rounded">
+                <Star className="h-3 w-3 fill-current" />
+              </div>
+            )}
           </div>
         </div>
       </Link>
@@ -43,7 +58,11 @@ export function ItemCard({ item }: ItemCardProps) {
           </Link>
           <p className="text-xs text-muted-foreground truncate">{item.url}</p>
         </div>
-        <ItemActions itemId={item.id} currentStatus={item.status} />
+        <ItemActions
+          itemId={item.id}
+          isLater={item.is_later}
+          isFavorite={item.is_favorite}
+        />
       </CardHeader>
 
       <CardContent className="p-4 pt-2 flex-grow">

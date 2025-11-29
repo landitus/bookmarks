@@ -12,6 +12,30 @@
 - **Decision:** We treat Next.js Server Components like "Controllers" and Client Components like "Views".
 - **Why:** Simplicity. Keeps logic on the server, reduces client-side state complexity.
 
+### Unified Collection Model (Nov 2025)
+
+- **Decision:** Replace linear pipeline (Inbox → Queue → Library) with unified collection + boolean filters.
+- **Why:**
+  1. Items can have multiple states (both Later AND Favorite)
+  2. Simpler mental model — everything in one place
+  3. Filters instead of moving items between states
+- **Implementation:**
+  - `is_later` boolean replaces "queue" status
+  - `is_favorite` boolean replaces "library" status
+  - `is_archived` boolean replaces "archive" status
+
+### Next.js Middleware for Auth Routing
+
+- **Decision:** Use middleware.ts for all auth-based routing instead of page-level redirects.
+- **Why:**
+  1. Runs at the edge before page renders
+  2. Single source of truth for auth routing
+  3. Cleaner page components
+- **Routes handled:**
+  - `/` → `/everything` (authenticated)
+  - `/login` → `/everything` (authenticated)
+  - Protected routes → `/login` (unauthenticated)
+
 ## Technical Decisions
 
 ### No TanStack Query
@@ -38,11 +62,6 @@
 - **Trade-off:** Less robust for complex sites (no headless browser), but sufficient for v0.1.
 
 ## Product Decisions
-
-### "Inbox" First
-
-- **Decision:** All new saves go to Inbox first.
-- **Why:** Reduces friction at capture time. "Decide later."
 
 ### Brand Name: "Portable"
 

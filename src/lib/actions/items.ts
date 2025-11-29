@@ -18,27 +18,81 @@ const scraper = metascraper([
   metascraperUrl(),
 ]);
 
-export async function getInboxItems(): Promise<Item[]> {
+// =============================================================================
+// READ OPERATIONS
+// =============================================================================
+
+/**
+ * Get all non-archived items (Everything view)
+ */
+export async function getItems(): Promise<Item[]> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("items")
     .select("*")
-    .eq("status", "inbox")
+    .eq("is_archived", false)
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("Error fetching inbox items:", error);
+    console.error("Error fetching items:", error);
     return [];
   }
 
   return data as Item[];
 }
 
-export async function createItem(formData: FormData): Promise<{ success: boolean; message?: string }> {
+/**
+ * Get items marked as "Later" (to watch/read later)
+ */
+export async function getLaterItems(): Promise<Item[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("items")
+    .select("*")
+    .eq("is_later", true)
+    .eq("is_archived", false)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching later items:", error);
+    return [];
+  }
+
+  return data as Item[];
+}
+
+/**
+ * Get items marked as "Favorites"
+ */
+export async function getFavoriteItems(): Promise<Item[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("items")
+    .select("*")
+    .eq("is_favorite", true)
+    .eq("is_archived", false)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching favorite items:", error);
+    return [];
+  }
+
+  return data as Item[];
+}
+
+// =============================================================================
+// CREATE OPERATIONS
+// =============================================================================
+
+export async function createItem(
+  formData: FormData
+): Promise<{ success: boolean; message?: string }> {
   const supabase = await createClient();
   const url = formData.get("url") as string;
-  const status = (formData.get("status") as string) || "inbox";
 
   if (!url) {
     return { success: false, message: "URL is required" };
@@ -49,26 +103,19 @@ export async function createItem(formData: FormData): Promise<{ success: boolean
     data: { user },
   } = await supabase.auth.getUser();
 
-  // TEMPORARY: For development without auth, we'll disable RLS
-  // In production, this check should remain and redirect to login
   if (!user) {
     console.warn("No authenticated user - using service role for development");
-    // For now, we'll skip this and let the DB handle it
-    // You'll need to temporarily disable RLS or create a test user
   }
 
   // Check if URL already exists for this user
-  const duplicateQuery = supabase
-    .from("items")
-    .select("id")
-    .eq("url", url);
-  
+  const duplicateQuery = supabase.from("items").select("id").eq("url", url);
+
   if (user?.id) {
     duplicateQuery.eq("user_id", user.id);
   } else {
     duplicateQuery.is("user_id", null);
   }
-  
+
   const { data: existingItem } = await duplicateQuery.maybeSingle();
 
   if (existingItem) {
@@ -90,7 +137,6 @@ export async function createItem(formData: FormData): Promise<{ success: boolean
     if (metadata.image) image_url = metadata.image;
   } catch (e) {
     console.error("Failed to scrape metadata:", e);
-    // Fallback to URL as title if scraping fails
   }
 
   // Infer type roughly from extension or domain
@@ -105,33 +151,156 @@ export async function createItem(formData: FormData): Promise<{ success: boolean
     description,
     image_url,
     type,
-    status,
+    is_later: false,
+    is_favorite: false,
+    is_archived: false,
     user_id: user?.id,
   });
 
   if (error) {
     console.error("Error creating item:", error);
-    return { success: false, message: `Failed to create item: ${error.message}` };
+    return {
+      success: false,
+      message: `Failed to create item: ${error.message}`,
+    };
   }
 
-  revalidatePath("/inbox");
+  revalidateAllPaths();
   return { success: true };
 }
 
-export async function updateItemStatus(id: string, status: string) {
+// =============================================================================
+// TOGGLE OPERATIONS
+// =============================================================================
+
+/**
+ * Toggle "Later" flag on an item
+ */
+export async function toggleLater(id: string): Promise<{ is_later: boolean }> {
+  const supabase = await createClient();
+
+  // Get current state
+  const { data: item, error: fetchError } = await supabase
+    .from("items")
+    .select("is_later")
+    .eq("id", id)
+    .single();
+
+  if (fetchError || !item) {
+    throw new Error("Failed to fetch item");
+  }
+
+  // Toggle the flag
+  const newValue = !item.is_later;
+  const { error } = await supabase
+    .from("items")
+    .update({ is_later: newValue })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error toggling later:", error);
+    throw new Error("Failed to toggle later status");
+  }
+
+  revalidateAllPaths();
+  return { is_later: newValue };
+}
+
+/**
+ * Toggle "Favorite" flag on an item
+ */
+export async function toggleFavorite(
+  id: string
+): Promise<{ is_favorite: boolean }> {
+  const supabase = await createClient();
+
+  // Get current state
+  const { data: item, error: fetchError } = await supabase
+    .from("items")
+    .select("is_favorite")
+    .eq("id", id)
+    .single();
+
+  if (fetchError || !item) {
+    throw new Error("Failed to fetch item");
+  }
+
+  // Toggle the flag
+  const newValue = !item.is_favorite;
+  const { error } = await supabase
+    .from("items")
+    .update({ is_favorite: newValue })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error toggling favorite:", error);
+    throw new Error("Failed to toggle favorite status");
+  }
+
+  revalidateAllPaths();
+  return { is_favorite: newValue };
+}
+
+/**
+ * Archive an item (removes from Everything view)
+ */
+export async function archiveItem(id: string): Promise<void> {
   const supabase = await createClient();
 
   const { error } = await supabase
     .from("items")
-    .update({ status })
+    .update({ is_archived: true })
     .eq("id", id);
 
   if (error) {
-    console.error("Error updating item status:", error);
-    throw new Error("Failed to update item status");
+    console.error("Error archiving item:", error);
+    throw new Error("Failed to archive item");
   }
 
-  revalidatePath("/inbox");
-  revalidatePath("/queue");
-  revalidatePath("/library");
+  revalidateAllPaths();
+}
+
+/**
+ * Unarchive an item (restore to Everything view)
+ */
+export async function unarchiveItem(id: string): Promise<void> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("items")
+    .update({ is_archived: false })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error unarchiving item:", error);
+    throw new Error("Failed to unarchive item");
+  }
+
+  revalidateAllPaths();
+}
+
+/**
+ * Delete an item permanently
+ */
+export async function deleteItem(id: string): Promise<void> {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("items").delete().eq("id", id);
+
+  if (error) {
+    console.error("Error deleting item:", error);
+    throw new Error("Failed to delete item");
+  }
+
+  revalidateAllPaths();
+}
+
+// =============================================================================
+// HELPERS
+// =============================================================================
+
+function revalidateAllPaths() {
+  revalidatePath("/everything");
+  revalidatePath("/later");
+  revalidatePath("/favorites");
 }

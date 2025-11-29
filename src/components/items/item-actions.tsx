@@ -1,35 +1,40 @@
 "use client";
 
-import { updateItemStatus } from "@/lib/actions/items";
+import {
+  toggleLater,
+  toggleFavorite,
+  archiveItem,
+  deleteItem,
+} from "@/lib/actions/items";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Archive,
-  BookMarked,
-  Layers2,
+  Clock,
   MoreVertical,
+  Star,
   Trash2,
 } from "lucide-react";
 import { useState, useTransition } from "react";
-import { ItemStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 interface ItemActionsProps {
   itemId: string;
-  currentStatus: ItemStatus;
+  isLater: boolean;
+  isFavorite: boolean;
   onOpenChange?: (open: boolean) => void;
 }
 
 export function ItemActions({
   itemId,
-  currentStatus,
+  isLater,
+  isFavorite,
   onOpenChange,
 }: ItemActionsProps) {
   const [isPending, startTransition] = useTransition();
@@ -40,9 +45,30 @@ export function ItemActions({
     onOpenChange?.(newOpen);
   };
 
-  const handleStatusChange = (newStatus: ItemStatus) => {
+  const handleToggleLater = () => {
     startTransition(async () => {
-      await updateItemStatus(itemId, newStatus);
+      await toggleLater(itemId);
+      setOpen(false);
+    });
+  };
+
+  const handleToggleFavorite = () => {
+    startTransition(async () => {
+      await toggleFavorite(itemId);
+      setOpen(false);
+    });
+  };
+
+  const handleArchive = () => {
+    startTransition(async () => {
+      await archiveItem(itemId);
+      setOpen(false);
+    });
+  };
+
+  const handleDelete = () => {
+    startTransition(async () => {
+      await deleteItem(itemId);
       setOpen(false);
     });
   };
@@ -70,47 +96,38 @@ export function ItemActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuLabel className="text-muted-foreground">
-            Move to
-          </DropdownMenuLabel>
+          {/* Toggle Later */}
+          <DropdownMenuItem onSelect={handleToggleLater} disabled={isPending}>
+            <Clock className={cn("h-4 w-4", isLater && "text-blue-500")} />
+            {isLater ? "Remove from Later" : "Add to Later"}
+          </DropdownMenuItem>
 
-          {currentStatus !== "queue" && (
-            <DropdownMenuItem
-              onSelect={() => handleStatusChange("queue")}
-              disabled={isPending}
-            >
-              <Layers2 className="h-4 w-4" />
-              Queue
-            </DropdownMenuItem>
-          )}
-
-          {currentStatus !== "library" && (
-            <DropdownMenuItem
-              onSelect={() => handleStatusChange("library")}
-              disabled={isPending}
-            >
-              <BookMarked className="h-4 w-4" />
-              Library
-            </DropdownMenuItem>
-          )}
-
-          {currentStatus !== "archive" && (
-            <DropdownMenuItem
-              onSelect={() => handleStatusChange("archive")}
-              disabled={isPending}
-            >
-              <Archive className="h-4 w-4" />
-              Archive
-            </DropdownMenuItem>
-          )}
+          {/* Toggle Favorite */}
+          <DropdownMenuItem
+            onSelect={handleToggleFavorite}
+            disabled={isPending}
+          >
+            <Star
+              className={cn(
+                "h-4 w-4",
+                isFavorite && "fill-yellow-400 text-yellow-400"
+              )}
+            />
+            {isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+          </DropdownMenuItem>
 
           <DropdownMenuSeparator />
 
+          {/* Archive */}
+          <DropdownMenuItem onSelect={handleArchive} disabled={isPending}>
+            <Archive className="h-4 w-4" />
+            Archive
+          </DropdownMenuItem>
+
+          {/* Delete */}
           <DropdownMenuItem
             variant="destructive"
-            onSelect={() => {
-              // TODO: Implement delete functionality
-            }}
+            onSelect={handleDelete}
             disabled={isPending}
           >
             <Trash2 className="h-4 w-4" />

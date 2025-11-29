@@ -1,21 +1,21 @@
-import { getLibraryItems } from "@/lib/actions/views";
+import { getFavoriteItems } from "@/lib/actions/items";
 import { ItemsView } from "@/components/items/items-view";
 
-export default async function LibraryPage() {
-  const items = await getLibraryItems();
+export default async function FavoritesPage() {
+  const items = await getFavoriteItems();
 
   return (
     <ItemsView
       items={items}
-      addItemTargetStatus="library"
       emptyState={
         <div className="flex flex-col items-center justify-center h-[50vh] border-2 border-dashed rounded-lg text-muted-foreground">
-          <p>Your library is empty.</p>
+          <p>No favorites yet.</p>
           <p className="text-sm">
-            Archive items from your queue to build your collection.
+            Star items to add them to your favorites collection.
           </p>
         </div>
       }
     />
   );
 }
+

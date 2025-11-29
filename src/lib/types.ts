@@ -1,5 +1,4 @@
 export type ItemType = "video" | "article" | "thread" | "image";
-export type ItemStatus = "inbox" | "queue" | "library" | "archive";
 
 export interface Profile {
   id: string;
@@ -16,8 +15,10 @@ export interface Item {
   description: string | null;
   image_url: string | null;
   type: ItemType;
-  status: ItemStatus;
-  metadata: Record<string, any> | null;
+  is_later: boolean; // "Later" filter - items to watch/read later
+  is_favorite: boolean; // "Favorites" filter - starred/favorite items
+  is_archived: boolean; // Archive state - hidden from Everything view
+  metadata: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
 }

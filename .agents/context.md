@@ -1,6 +1,6 @@
 # Project Context (Quick Reference)
 
-**Last Updated:** November 28, 2025
+**Last Updated:** November 29, 2025
 
 ## What We're Building
 
