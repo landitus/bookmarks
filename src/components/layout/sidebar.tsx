@@ -27,12 +27,18 @@ export function Sidebar({ user }: SidebarProps) {
   ];
 
   return (
-    <div className="w-64 border-r bg-muted/10 h-screen p-4 flex flex-col gap-4 fixed left-0 top-0">
-      <div className="font-semibold text-xl px-4 py-2 tracking-tight">
-        Portable
+    <div className="w-64 border-r border-zinc-200 dark:border-zinc-900 bg-muted/50 h-screen p-4 flex flex-col gap-4 fixed left-0 top-0">
+      <div className="flex items-center justify-between px-2 py-1">
+        <Link
+          href="/everything"
+          className="w-7 h-7 bg-neutral-900 rounded-lg flex items-center justify-center"
+        >
+          <span className="text-white font-bold text-sm">P</span>
+        </Link>
+        <UserMenu user={user} />
       </div>
 
-      <nav className="flex flex-col gap-1">
+      <nav className="flex flex-col gap-0.5 mt-4">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -40,10 +46,13 @@ export function Sidebar({ user }: SidebarProps) {
               key={item.href}
               variant={isActive ? "secondary" : "ghost"}
               asChild
-              className={cn("justify-start", isActive && "font-medium")}
+              className={cn(
+                "justify-start hover:bg-accent",
+                isActive && "font-medium"
+              )}
             >
               <Link href={item.href}>
-                <item.icon className="mr-2 h-4 w-4" />
+                <item.icon className="mr-0.5 h-4 w-4" />
                 {item.label}
               </Link>
             </Button>
@@ -52,8 +61,8 @@ export function Sidebar({ user }: SidebarProps) {
       </nav>
 
       <div className="mt-4">
-        <h4 className="px-4 text-xs font-semibold text-muted-foreground mb-2">
-          PROJECTS
+        <h4 className="px-2 text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
+          Projects
         </h4>
         <nav className="flex flex-col gap-1">
           <Button
@@ -63,15 +72,11 @@ export function Sidebar({ user }: SidebarProps) {
             className="justify-start text-muted-foreground"
           >
             <Link href="/projects">
-              <Folder className="mr-2 h-4 w-4" />
+              <Folder className="mr-1 h-4 w-4" />
               All Projects
             </Link>
           </Button>
         </nav>
-      </div>
-
-      <div className="mt-auto px-2">
-        <UserMenu user={user} />
       </div>
     </div>
   );

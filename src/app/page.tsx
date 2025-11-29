@@ -15,9 +15,9 @@ export default function Home() {
 
       {/* Warm gradient wash */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-to-b from-amber-200/40 via-orange-100/20 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-rose-200/30 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-[300px] h-[300px] bg-gradient-to-tl from-amber-100/40 to-transparent rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-linear-to-b from-amber-200/40 via-orange-100/20 to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-linear-to-tr from-rose-200/30 to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-[300px] h-[300px] bg-linear-to-tl from-amber-100/40 to-transparent rounded-full blur-3xl" />
       </div>
 
       <main className="flex flex-col items-center gap-8 px-4 animate-in fade-in slide-in-from-bottom-4 duration-700">

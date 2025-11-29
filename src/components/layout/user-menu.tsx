@@ -52,11 +52,11 @@ export function UserMenu({ user }: UserMenuProps) {
         <Button
           variant="ghost"
           className={cn(
-            "group justify-start gap-3 h-8 w-8 p-0 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200 ease-in-out rounded-full",
+            "group justify-start gap-3 h-7 w-7 p-0 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200 ease-in-out rounded-full",
             open && "bg-zinc-100 dark:bg-zinc-800"
           )}
         >
-          <Avatar className="h-8 w-8 transition-transform duration-200 group-hover:scale-105 ring-1 ring-zinc-200 dark:ring-zinc-700">
+          <Avatar className="h-7 w-7 transition-transform duration-200 group-hover:scale-105 ring-1 ring-zinc-200 dark:ring-zinc-700">
             <AvatarImage
               src={user.user_metadata?.avatar_url}
               alt={displayName}
