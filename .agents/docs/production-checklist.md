@@ -187,6 +187,7 @@ pnpm dev
 ```
 
 **Local Supabase Commands:**
+
 ```bash
 supabase start      # Start local Supabase (Docker)
 supabase stop       # Stop local Supabase
@@ -196,6 +197,7 @@ supabase studio     # Open local Supabase Studio (GUI)
 ```
 
 **Local URLs:**
+
 - App: http://localhost:3000
 - Supabase Studio: http://127.0.0.1:54323
 - API: http://127.0.0.1:54321
