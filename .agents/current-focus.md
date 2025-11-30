@@ -1,13 +1,23 @@
 # Current Focus
 
 **Last Updated:** November 29, 2025
-**Session:** Unified Collection Architecture Refactor
+**Session:** Layout Toggle System
 
 ## 🎯 Current Session Focus
-**Completed!** Refactored from linear pipeline to unified collection with boolean filters.
+**Completed!** Implemented layout toggle system with encapsulated sidebar and topbar layouts.
 
 ## ✅ What We Just Completed
-**Unified Collection Refactor**
+**Layout Toggle System**
+- ✅ Created layout config system (`src/lib/config.ts`) with `LAYOUT_MODE` constant
+- ✅ Encapsulated sidebar layout in `src/components/layout/sidebar/` folder
+- ✅ Encapsulated topbar layout in `src/components/layout/topbar/` folder
+- ✅ Updated topbar navigation routes to match current routes (`/everything`, `/later`, `/favorites`)
+- ✅ Created unified layout export (`src/components/layout/index.ts`) that selects active layout based on config
+- ✅ Updated protected layout to use config-driven `ActiveLayout` component
+- ✅ Cleaned up old layout files (`sidebar.tsx`, `top-nav.tsx`)
+- ✅ Default layout set to `"topbar"` for testing
+
+**Previous Session: Unified Collection Refactor**
 - ✅ Replaced `status` enum with boolean flags (`is_later`, `is_favorite`, `is_archived`)
 - ✅ Created new routes: `/everything`, `/later`, `/favorites`
 - ✅ Implemented toggle actions (items can be BOTH Later AND Favorite)

@@ -4,10 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BookMarked, Clock, Folder, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { UserMenu } from "./user-menu";
+import { UserMenu } from "../user-menu";
 import { cn } from "@/lib/utils";
 
-interface SidebarProps {
+interface SidebarNavProps {
   user: {
     email?: string;
     user_metadata?: {
@@ -17,7 +17,7 @@ interface SidebarProps {
   };
 }
 
-export function Sidebar({ user }: SidebarProps) {
+export function SidebarNav({ user }: SidebarNavProps) {
   const pathname = usePathname();
 
   const navItems = [
@@ -81,3 +81,4 @@ export function Sidebar({ user }: SidebarProps) {
     </div>
   );
 }
+

@@ -105,3 +105,19 @@
   - Subtle zinc color palette (not loud gradients).
   - Email hidden by default, shown in dropdown.
   - Floating menu with rounded corners and shadow.
+
+### Layout Toggle System (Nov 2025)
+
+- **Decision:** Encapsulate both sidebar and topbar layouts in separate folders with config-driven selection.
+- **Why:**
+  1. **Flexibility:** Keep both layouts available for A/B testing and user preference
+  2. **Maintainability:** Each layout is self-contained and can be easily removed if not needed
+  3. **Future-proof:** Config can be replaced with database user settings later
+- **Implementation:**
+  - `src/lib/config.ts` exports `LAYOUT_MODE` constant (`"sidebar" | "topbar"`)
+  - `src/components/layout/sidebar/` contains sidebar layout components
+  - `src/components/layout/topbar/` contains topbar layout components
+  - `src/components/layout/index.ts` exports `ActiveLayout` based on config
+  - Protected layout imports and uses `ActiveLayout` wrapper
+- **Default:** `"topbar"` (can be changed in config file)
+- **Future:** Config will be replaced with user settings stored in database

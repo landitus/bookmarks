@@ -1,4 +1,4 @@
-import { Sidebar } from "@/components/layout/sidebar";
+import { ActiveLayout } from "@/components/layout";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function ProtectedLayout({
@@ -12,10 +12,5 @@ export default async function ProtectedLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  return (
-    <>
-      <Sidebar user={user!} />
-      <main className="ml-64 p-8">{children}</main>
-    </>
-  );
+  return <ActiveLayout user={user!}>{children}</ActiveLayout>;
 }
