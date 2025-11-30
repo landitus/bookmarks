@@ -8,31 +8,164 @@ A simpler setup for using the app yourself before full public launch. Keeps prod
 
 ### 1. Database Strategy: Production vs Local
 
-**Option A: Two Supabase Projects (Recommended)**
-- **Production**: Your existing `bookmarks` project - real data, don't experiment here
-- **Local/Dev**: Create a new Supabase project called `bookmarks-dev` for experimentation
+**The Professional Approach: Migrations as Code**
+
+All schema changes should be tracked as SQL migration files, not done manually in the Supabase dashboard. This ensures:
+- Changes are version controlled
+- Same migrations run on dev, staging, and production
+- Easy to rollback if something breaks
+- Team members stay in sync
+
+**Environment Setup:**
+
+| Environment | Purpose | Database |
+|-------------|---------|----------|
+| Local (`pnpm dev`) | Daily development, experiments | Dev Supabase project |
+| Preview (Vercel PR deploys) | Test branches before merge | Dev or Branch DB |
+| Production (Vercel main) | Real users, real data | Production Supabase |
 
 ```bash
-# .env.local (for local development - points to dev database)
+# .env.local (local development - NEVER production creds here)
 NEXT_PUBLIC_SUPABASE_URL=https://your-dev-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-dev-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-dev-service-role-key
 
-# .env.production (for Vercel - points to production database)
+# Vercel Environment Variables (production)
 NEXT_PUBLIC_SUPABASE_URL=https://sqyarjblpozowlqluasg.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-prod-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-prod-service-role-key
 ```
 
-**Option B: Same Database, Different Users**
-- Use your production database but create a "test" user account
-- Less safe - schema changes affect production
+---
 
-**Setting up the dev database:**
-1. Create new Supabase project (free tier is fine)
-2. Run the same migrations on it
-3. Enable Realtime on `items` table
-4. Create a test user account
+### Migration Workflow (How the Pros Do It)
+
+**Option A: Supabase CLI + Local Migrations (Recommended)**
+
+This is the standard approach used by most teams:
+
+```bash
+# 1. Install Supabase CLI
+brew install supabase/tap/supabase
+
+# 2. Link to your project
+supabase login
+supabase link --project-ref sqyarjblpozowlqluasg
+
+# 3. Pull existing schema (first time only)
+supabase db pull
+
+# 4. Create a new migration
+supabase migration new add_topics_table
+
+# 5. Edit the migration file in supabase/migrations/
+# 6. Test locally (optional - requires Docker)
+supabase db reset  # Resets local DB and runs all migrations
+
+# 7. Push to production when ready
+supabase db push
+```
+
+**Migration files live in your repo:**
+```
+supabase/
+  migrations/
+    20251124_create_profiles.sql
+    20251124_create_items.sql
+    20251130_add_api_key.sql
+    20251130_enable_realtime.sql
+```
+
+**Option B: Supabase Branching (Easiest for Solo/Small Team)**
+
+Supabase has built-in branching that creates isolated database copies:
+
+```bash
+# Create a branch (creates new DB with your schema)
+supabase branches create feature/topics
+
+# Work on your feature, make schema changes
+# When ready, merge migrations to main
+supabase branches merge feature/topics
+
+# Branch DB is deleted, migrations applied to production
+```
+
+Cost: Branches are billed hourly (check Supabase pricing).
+
+**Option C: Two Separate Projects (Current Setup)**
+
+Simpler but requires manual sync:
+
+1. **Dev project**: Experiment freely, break things
+2. **Production project**: Only apply tested migrations
+
+**Sync workflow:**
+```bash
+# After testing a migration on dev:
+# 1. Save the SQL that worked
+# 2. Apply to production via Supabase dashboard or CLI
+supabase db push --project-ref sqyarjblpozowlqluasg
+```
+
+---
+
+### Safe Migration Practices
+
+**Before deploying any migration:**
+
+1. **Test on dev first** - Never experiment on production
+2. **Make migrations reversible** when possible:
+   ```sql
+   -- Migration: add column
+   ALTER TABLE items ADD COLUMN reading_time integer;
+   
+   -- Rollback (save this!)
+   ALTER TABLE items DROP COLUMN reading_time;
+   ```
+3. **Avoid destructive changes** in production:
+   - ❌ `DROP TABLE` - loses data
+   - ❌ `DROP COLUMN` - loses data  
+   - ✅ `ADD COLUMN` - safe
+   - ✅ `CREATE TABLE` - safe
+   - ⚠️ `ALTER COLUMN` - test carefully
+
+4. **For breaking changes**, do it in steps:
+   ```
+   Deploy 1: Add new column (both old and new code works)
+   Deploy 2: Update code to use new column
+   Deploy 3: Remove old column (after confirming no issues)
+   ```
+
+---
+
+### Quick Reference: Migration Commands
+
+```bash
+# Supabase CLI (recommended)
+supabase migration new <name>     # Create new migration file
+supabase db push                  # Apply migrations to linked project
+supabase db pull                  # Pull remote schema to local
+supabase db reset                 # Reset local DB (requires Docker)
+supabase db diff                  # Show schema differences
+
+# Check migration status
+supabase migration list
+```
+
+---
+
+### Setting Up Dev Database (First Time)
+
+1. **Create new Supabase project** called `bookmarks-dev`
+2. **Link and push existing migrations:**
+   ```bash
+   supabase link --project-ref YOUR_DEV_PROJECT_ID
+   supabase db push
+   ```
+3. **Or manually run migrations** via Supabase SQL Editor
+4. **Enable Realtime** on `items` table
+5. **Create a test user** via the app's signup flow
 
 ### 2. Deploy to Vercel (Personal Use)
 
@@ -51,6 +184,7 @@ vercel --prod
 ```
 
 **Vercel Environment Variables:**
+
 1. Go to your project on vercel.com → Settings → Environment Variables
 2. Add production Supabase credentials:
    - `NEXT_PUBLIC_SUPABASE_URL`
@@ -61,6 +195,7 @@ vercel --prod
 ### 3. Install Extension Locally (No Store Needed)
 
 **Chrome:**
+
 1. Build the extension:
    ```bash
    cd extension
@@ -73,11 +208,13 @@ vercel --prod
 6. Done! Extension is now installed
 
 **Update extension after changes:**
+
 1. Rebuild: `pnpm build`
 2. Go to `chrome://extensions/`
 3. Click refresh icon on Portable extension
 
 **Configure for production:**
+
 - Open extension popup → Settings
 - Set Server URL to your Vercel URL (e.g., `https://portable.vercel.app`)
 - Paste your API key from the production webapp
@@ -85,6 +222,7 @@ vercel --prod
 ### 4. Install PWA on Phone
 
 **iOS (Safari):**
+
 1. Open your Vercel URL in Safari (not Chrome)
 2. Tap Share button (square with arrow)
 3. Scroll down, tap "Add to Home Screen"
@@ -92,12 +230,14 @@ vercel --prod
 5. App icon appears on home screen
 
 **Android (Chrome):**
+
 1. Open your Vercel URL in Chrome
 2. Tap menu (three dots)
 3. Tap "Add to Home screen" or "Install app"
 4. Confirm
 
 **Test Share Target:**
+
 1. After installing PWA, share any link from another app
 2. "Portable" should appear in the share sheet
 3. Tap it → link saves automatically
@@ -121,16 +261,19 @@ vercel --prod
 ### 6. Daily Workflow
 
 **Local development (safe to experiment):**
+
 ```bash
 pnpm dev  # Uses .env.local → dev database
 ```
 
 **Production app (your real data):**
+
 - Visit your Vercel URL
 - Use the browser extension
 - Use the PWA on phone
 
 **Extension development:**
+
 ```bash
 cd extension
 pnpm dev  # Hot reload, points to localhost:3000
@@ -138,13 +281,13 @@ pnpm dev  # Hot reload, points to localhost:3000
 
 ### 7. Keeping Data Safe
 
-| Environment | Database | Purpose |
-|------------|----------|---------|
-| `pnpm dev` | Dev Supabase | Experiment freely |
-| Vercel | Prod Supabase | Real bookmarks |
-| Extension (localhost) | Dev Supabase | Test extension |
-| Extension (vercel URL) | Prod Supabase | Real use |
-| PWA | Prod Supabase | Real use |
+| Environment            | Database      | Purpose           |
+| ---------------------- | ------------- | ----------------- |
+| `pnpm dev`             | Dev Supabase  | Experiment freely |
+| Vercel                 | Prod Supabase | Real bookmarks    |
+| Extension (localhost)  | Dev Supabase  | Test extension    |
+| Extension (vercel URL) | Prod Supabase | Real use          |
+| PWA                    | Prod Supabase | Real use          |
 
 **Golden rule:** Never put production credentials in `.env.local`
 
