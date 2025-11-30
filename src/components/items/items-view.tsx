@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Item } from "@/lib/types";
 import { ItemCard } from "@/components/items/item-card";
 import { LayoutGrid, List, Clock, Star } from "lucide-react";
@@ -16,6 +16,8 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 // =============================================================================
 // TYPES
@@ -39,6 +41,46 @@ export function ItemsView({ items, emptyState }: ItemsViewProps) {
   const [view, setView] = useState<ViewType>("list"); // Current view mode
   const [searchQuery, setSearchQuery] = useState(""); // Search filter text
   const [openItemId, setOpenItemId] = useState<string | null>(null); // Track which item's menu is open
+  const router = useRouter();
+
+  // ---------------------------------------------------------------------------
+  // REALTIME SUBSCRIPTION - Auto-refresh when items change (e.g., from extension)
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    const supabase = createClient();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    async function setupRealtimeSubscription() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) return;
+
+      // Subscribe to changes on the items table filtered by user_id
+      channel = supabase
+        .channel("items-changes")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "items",
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => router.refresh()
+        )
+        .subscribe();
+    }
+
+    setupRealtimeSubscription();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }, [router]);
 
   // ---------------------------------------------------------------------------
   // HELPER FUNCTIONS

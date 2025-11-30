@@ -10,12 +10,30 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { logout, updateTheme } from "@/lib/actions/auth";
-import { LogOut, Settings, User, Sun, Moon, Monitor } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  logout,
+  updateTheme,
+  getApiKey,
+  regenerateApiKey,
+} from "@/lib/actions/auth";
+import {
+  LogOut,
+  Settings,
+  User,
+  Sun,
+  Moon,
+  Monitor,
+  Key,
+  Copy,
+  RefreshCw,
+  Check,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import type { Theme } from "@/lib/types";
+import { toast } from "sonner";
 
 interface UserMenuProps {
   user: {
@@ -31,12 +49,70 @@ export function UserMenu({ user }: UserMenuProps) {
   const [open, setOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
   // Prevent hydration mismatch by only showing theme selection after mount
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0);
     return () => clearTimeout(timer);
   }, []);
+
+  // Load API key when dropdown opens and API key section is shown
+  useEffect(() => {
+    if (open && showApiKey && !apiKey) {
+      getApiKey().then(setApiKey);
+    }
+  }, [open, showApiKey, apiKey]);
+
+  const handleCopyApiKey = () => {
+    if (!apiKey) return;
+
+    // Use a textarea element for copying
+    const textArea = document.createElement("textarea");
+    textArea.value = apiKey;
+
+    // Make it invisible but part of the document
+    textArea.style.position = "absolute";
+    textArea.style.left = "-9999px";
+    textArea.style.top = "0";
+    textArea.setAttribute("readonly", "");
+
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+      const success = document.execCommand("copy");
+      if (success) {
+        setCopied(true);
+        toast.success("API key copied to clipboard");
+        setTimeout(() => setCopied(false), 2000);
+      } else {
+        toast.error("Failed to copy");
+      }
+    } catch (err) {
+      console.error("Copy failed:", err);
+      toast.error("Failed to copy to clipboard");
+    } finally {
+      document.body.removeChild(textArea);
+    }
+  };
+
+  const handleRegenerateApiKey = async () => {
+    setRegenerating(true);
+    try {
+      const newKey = await regenerateApiKey();
+      setApiKey(newKey);
+      toast.success("API key regenerated");
+    } catch {
+      toast.error("Failed to regenerate API key");
+    } finally {
+      setRegenerating(false);
+    }
+  };
 
   const handleThemeChange = async (newTheme: Theme) => {
     setTheme(newTheme);
@@ -153,7 +229,74 @@ export function UserMenu({ user }: UserMenuProps) {
             <Settings />
             Settings
           </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault();
+              setShowApiKey(!showApiKey);
+            }}
+          >
+            <Key />
+            API Key
+          </DropdownMenuItem>
         </div>
+
+        {showApiKey && (
+          <>
+            <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800 mx-2" />
+            <div className="px-3 py-2">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
+                Use this key to save links from the browser extension or mobile
+                app.
+              </p>
+              <div className="flex items-center gap-1.5">
+                <Input
+                  readOnly
+                  value={apiKey || "Loading..."}
+                  className="h-8 text-xs font-mono bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700"
+                  onClick={(e) => e.currentTarget.select()}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleCopyApiKey();
+                  }}
+                  disabled={!apiKey}
+                >
+                  {copied ? (
+                    <Check className="h-3.5 w-3.5 text-green-600" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleRegenerateApiKey();
+                  }}
+                  disabled={regenerating}
+                  title="Regenerate API key"
+                >
+                  <RefreshCw
+                    className={cn(
+                      "h-3.5 w-3.5",
+                      regenerating && "animate-spin"
+                    )}
+                  />
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
 
         <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800 mx-2" />
 

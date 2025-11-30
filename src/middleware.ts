@@ -42,7 +42,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/everything") ||
     pathname.startsWith("/later") ||
     pathname.startsWith("/favorites") ||
-    pathname.startsWith("/projects");
+    pathname.startsWith("/projects") ||
+    pathname.startsWith("/share");
   const isRootRoute = pathname === "/";
 
   // Authenticated user on root → redirect to /everything
@@ -81,4 +82,3 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
-

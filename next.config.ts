@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
+import withSerwistInit from "@serwist/next";
+
+const withSerwist = withSerwistInit({
+  swSrc: "src/app/sw.ts",
+  swDest: "public/sw.js",
+  disable: process.env.NODE_ENV === "development",
+});
 
 const nextConfig: NextConfig = {
+  // Use webpack for build (Serwist doesn't support Turbopack yet)
+  turbopack: {},
   serverExternalPackages: [
     "re2",
     "metascraper",
@@ -23,4 +32,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSerwist(nextConfig);

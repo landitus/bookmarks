@@ -1,0 +1,52 @@
+{
+  "name": "Portable",
+  "short_name": "Portable",
+  "description": "A little pocket for the internet things you love",
+  "start_url": "/everything",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFFBF7",
+  "theme_color": "#F59E0B",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "params": {
+      "url": "url",
+      "title": "title",
+      "text": "text"
+    }
+  },
+  "categories": ["productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Add Link",
+      "url": "/everything?action=add",
+      "description": "Add a new bookmark"
+    },
+    {
+      "name": "Later",
+      "url": "/later",
+      "description": "View items to read/watch later"
+    },
+    {
+      "name": "Favorites",
+      "url": "/favorites",
+      "description": "View favorite items"
+    }
+  ]
+}

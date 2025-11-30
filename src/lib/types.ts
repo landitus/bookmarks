@@ -8,6 +8,7 @@ export interface Profile {
   full_name: string | null;
   avatar_url: string | null;
   theme: Theme | null;
+  api_key: string | null;
 }
 
 export interface Item {

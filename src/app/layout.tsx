@@ -16,10 +16,21 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Portable",
-  description: "A mixed-media bookmarking + consumption app.",
+  description: "A little pocket for the internet things you love",
+  manifest: "/manifest.json",
   icons: {
     icon: "/favicon.svg",
+    apple: "/icons/icon.svg",
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Portable",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  themeColor: "#F59E0B",
 };
 
 export default function RootLayout({

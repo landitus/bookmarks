@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Portable</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <div class="logo">P</div>
+        <h1>Portable</h1>
+      </header>
+
+      <div id="content">
+        <!-- Settings view (shown when no API key) -->
+        <div id="settings-view" class="view hidden">
+          <p class="description">Enter your API key to start saving links.</p>
+          <div class="input-group">
+            <input type="text" id="api-key-input" placeholder="Your API key" />
+          </div>
+          <div class="input-group">
+            <input
+              type="text"
+              id="server-url-input"
+              placeholder="Server URL (optional)"
+            />
+          </div>
+          <button id="save-settings" class="btn btn-primary">
+            Save Settings
+          </button>
+          <p class="help-text">
+            Find your API key in the user menu on Portable.
+          </p>
+        </div>
+
+        <!-- Save view (shown when configured) -->
+        <div id="save-view" class="view hidden">
+          <div class="page-info">
+            <p id="page-title" class="page-title">Loading...</p>
+            <p id="page-url" class="page-url"></p>
+          </div>
+          <button id="save-btn" class="btn btn-primary">
+            <span id="save-btn-text">Save to Portable</span>
+            <span id="save-btn-loading" class="hidden">Saving...</span>
+          </button>
+          <button id="open-settings" class="btn btn-link">Settings</button>
+        </div>
+
+        <!-- Success view -->
+        <div id="success-view" class="view hidden">
+          <div class="success-icon">✓</div>
+          <p class="success-text">Saved!</p>
+        </div>
+
+        <!-- Error view -->
+        <div id="error-view" class="view hidden">
+          <div class="error-icon">✕</div>
+          <p id="error-text" class="error-text">Something went wrong</p>
+          <button id="retry-btn" class="btn btn-primary">Try Again</button>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

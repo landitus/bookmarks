@@ -136,3 +136,31 @@
   - Protected layout imports and uses `ActiveLayout` wrapper
 - **Default:** `"topbar"` (can be changed in config file)
 - **Future:** Config will be replaced with user settings stored in database
+
+### External Link Capture (Nov 2025)
+
+- **Decision:** Implement API-key based authentication for external capture (extension, PWA share target).
+- **Why:**
+  1. **Simplicity:** API keys are stateless and work across all platforms
+  2. **Security:** Service role key stays server-side, user API key is scoped to their data
+  3. **Flexibility:** Works for browser extension, mobile PWA, CLI tools, etc.
+- **Implementation:**
+  - `profiles.api_key` column stores per-user API key (UUID)
+  - `/api/items` POST endpoint authenticates via `Authorization: Bearer <api_key>`
+  - API key UI in user menu (view, copy, regenerate)
+  - WXT browser extension stores API key in extension storage
+  - PWA manifest with `share_target` for mobile sharing
+- **Trade-off:** Manual API key setup required (will improve with OAuth flow later)
+
+### Real-time Updates with Supabase Realtime (Nov 2025)
+
+- **Decision:** Use Supabase Realtime postgres_changes to auto-refresh UI when items change.
+- **Why:**
+  1. **UX:** Items saved from extension appear instantly in webapp
+  2. **Simplicity:** No polling, no WebSocket management—Supabase handles it
+  3. **Efficiency:** Subscription filtered by user_id to respect RLS
+- **Implementation:**
+  - Enabled Realtime on `items` table with `REPLICA IDENTITY FULL`
+  - `ItemsView` subscribes to `postgres_changes` filtered by `user_id`
+  - On change event, calls `router.refresh()` to re-fetch server data
+- **Trade-off:** Requires Supabase Realtime (included in free tier)

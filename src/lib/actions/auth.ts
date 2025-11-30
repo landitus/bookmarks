@@ -21,7 +21,7 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/inbox");
+  redirect("/everything");
 }
 
 export async function signup(formData: FormData) {
@@ -65,7 +65,7 @@ export async function signup(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/inbox");
+  redirect("/everything");
 }
 
 export async function logout() {
@@ -122,4 +122,57 @@ export async function getTheme(): Promise<Theme | null> {
   }
 
   return (data?.theme as Theme) || null;
+}
+
+export async function getApiKey(): Promise<string | null> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("api_key")
+    .eq("id", user.id)
+    .single();
+
+  if (error) {
+    console.error("API key fetch error:", error);
+    return null;
+  }
+
+  return data?.api_key || null;
+}
+
+export async function regenerateApiKey(): Promise<string> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
+
+  // Generate new UUID for API key
+  const newApiKey = crypto.randomUUID();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ api_key: newApiKey })
+    .eq("id", user.id);
+
+  if (error) {
+    console.error("API key regeneration error:", error);
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/", "layout");
+  return newApiKey;
 }

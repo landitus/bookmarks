@@ -1,55 +1,67 @@
 # Current Focus
 
-**Last Updated:** December 2025
-**Session:** Theme Picker with Profile Persistence
+**Last Updated:** November 30, 2025
+**Session:** Link Capture System - COMPLETED
 
-## 🎯 Current Session Focus
-**Completed!** Added theme picker to user menu with database persistence.
+## ✅ Completed: Link Capture System
 
-## ✅ What We Just Completed
-**Theme Picker with Profile Persistence**
-- ✅ Added theme picker UI to user menu (`src/components/layout/user-menu.tsx`)
-- ✅ Implemented ButtonGroup with light/dark/system theme options
-- ✅ Created `updateTheme` server action to persist theme preference in `profiles` table
-- ✅ Created `getTheme` server action to load user's theme preference
-- ✅ Updated ThemeProvider to sync theme from database on mount
-- ✅ Added hydration-safe theme selection (prevents SSR mismatch)
-- ✅ Theme preference persists across sessions and devices
+Successfully implemented external link capture with real-time sync:
 
-**Previous Session: Layout Toggle System**
-- ✅ Created layout config system (`src/lib/config.ts`) with `LAYOUT_MODE` constant
-- ✅ Encapsulated sidebar layout in `src/components/layout/sidebar/` folder
-- ✅ Encapsulated topbar layout in `src/components/layout/topbar/` folder
-- ✅ Updated topbar navigation routes to match current routes (`/everything`, `/later`, `/favorites`)
-- ✅ Created unified layout export (`src/components/layout/index.ts`) that selects active layout based on config
-- ✅ Updated protected layout to use config-driven `ActiveLayout` component
-- ✅ Cleaned up old layout files (`sidebar.tsx`, `top-nav.tsx`)
-- ✅ Default layout set to `"topbar"` for testing
+### Phase 1: API Layer
 
-**Previous Session: Unified Collection Refactor**
-- ✅ Replaced `status` enum with boolean flags (`is_later`, `is_favorite`, `is_archived`)
-- ✅ Created new routes: `/everything`, `/later`, `/favorites`
-- ✅ Implemented toggle actions (items can be BOTH Later AND Favorite)
-- ✅ Added Next.js middleware for centralized auth routing
-- ✅ Updated ItemActions with toggle-based menu
-- ✅ Added visual badges (clock/star) in list and card views
-- ✅ Removed old routes: `/inbox`, `/queue`, `/library`
+- [x] Added `api_key` column to profiles table (UUID with auto-generation)
+- [x] Created `/api/items` POST endpoint with Bearer token auth
+- [x] Added API key management UI in user menu (view, copy, regenerate)
+- [x] CORS headers for cross-origin requests
 
-## 🎉 Architecture Summary
-**New Model:**
-- **Everything** (`/everything`) — All non-archived items
-- **Later** (`/later`) — Filter for items to watch/read later
-- **Favorites** (`/favorites`) — Filter for starred items
-- **Archive** — Separate hidden state
+### Phase 2: PWA Setup
 
-**Key Benefits:**
-- Items can have multiple flags (both Later AND Favorite)
-- Simpler mental model — one place for everything
-- Filters instead of moving items between states
+- [x] Created `manifest.json` with share_target config
+- [x] Set up Serwist service worker for offline support
+- [x] Created `/share` page to handle incoming share intents
+- [x] Added SVG icons for PWA
 
-## 🔄 Next Steps (Phase 4: Polish & Projects)
-1. Implement Projects (collections/boards)
-2. Add Topics/Tags (AI-generated or manual)
-3. Polish empty states and loading states
-4. Add keyboard shortcuts
-5. Build Archive view
+### Phase 3: Browser Extension (WXT)
+
+- [x] Initialized WXT project in `/extension`
+- [x] Built popup UI with warm Portable aesthetic
+- [x] Integrated settings for API key and server URL
+- [x] Keyboard shortcut (Cmd+Shift+S / Ctrl+Shift+S)
+
+### Bonus: Real-time Sync
+
+- [x] Enabled Supabase Realtime on items table
+- [x] Added realtime subscription in ItemsView
+- [x] Webapp auto-refreshes when items added via extension
+
+## 🚀 Usage
+
+### Browser Extension
+
+```bash
+cd extension
+pnpm dev          # Dev mode (Chrome)
+pnpm build        # Production build → .output/chrome-mv3/
+```
+
+### API Endpoint
+
+```bash
+curl -X POST https://your-app.com/api/items \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com"}'
+```
+
+## 🔄 Next Steps
+
+1. Implement OAuth login flow for extension (better UX than manual API key)
+2. Publish extension to Chrome Web Store
+3. Add "Install Extension" banner to webapp
+4. Test PWA share target on mobile after deployment
+
+## ✅ Previous Sessions
+
+- Theme Picker with Profile Persistence
+- Layout Toggle System (sidebar/topbar)
+- Unified Collection Refactor (Everything/Later/Favorites)
