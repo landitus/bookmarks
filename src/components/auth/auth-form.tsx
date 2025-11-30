@@ -21,7 +21,14 @@ export function AuthForm() {
         } else {
           await login(formData);
         }
-      } catch (e) {
+      } catch (e: unknown) {
+        // Ignore Next.js redirect "errors" - they're not real errors
+        if (e && typeof e === "object" && "digest" in e) {
+          const digest = (e as { digest: string }).digest;
+          if (digest?.startsWith("NEXT_REDIRECT")) {
+            return;
+          }
+        }
         setError(e instanceof Error ? e.message : "An error occurred");
       }
     });
