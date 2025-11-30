@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Improved duplicate bookmark handling in POST `/api/items` endpoint
 
+### Fixed
+- Fixed layout shift in sign-in form when clicking submit button
+
 ## [0.0.1] - 2025-11-30
 
 ### Added

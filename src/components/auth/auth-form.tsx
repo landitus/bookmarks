@@ -35,7 +35,7 @@ export function AuthForm() {
   };
 
   return (
-    <div className="w-full max-w-sm">
+    <div className="w-full max-w-sm min-w-0">
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">
@@ -69,7 +69,7 @@ export function AuthForm() {
               required
               disabled={isPending}
               autoComplete="username"
-              className="h-11 rounded-xl border-neutral-200 bg-white/80 backdrop-blur-sm focus:border-neutral-400 focus:ring-neutral-400/20 placeholder:text-neutral-400"
+              className="h-11 w-full rounded-xl border-neutral-200 bg-white/80 backdrop-blur-sm focus:border-neutral-400 focus:ring-neutral-400/20 placeholder:text-neutral-400 disabled:opacity-50"
             />
           </div>
 
@@ -86,7 +86,7 @@ export function AuthForm() {
                 required
                 disabled={isPending}
                 autoComplete="name"
-                className="h-11 rounded-xl border-neutral-200 bg-white/80 backdrop-blur-sm focus:border-neutral-400 focus:ring-neutral-400/20 placeholder:text-neutral-400"
+                className="h-11 w-full rounded-xl border-neutral-200 bg-white/80 backdrop-blur-sm focus:border-neutral-400 focus:ring-neutral-400/20 placeholder:text-neutral-400 disabled:opacity-50"
               />
             </div>
           )}
@@ -104,7 +104,7 @@ export function AuthForm() {
               disabled={isPending}
               autoComplete={isSignUp ? "new-password" : "current-password"}
               placeholder={isSignUp ? "At least 6 characters" : "••••••••"}
-              className="h-11 rounded-xl border-neutral-200 bg-white/80 backdrop-blur-sm focus:border-neutral-400 focus:ring-neutral-400/20 placeholder:text-neutral-400"
+              className="h-11 w-full rounded-xl border-neutral-200 bg-white/80 backdrop-blur-sm focus:border-neutral-400 focus:ring-neutral-400/20 placeholder:text-neutral-400 disabled:opacity-50"
             />
           </div>
         </div>
@@ -112,16 +112,23 @@ export function AuthForm() {
         <div className="mt-6 space-y-3">
           <Button
             type="submit"
-            className="w-full h-11 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-medium shadow-lg shadow-neutral-900/10"
+            className="w-full h-11 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-medium shadow-lg shadow-neutral-900/10 relative overflow-hidden"
             disabled={isPending}
           >
-            {isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {isSignUp ? "Creating account..." : "Signing in..."}
-              </>
-            ) : (
-              <>{isSignUp ? "Create account" : "Sign in"}</>
+            <span
+              className={`inline-flex items-center justify-center transition-opacity ${
+                isPending ? "opacity-0" : "opacity-100"
+              }`}
+            >
+              {isSignUp ? "Create account" : "Sign in"}
+            </span>
+            {isPending && (
+              <span className="absolute inset-0 flex items-center justify-center">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin shrink-0" />
+                <span>
+                  {isSignUp ? "Creating account..." : "Signing in..."}
+                </span>
+              </span>
             )}
           </Button>
 
