@@ -110,7 +110,7 @@ export function ItemsView({ items, emptyState }: ItemsViewProps) {
   // GROUPED ITEMS (for list view)
   // ---------------------------------------------------------------------------
 
-  // Group items by relative date: "Today", "Yesterday", or day name
+  // Group items by relative date: Today, Yesterday, This week, This month, This year, or year
   const groupedItems = useMemo(() => {
     const groups: { [key: string]: Item[] } = {};
 
@@ -125,6 +125,25 @@ export function ItemsView({ items, emptyState }: ItemsViewProps) {
       );
     });
 
+    // Helper function to get the start of the week (Monday)
+    const getStartOfWeek = (date: Date) => {
+      const d = new Date(date);
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+      return new Date(d.setDate(diff));
+    };
+
+    // Helper function to check if two dates are in the same week
+    const isSameWeek = (date1: Date, date2: Date) => {
+      const week1 = getStartOfWeek(date1);
+      const week2 = getStartOfWeek(date2);
+      return (
+        week1.getFullYear() === week2.getFullYear() &&
+        week1.getMonth() === week2.getMonth() &&
+        week1.getDate() === week2.getDate()
+      );
+    };
+
     // Group each item into date buckets
     filteredItems.forEach((item) => {
       const date = new Date(item.created_at);
@@ -134,12 +153,35 @@ export function ItemsView({ items, emptyState }: ItemsViewProps) {
 
       let key = "";
 
+      // Check Today
       if (date.toDateString() === now.toDateString()) {
         key = "Today";
-      } else if (date.toDateString() === yesterday.toDateString()) {
+      }
+      // Check Yesterday
+      else if (date.toDateString() === yesterday.toDateString()) {
         key = "Yesterday";
-      } else {
-        key = date.toLocaleDateString("en-US", { weekday: "long" });
+      }
+      // Check This week (same week as today, but not today or yesterday)
+      else if (
+        isSameWeek(date, now) &&
+        date.getFullYear() === now.getFullYear()
+      ) {
+        key = "This week";
+      }
+      // Check This month (same month and year as today, but not this week)
+      else if (
+        date.getMonth() === now.getMonth() &&
+        date.getFullYear() === now.getFullYear()
+      ) {
+        key = "This month";
+      }
+      // Check This year (same year as today, but not this month)
+      else if (date.getFullYear() === now.getFullYear()) {
+        key = "This year";
+      }
+      // Otherwise, group by year
+      else {
+        key = date.getFullYear().toString();
       }
 
       if (!groups[key]) {
@@ -159,15 +201,43 @@ export function ItemsView({ items, emptyState }: ItemsViewProps) {
     return groups;
   }, [items, searchQuery]);
 
-  // Sort group keys: Today first, then Yesterday, then by most recent
+  // Sort group keys: Today first, then Yesterday, then This week, This month, This year, then years descending
   const sortedGroupKeys = useMemo(() => {
     const keys = Object.keys(groupedItems);
-    return keys.sort((a, b) => {
-      if (a === "Today") return -1;
-      if (b === "Today") return 1;
-      if (a === "Yesterday") return -1;
-      if (b === "Yesterday") return 1;
+    const order = [
+      "Today",
+      "Yesterday",
+      "This week",
+      "This month",
+      "This year",
+    ];
 
+    return keys.sort((a, b) => {
+      // Check if either key is in the predefined order
+      const indexA = order.indexOf(a);
+      const indexB = order.indexOf(b);
+
+      // If both are in the order, sort by their position
+      if (indexA !== -1 && indexB !== -1) {
+        return indexA - indexB;
+      }
+
+      // If only A is in the order, it comes first
+      if (indexA !== -1) return -1;
+
+      // If only B is in the order, it comes first
+      if (indexB !== -1) return 1;
+
+      // Both are years (or other), sort descending (newer years first)
+      const yearA = parseInt(a);
+      const yearB = parseInt(b);
+
+      // If both are valid years, sort descending
+      if (!isNaN(yearA) && !isNaN(yearB)) {
+        return yearB - yearA;
+      }
+
+      // Fallback: sort by most recent item in group
       const dateA = new Date(groupedItems[a][0].created_at).getTime();
       const dateB = new Date(groupedItems[b][0].created_at).getTime();
       return dateB - dateA;

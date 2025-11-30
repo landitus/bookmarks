@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Improved duplicate bookmark handling in POST `/api/items` endpoint
+- Refined timeline grouping in items view: Today, Yesterday, This week, This month, This year, and year labels
 
 ### Fixed
 - Fixed layout shift in sign-in form when clicking submit button
