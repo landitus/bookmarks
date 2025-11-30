@@ -75,6 +75,76 @@ body {
   line-height: 1.4;
 }
 
+/* Environment presets */
+.env-presets {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.env-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  background: white;
+  font-size: 12px;
+  font-weight: 500;
+  color: #71717a;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.env-btn:hover {
+  border-color: #a1a1aa;
+  color: #18181b;
+}
+
+.env-btn.active {
+  border-color: #18181b;
+  background: #18181b;
+  color: white;
+}
+
+.env-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.env-btn.active .env-dot {
+  opacity: 1;
+  background: #22c55e;
+}
+
+/* Environment indicator on save view */
+.env-indicator {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.env-indicator.env-local {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.env-indicator.env-prod {
+  background: #dcfce7;
+  color: #166534;
+}
+
 .input-group {
   margin-bottom: 10px;
 }
@@ -233,6 +303,23 @@ body {
 
   .description {
     color: #a1a1aa;
+  }
+
+  .env-btn {
+    background: #27272a;
+    border-color: #3f3f46;
+    color: #a1a1aa;
+  }
+
+  .env-btn:hover {
+    border-color: #71717a;
+    color: #fafafa;
+  }
+
+  .env-btn.active {
+    background: #fafafa;
+    border-color: #fafafa;
+    color: #18181b;
   }
 
   .input-group input {

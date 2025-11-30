@@ -16,15 +16,28 @@
       <div id="content">
         <!-- Settings view (shown when no API key) -->
         <div id="settings-view" class="view hidden">
-          <p class="description">Enter your API key to start saving links.</p>
+          <p class="description">Select environment and enter your API key.</p>
+          
+          <!-- Environment presets -->
+          <div class="env-presets">
+            <button id="env-local" class="env-btn">
+              <span class="env-dot"></span>
+              Local
+            </button>
+            <button id="env-prod" class="env-btn">
+              <span class="env-dot"></span>
+              Production
+            </button>
+          </div>
+          
           <div class="input-group">
-            <input type="text" id="api-key-input" placeholder="Your API key" />
+            <input type="text" id="api-key-input" placeholder="API key for this environment" />
           </div>
           <div class="input-group">
             <input
               type="text"
               id="server-url-input"
-              placeholder="Server URL (optional)"
+              placeholder="Server URL"
             />
           </div>
           <button id="save-settings" class="btn btn-primary">
@@ -37,6 +50,7 @@
 
         <!-- Save view (shown when configured) -->
         <div id="save-view" class="view hidden">
+          <div class="env-indicator" id="env-indicator">Local</div>
           <div class="page-info">
             <p id="page-title" class="page-title">Loading...</p>
             <p id="page-url" class="page-url"></p>

@@ -138,7 +138,9 @@ export async function POST(request: NextRequest) {
   try {
     // Special handling for YouTube - use oEmbed API
     if (url.includes("youtube.com/watch") || url.includes("youtu.be/")) {
-      const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
+      const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(
+        url
+      )}&format=json`;
       const oembedRes = await fetch(oembedUrl);
       if (oembedRes.ok) {
         const oembed = await oembedRes.json();
@@ -149,7 +151,9 @@ export async function POST(request: NextRequest) {
     }
     // Special handling for Vimeo
     else if (url.includes("vimeo.com/")) {
-      const oembedUrl = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(url)}`;
+      const oembedUrl = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(
+        url
+      )}`;
       const oembedRes = await fetch(oembedUrl);
       if (oembedRes.ok) {
         const oembed = await oembedRes.json();
