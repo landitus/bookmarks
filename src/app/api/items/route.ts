@@ -113,11 +113,15 @@ function detectTypeFromUrl(url: string): ItemType {
  * Background processing for content extraction and AI
  * Called after the response is sent to the client
  */
-async function processItemInBackground(itemId: string, url: string, userId: string) {
+async function processItemInBackground(
+  itemId: string,
+  url: string,
+  userId: string
+) {
   const supabase = createServiceClient();
-  
+
   console.log(`[Background] Starting processing for item ${itemId}`);
-  
+
   try {
     // Update status to processing
     await supabase
@@ -149,14 +153,17 @@ async function processItemInBackground(itemId: string, url: string, userId: stri
           readingTime = extracted.readingTime;
           author = extracted.author;
           publishDate = extracted.publishDate?.toISOString() || null;
-          
+
           // Use extracted metadata if available
           if (extracted.title) title = extracted.title;
           if (extracted.description) description = extracted.description;
           if (extracted.imageUrl) image_url = extracted.imageUrl;
         }
       } catch (e) {
-        console.error(`[Background] Content extraction failed for ${itemId}:`, e);
+        console.error(
+          `[Background] Content extraction failed for ${itemId}:`,
+          e
+        );
       }
     }
 
@@ -222,10 +229,7 @@ async function processItemInBackground(itemId: string, url: string, userId: stri
     if (description) updateData.description = description;
     if (image_url) updateData.image_url = image_url;
 
-    await supabase
-      .from("items")
-      .update(updateData)
-      .eq("id", itemId);
+    await supabase.from("items").update(updateData).eq("id", itemId);
 
     // ==========================================================================
     // STEP 4: Create topics (if any were extracted)
@@ -262,7 +266,7 @@ async function processItemInBackground(itemId: string, url: string, userId: stri
     console.log(`[Background] Completed processing for item ${itemId}`);
   } catch (e) {
     console.error(`[Background] Processing failed for ${itemId}:`, e);
-    
+
     // Mark as failed
     await supabase
       .from("items")
@@ -383,7 +387,9 @@ export async function POST(request: NextRequest) {
   try {
     // YouTube oEmbed (fast)
     if (url.includes("youtube.com/watch") || url.includes("youtu.be/")) {
-      const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
+      const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(
+        url
+      )}&format=json`;
       const oembedRes = await fetch(oembedUrl);
       if (oembedRes.ok) {
         const oembed = await oembedRes.json();
@@ -394,7 +400,9 @@ export async function POST(request: NextRequest) {
     }
     // Vimeo oEmbed (fast)
     else if (url.includes("vimeo.com/")) {
-      const oembedUrl = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(url)}`;
+      const oembedUrl = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(
+        url
+      )}`;
       const oembedRes = await fetch(oembedUrl);
       if (oembedRes.ok) {
         const oembed = await oembedRes.json();
@@ -407,7 +415,8 @@ export async function POST(request: NextRequest) {
     else {
       const response = await fetch(url, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; Portable/1.0; +https://portable.app)",
+          "User-Agent":
+            "Mozilla/5.0 (compatible; Portable/1.0; +https://portable.app)",
         },
         signal: AbortSignal.timeout(5000), // 5 second timeout for fast response
       });
@@ -425,7 +434,7 @@ export async function POST(request: NextRequest) {
 
   // Quick type detection from URL
   const type = detectTypeFromUrl(url);
-  
+
   // Determine if we need background processing
   // Videos don't need content extraction, only articles do
   const needsProcessing = isLikelyArticle(url) || !!process.env.OPENAI_API_KEY;

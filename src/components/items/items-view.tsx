@@ -401,7 +401,8 @@ export function ItemsView({ items, emptyState }: ItemsViewProps) {
                         </span>
 
                         {/* Processing indicator */}
-                        {(item.processing_status === "pending" || item.processing_status === "processing") && (
+                        {(item.processing_status === "pending" ||
+                          item.processing_status === "processing") && (
                           <span className="flex items-center gap-1 text-xs text-muted-foreground shrink-0 bg-muted px-1.5 py-0.5 rounded">
                             <Loader2 className="h-3 w-3 animate-spin" />
                             <span className="hidden sm:inline">Processing</span>
@@ -409,11 +410,14 @@ export function ItemsView({ items, emptyState }: ItemsViewProps) {
                         )}
 
                         {/* Reading time for articles (only show when processing complete) */}
-                        {item.type === "article" && item.reading_time && item.processing_status !== "pending" && item.processing_status !== "processing" && (
-                          <span className="text-xs text-muted-foreground shrink-0 bg-muted px-1.5 py-0.5 rounded">
-                            {item.reading_time} min
-                          </span>
-                        )}
+                        {item.type === "article" &&
+                          item.reading_time &&
+                          item.processing_status !== "pending" &&
+                          item.processing_status !== "processing" && (
+                            <span className="text-xs text-muted-foreground shrink-0 bg-muted px-1.5 py-0.5 rounded">
+                              {item.reading_time} min
+                            </span>
+                          )}
 
                         {/* Status badges */}
                         {(item.is_later || item.is_favorite) && (

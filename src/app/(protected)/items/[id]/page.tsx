@@ -2,12 +2,13 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import { Item } from "@/lib/types";
 import { ItemReaderView } from "./item-reader-view";
+import { User } from "@supabase/supabase-js";
 
 interface ItemDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-async function getItem(id: string): Promise<Item | null> {
+async function getItemAndUser(id: string): Promise<{ item: Item | null; user: User | null }> {
   const supabase = await createClient();
 
   const {
@@ -26,10 +27,10 @@ async function getItem(id: string): Promise<Item | null> {
     .single();
 
   if (error || !item) {
-    return null;
+    return { item: null, user };
   }
 
-  return item as Item;
+  return { item: item as Item, user };
 }
 
 interface Topic {
@@ -61,14 +62,14 @@ async function getItemTopics(itemId: string): Promise<Topic[]> {
 
 export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
   const { id } = await params;
-  const item = await getItem(id);
+  const { item, user } = await getItemAndUser(id);
 
-  if (!item) {
+  if (!item || !user) {
     notFound();
   }
 
   const topics = await getItemTopics(id);
 
-  return <ItemReaderView item={item} topics={topics} />;
+  return <ItemReaderView item={item} topics={topics} user={user} />;
 }
 

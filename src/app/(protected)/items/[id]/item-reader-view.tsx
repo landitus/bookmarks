@@ -4,22 +4,22 @@ import { useState } from "react";
 import { Item } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { ItemActions } from "@/components/items/item-actions";
+import { UserMenu } from "@/components/layout/user-menu";
 import Image from "next/image";
 import Link from "next/link";
 import Markdown from "react-markdown";
 import {
-  ArrowLeft,
   ExternalLink,
   Clock,
   Calendar,
-  User,
+  User as UserIcon,
   BookOpen,
-  ChevronRight,
-  ChevronLeft,
   Sparkles,
   Tag,
+  PanelRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { User } from "@supabase/supabase-js";
 
 // =============================================================================
 // TYPES
@@ -34,6 +34,7 @@ interface Topic {
 interface ItemReaderViewProps {
   item: Item;
   topics: Topic[];
+  user: User;
 }
 
 // =============================================================================
@@ -75,7 +76,7 @@ function formatDate(dateString: string | null) {
 // COMPONENT
 // =============================================================================
 
-export function ItemReaderView({ item, topics }: ItemReaderViewProps) {
+export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const hasContent = item.content && item.content.length > 100;
@@ -83,64 +84,79 @@ export function ItemReaderView({ item, topics }: ItemReaderViewProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header Bar */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="flex items-center justify-between h-14 px-4">
+      {/* Header Bar - Logo | Domain | Actions + User */}
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b">
+        <div className="relative flex items-center justify-between h-14 px-4">
+          {/* Left: Logo */}
           <div className="flex items-center gap-4">
-            <Link href="/everything">
-              <Button variant="ghost" size="sm" className="gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </Button>
+            <Link
+              href="/everything"
+              className="flex items-center gap-2 font-bold text-xl"
+            >
+              <div className="h-6 w-6 bg-primary rounded-md flex items-center justify-center">
+                <span className="text-white text-sm font-bold">P</span>
+              </div>
+              <span className="hidden sm:inline">Portable</span>
             </Link>
-
-            <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
-              <Image
-                src={getFaviconUrl(item.url)}
-                alt=""
-                width={16}
-                height={16}
-                className="w-4 h-4"
-                unoptimized
-              />
-              <span>{getDomain(item.url)}</span>
-            </div>
           </div>
 
+          {/* Center: Source domain */}
+          <a
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted transition-colors text-sm text-muted-foreground hover:text-foreground"
+          >
+            <Image
+              src={getFaviconUrl(item.url)}
+              alt=""
+              width={16}
+              height={16}
+              className="w-4 h-4"
+              unoptimized
+            />
+            <span className="max-w-[200px] truncate">{getDomain(item.url)}</span>
+            <ExternalLink className="h-3 w-3 opacity-50" />
+          </a>
+
+          {/* Right: Actions + User Menu */}
           <div className="flex items-center gap-2">
+            {/* Reading time (desktop only) */}
             {item.reading_time && (
-              <div className="hidden sm:flex items-center gap-1.5 text-sm text-muted-foreground">
+              <div className="hidden md:flex items-center gap-1.5 text-sm text-muted-foreground mr-2">
                 <Clock className="h-4 w-4" />
-                <span>{item.reading_time} min read</span>
+                <span>{item.reading_time} min</span>
               </div>
             )}
 
-            <Button variant="outline" size="sm" asChild>
+            {/* Open Original */}
+            <Button variant="ghost" size="sm" asChild className="hidden sm:flex">
               <a href={item.url} target="_blank" rel="noopener noreferrer" className="gap-2">
                 <ExternalLink className="h-4 w-4" />
-                <span className="hidden sm:inline">Open Original</span>
+                <span className="hidden md:inline">Original</span>
               </a>
             </Button>
 
+            {/* Item Actions (Later, Favorite, etc.) */}
             <ItemActions
               itemId={item.id}
               isLater={item.is_later}
               isFavorite={item.is_favorite}
             />
 
+            {/* Toggle Sidebar */}
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="ml-2"
               title={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
+              className="hidden sm:flex"
             >
-              {sidebarOpen ? (
-                <ChevronRight className="h-4 w-4" />
-              ) : (
-                <ChevronLeft className="h-4 w-4" />
-              )}
+              <PanelRight className={cn("h-4 w-4", sidebarOpen && "text-primary")} />
             </Button>
+
+            {/* User Menu */}
+            <UserMenu user={user} />
           </div>
         </div>
       </header>
@@ -151,7 +167,7 @@ export function ItemReaderView({ item, topics }: ItemReaderViewProps) {
         <main
           className={cn(
             "flex-1 transition-all duration-300",
-            sidebarOpen ? "mr-80" : "mr-0"
+            sidebarOpen ? "sm:mr-80" : "mr-0"
           )}
         >
           {isArticle ? (
@@ -172,7 +188,7 @@ export function ItemReaderView({ item, topics }: ItemReaderViewProps) {
                 <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                   {item.author && (
                     <div className="flex items-center gap-1.5">
-                      <User className="h-4 w-4" />
+                      <UserIcon className="h-4 w-4" />
                       <span>{item.author}</span>
                     </div>
                   )}
@@ -271,7 +287,8 @@ export function ItemReaderView({ item, topics }: ItemReaderViewProps) {
         <aside
           className={cn(
             "fixed right-0 top-14 bottom-0 w-80 bg-muted/30 border-l overflow-y-auto transition-transform duration-300",
-            sidebarOpen ? "translate-x-0" : "translate-x-full"
+            sidebarOpen ? "translate-x-0" : "translate-x-full",
+            "hidden sm:block" // Hide on mobile
           )}
         >
           <div className="p-6 space-y-6">
@@ -394,4 +411,3 @@ export function ItemReaderView({ item, topics }: ItemReaderViewProps) {
     </div>
   );
 }
-
