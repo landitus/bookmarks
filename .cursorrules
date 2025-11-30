@@ -1,0 +1,81 @@
+# Portable Project Rules
+
+## Context Management
+
+### On Every New Session
+
+1. **Always read first:** `.agents/context.md` (~500 tokens)
+2. **Then read:** `.agents/current-focus.md` (~260 tokens)
+3. **Check:** `.agents/backlog.md` (~1,200 tokens) - For priorities and bugs
+4. **If needed:** `.agents/docs/MVP-SUMMARY.md` (~830 tokens) - For feature details
+
+### Total context: ~1,960-2,790 tokens ✅
+
+### Avoid Reading Unless Necessary
+
+- `.agents/docs/PRD.md` (5000 tokens) - Only for deep feature implementation
+- `.agents/docs/VISION.md` (7000 tokens) - Only for future planning
+- `.agents/docs/REFERENCES.md` (1500 tokens) - Only for UI design questions
+
+## Changelog Management
+
+### When Committing Changes
+
+**ALWAYS update changelogs before committing:**
+
+1. **For webapp changes:** Update `CHANGELOG.md` in the root directory
+2. **For extension changes:** Update `extension/CHANGELOG.md`
+3. **For changes affecting both:** Update both changelogs
+
+### Changelog Format
+
+- Use [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format
+- Use [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
+- Categorize changes: Added, Changed, Deprecated, Removed, Fixed, Security
+- Add entries under `[Unreleased]` section
+- When releasing, move `[Unreleased]` to versioned section with date
+
+### Changelog Workflow
+
+1. **Before committing:** Review changes and categorize appropriately
+2. **Add entry:** Write clear, concise description of what changed
+3. **Commit:** Include changelog updates in the same commit
+4. **On release:** Create versioned section with date
+
+### Example Entry
+
+```markdown
+## [Unreleased]
+
+### Added
+- Feature description
+
+### Changed
+- What was modified
+
+### Fixed
+- Bug fix description
+```
+
+## Code Style
+
+- Use TypeScript for all new code
+- Follow existing code patterns and conventions
+- Use meaningful variable and function names
+- Add comments for complex logic
+- Keep functions focused and single-purpose
+
+## Project Structure
+
+- **Webapp:** Next.js 15+ (App Router) in `src/`
+- **Extension:** WXT-based browser extension in `extension/`
+- **Database:** Supabase (PostgreSQL) migrations in `supabase/migrations/`
+- **Documentation:** Agent docs in `.agents/`
+
+## Commit Messages
+
+- Use clear, descriptive commit messages
+- Reference related issues/PRs when applicable
+- Group related changes together
+- Update changelogs in the same commit
+

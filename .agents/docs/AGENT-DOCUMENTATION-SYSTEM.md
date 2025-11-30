@@ -341,6 +341,18 @@ The `.agents` directory is a structured documentation system designed to:
 3. **Update `STATUS.md`** - Track progress and milestones
 4. **Update `decisions.md`** - Document any decisions made
 
+### When Committing Changes
+
+**ALWAYS update changelogs before committing:**
+
+1. **For webapp changes:** Update `CHANGELOG.md` in the root directory
+2. **For extension changes:** Update `extension/CHANGELOG.md`
+3. **For changes affecting both:** Update both changelogs
+4. **Format:** Use [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format
+5. **Categorize:** Added, Changed, Deprecated, Removed, Fixed, Security
+6. **Placement:** Add entries under `[Unreleased]` section
+7. **On release:** Move `[Unreleased]` to versioned section with date
+
 ---
 
 ## Best Practices
