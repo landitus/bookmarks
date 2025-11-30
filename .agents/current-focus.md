@@ -60,6 +60,8 @@ curl -X POST https://your-app.com/api/items \
 3. Add "Install Extension" banner to webapp
 4. Test PWA share target on mobile after deployment
 
+See [Production Checklist](docs/production-checklist.md) for full deployment guide.
+
 ## ✅ Previous Sessions
 
 - Theme Picker with Profile Persistence

@@ -8,16 +8,16 @@ export default defineConfig({
     version: "1.0.0",
     permissions: ["activeTab", "storage"],
     icons: {
-      "16": "icon-16.svg",
-      "48": "icon-48.svg",
-      "128": "icon-128.svg",
+      "16": "icon-16.png",
+      "48": "icon-48.png",
+      "128": "icon-128.png",
     },
     action: {
       default_title: "Save to Portable",
       default_icon: {
-        "16": "icon-16.svg",
-        "48": "icon-48.svg",
-        "128": "icon-128.svg",
+        "16": "icon-16.png",
+        "48": "icon-48.png",
+        "128": "icon-128.png",
       },
     },
     commands: {
