@@ -11,6 +11,7 @@ A simpler setup for using the app yourself before full public launch. Keeps prod
 **The Professional Approach: Migrations as Code**
 
 All schema changes should be tracked as SQL migration files, not done manually in the Supabase dashboard. This ensures:
+
 - Changes are version controlled
 - Same migrations run on dev, staging, and production
 - Easy to rollback if something breaks
@@ -18,11 +19,11 @@ All schema changes should be tracked as SQL migration files, not done manually i
 
 **Environment Setup:**
 
-| Environment | Purpose | Database |
-|-------------|---------|----------|
-| Local (`pnpm dev`) | Daily development, experiments | Dev Supabase project |
-| Preview (Vercel PR deploys) | Test branches before merge | Dev or Branch DB |
-| Production (Vercel main) | Real users, real data | Production Supabase |
+| Environment                 | Purpose                        | Database             |
+| --------------------------- | ------------------------------ | -------------------- |
+| Local (`pnpm dev`)          | Daily development, experiments | Dev Supabase project |
+| Preview (Vercel PR deploys) | Test branches before merge     | Dev or Branch DB     |
+| Production (Vercel main)    | Real users, real data          | Production Supabase  |
 
 ```bash
 # .env.local (local development - NEVER production creds here)
@@ -67,6 +68,7 @@ supabase db push
 ```
 
 **Migration files live in your repo:**
+
 ```
 supabase/
   migrations/
@@ -101,6 +103,7 @@ Simpler but requires manual sync:
 2. **Production project**: Only apply tested migrations
 
 **Sync workflow:**
+
 ```bash
 # After testing a migration on dev:
 # 1. Save the SQL that worked
@@ -116,16 +119,19 @@ supabase db push --project-ref sqyarjblpozowlqluasg
 
 1. **Test on dev first** - Never experiment on production
 2. **Make migrations reversible** when possible:
+
    ```sql
    -- Migration: add column
    ALTER TABLE items ADD COLUMN reading_time integer;
-   
+
    -- Rollback (save this!)
    ALTER TABLE items DROP COLUMN reading_time;
    ```
+
 3. **Avoid destructive changes** in production:
+
    - ❌ `DROP TABLE` - loses data
-   - ❌ `DROP COLUMN` - loses data  
+   - ❌ `DROP COLUMN` - loses data
    - ✅ `ADD COLUMN` - safe
    - ✅ `CREATE TABLE` - safe
    - ⚠️ `ALTER COLUMN` - test carefully
@@ -155,17 +161,44 @@ supabase migration list
 
 ---
 
-### Setting Up Dev Database (First Time)
+### Setting Up Local Supabase (Recommended)
 
-1. **Create new Supabase project** called `bookmarks-dev`
-2. **Link and push existing migrations:**
-   ```bash
-   supabase link --project-ref YOUR_DEV_PROJECT_ID
-   supabase db push
-   ```
-3. **Or manually run migrations** via Supabase SQL Editor
-4. **Enable Realtime** on `items` table
-5. **Create a test user** via the app's signup flow
+**Prerequisites:** Docker Desktop must be running.
+
+```bash
+# 1. Start local Supabase (first time takes a few minutes)
+cd /Users/fernando/Code/bookmarks
+supabase start
+
+# 2. Note the output - it shows your local credentials:
+#    API URL: http://127.0.0.1:54321
+#    anon key: eyJ...
+#    service_role key: eyJ...
+
+# 3. Copy env.example to .env.local and update with local credentials
+cp env.example .env.local
+# Edit .env.local with the values from step 2
+
+# 4. Run migrations on local database
+supabase db reset  # This runs all migrations fresh
+
+# 5. Start the app
+pnpm dev
+```
+
+**Local Supabase Commands:**
+```bash
+supabase start      # Start local Supabase (Docker)
+supabase stop       # Stop local Supabase
+supabase db reset   # Reset DB and run all migrations
+supabase status     # Show local URLs and keys
+supabase studio     # Open local Supabase Studio (GUI)
+```
+
+**Local URLs:**
+- App: http://localhost:3000
+- Supabase Studio: http://127.0.0.1:54323
+- API: http://127.0.0.1:54321
 
 ### 2. Deploy to Vercel (Personal Use)
 
