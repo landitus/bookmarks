@@ -5,7 +5,7 @@ export default defineConfig({
   manifest: {
     name: "Portable",
     description: "Save links to your Portable pocket",
-    version: "1.0.0",
+    version: "0.0.1",
     permissions: ["activeTab", "storage"],
     icons: {
       "16": "icon-16.png",

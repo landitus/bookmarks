@@ -26,6 +26,7 @@ const settingsView = document.getElementById("settings-view")!;
 const saveView = document.getElementById("save-view")!;
 const successView = document.getElementById("success-view")!;
 const errorView = document.getElementById("error-view")!;
+const alreadySavedView = document.getElementById("already-saved-view")!;
 
 const envLocalBtn = document.getElementById("env-local")!;
 const envProdBtn = document.getElementById("env-prod")!;
@@ -49,15 +50,73 @@ const saveBtnText = document.getElementById("save-btn-text")!;
 const saveBtnLoading = document.getElementById("save-btn-loading")!;
 const errorText = document.getElementById("error-text")!;
 const retryBtn = document.getElementById("retry-btn")!;
+const savedDateEl = document.getElementById("saved-date")!;
+const openPortableBtn = document.getElementById("open-portable-btn")!;
+const openSettingsFromSavedBtn = document.getElementById("open-settings-from-saved")!;
+const versionText = document.getElementById("version-text")!;
+const versionTextSaveView = document.getElementById("version-text-save-view")!;
+const checkUpdatesBtn = document.getElementById("check-updates-btn")!;
 
 // State
 let currentUrl = "";
 let currentTitle = "";
 let selectedEnv: EnvKey = "local";
+let currentVersion = "";
+
+// Get extension version
+function getExtensionVersion(): string {
+  try {
+    const manifest = browser.runtime.getManifest();
+    return manifest.version || "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
+// Check for updates
+async function checkForUpdates(): Promise<{ isLatest: boolean; latestVersion?: string }> {
+  const settings = await getSettings();
+  
+  try {
+    // Try to fetch latest version from a simple endpoint
+    // For now, we'll just compare with a static check
+    // In the future, you could add an endpoint like: /api/extension/version
+    const response = await fetch(`${settings.serverUrl}/api/extension/version`, {
+      method: "GET",
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        isLatest: data.version === currentVersion,
+        latestVersion: data.version,
+      };
+    }
+  } catch (err) {
+    // Endpoint doesn't exist yet, that's okay
+    console.log("Update check endpoint not available");
+  }
+
+  // Default: assume latest (since we can't check)
+  return { isLatest: true };
+}
+
+// Update version display
+function updateVersionDisplay() {
+  const version = getExtensionVersion();
+  currentVersion = version;
+  
+  if (versionText) {
+    versionText.textContent = `v${version}`;
+  }
+  if (versionTextSaveView) {
+    versionTextSaveView.textContent = `v${version}`;
+  }
+}
 
 // View management
 function showView(view: HTMLElement) {
-  [settingsView, saveView, successView, errorView].forEach((v) => {
+  [settingsView, saveView, successView, errorView, alreadySavedView].forEach((v) => {
     v.classList.add("hidden");
   });
   view.classList.remove("hidden");
@@ -180,6 +239,85 @@ async function getCurrentTab() {
   };
 }
 
+// Format relative date (e.g., "Saved 3 days ago")
+function formatRelativeDate(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) {
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    if (diffHours === 0) {
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      if (diffMins === 0) {
+        return "Saved just now";
+      }
+      return `Saved ${diffMins} ${diffMins === 1 ? "minute" : "minutes"} ago`;
+    }
+    return `Saved ${diffHours} ${diffHours === 1 ? "hour" : "hours"} ago`;
+  } else if (diffDays === 1) {
+    return "Saved yesterday";
+  } else if (diffDays < 7) {
+    return `Saved ${diffDays} days ago`;
+  } else if (diffDays < 30) {
+    const weeks = Math.floor(diffDays / 7);
+    return `Saved ${weeks} ${weeks === 1 ? "week" : "weeks"} ago`;
+  } else if (diffDays < 365) {
+    const months = Math.floor(diffDays / 30);
+    return `Saved ${months} ${months === 1 ? "month" : "months"} ago`;
+  } else {
+    const years = Math.floor(diffDays / 365);
+    return `Saved ${years} ${years === 1 ? "year" : "years"} ago`;
+  }
+}
+
+// Check if bookmark already exists
+async function checkBookmarkExists(url: string): Promise<{ exists: boolean; item?: { created_at: string } }> {
+  const settings = await getSettings();
+
+  if (!settings.apiKey) {
+    console.log("No API key, skipping check");
+    return { exists: false };
+  }
+
+  if (!url || url === "about:blank" || url.startsWith("chrome://") || url.startsWith("edge://")) {
+    console.log("Invalid URL for check:", url);
+    return { exists: false };
+  }
+
+  try {
+    const encodedUrl = encodeURIComponent(url);
+    const checkUrl = `${settings.serverUrl}/api/items?url=${encodedUrl}`;
+    console.log("Checking bookmark exists:", checkUrl);
+    
+    const response = await fetch(checkUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${settings.apiKey}`,
+      },
+    });
+
+    const data = await response.json();
+    console.log("Check response:", { status: response.status, ok: response.ok, data });
+
+    if (response.ok && data.exists === true && data.item) {
+      console.log("Bookmark exists:", data.item);
+      return { exists: true, item: data.item };
+    }
+
+    if (!response.ok) {
+      console.warn("Check request failed:", response.status, data);
+    }
+
+    return { exists: false };
+  } catch (err) {
+    console.error("Check error:", err);
+    // If check fails, assume it doesn't exist and let user try to save
+    return { exists: false };
+  }
+}
+
 // Save bookmark
 async function saveBookmark() {
   const settings = await getSettings();
@@ -211,6 +349,17 @@ async function saveBookmark() {
       // Auto-close after success
       setTimeout(() => window.close(), 1500);
     } else {
+      // If it's a duplicate error, show the "already saved" view instead
+      if (response.status === 409 || data.error?.includes("already exists")) {
+        // Re-check to get the item details
+        const checkResult = await checkBookmarkExists(currentUrl);
+        if (checkResult.exists && checkResult.item) {
+          const savedDate = formatRelativeDate(checkResult.item.created_at);
+          savedDateEl.textContent = savedDate;
+          showView(alreadySavedView);
+          return;
+        }
+      }
       errorText.textContent = data.error || "Failed to save";
       showView(errorView);
     }
@@ -227,6 +376,9 @@ async function saveBookmark() {
 
 // Initialize
 async function init() {
+  // Update version display first
+  updateVersionDisplay();
+
   const settings = await getSettings();
   selectedEnv = settings.env;
 
@@ -249,10 +401,20 @@ async function init() {
     apiKeyInput.value = "";
     showView(settingsView);
   } else {
-    // Show save view with page info
-    pageTitleEl.textContent = currentTitle;
-    pageUrlEl.textContent = currentUrl;
-    showView(saveView);
+    // Check if bookmark already exists
+    const checkResult = await checkBookmarkExists(currentUrl);
+    
+    if (checkResult.exists && checkResult.item) {
+      // Show already saved view
+      const savedDate = formatRelativeDate(checkResult.item.created_at);
+      savedDateEl.textContent = savedDate;
+      showView(alreadySavedView);
+    } else {
+      // Show save view with page info
+      pageTitleEl.textContent = currentTitle;
+      pageUrlEl.textContent = currentUrl;
+      showView(saveView);
+    }
   }
 }
 
@@ -274,6 +436,52 @@ openSettingsBtn.addEventListener("click", async () => {
 });
 retryBtn.addEventListener("click", () => {
   showView(saveView);
+});
+
+// Open Portable app
+openPortableBtn.addEventListener("click", async () => {
+  const settings = await getSettings();
+  await browser.tabs.create({ url: settings.serverUrl });
+  window.close();
+});
+
+// Open settings from already saved view
+openSettingsFromSavedBtn.addEventListener("click", async () => {
+  const settings = await getSettings();
+  selectedEnv = settings.env;
+  updateEnvButtons();
+  await updateStatusDots();
+  envIndicator.textContent = ENVIRONMENTS[settings.env].name;
+  envIndicator.className = `env-indicator env-${settings.env}`;
+  apiKeyInput.value = settings.apiKey || "";
+  serverUrlInput.value = settings.serverUrl;
+  updateVersionDisplay();
+  showView(settingsView);
+});
+
+// Check for updates button
+checkUpdatesBtn.addEventListener("click", async () => {
+  checkUpdatesBtn.textContent = "Checking...";
+  checkUpdatesBtn.setAttribute("disabled", "true");
+  
+  const updateInfo = await checkForUpdates();
+  
+  if (updateInfo.isLatest) {
+    checkUpdatesBtn.textContent = "✓ Up to date";
+    checkUpdatesBtn.style.color = "#22c55e";
+    setTimeout(() => {
+      checkUpdatesBtn.textContent = "Check for updates";
+      checkUpdatesBtn.removeAttribute("disabled");
+      checkUpdatesBtn.style.color = "";
+    }, 2000);
+  } else if (updateInfo.latestVersion) {
+    checkUpdatesBtn.textContent = `Update available: v${updateInfo.latestVersion}`;
+    checkUpdatesBtn.style.color = "#f59e0b";
+    // Could add a link to download page here
+  } else {
+    checkUpdatesBtn.textContent = "Check for updates";
+    checkUpdatesBtn.removeAttribute("disabled");
+  }
 });
 
 // Allow Enter key in inputs

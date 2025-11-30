@@ -17,8 +17,6 @@
       <div id="content">
         <!-- Settings view (shown when no API key) -->
         <div id="settings-view" class="view hidden">
-          <p class="description">Select environment and enter your API key.</p>
-
           <!-- Environment segmented control -->
           <div class="segmented-control">
             <div class="segment-bg" id="segment-bg"></div>
@@ -48,6 +46,10 @@
           <p class="help-text">
             Find your API key in the user menu on Portable.
           </p>
+          <div class="version-info">
+            <span id="version-text">Version loading...</span>
+            <button id="check-updates-btn" class="btn-link-inline">Check for updates</button>
+          </div>
         </div>
 
         <!-- Save view (shown when configured) -->
@@ -61,6 +63,20 @@
             <span id="save-btn-loading" class="hidden">Saving...</span>
           </button>
           <button id="open-settings" class="btn btn-link">Settings</button>
+          <div class="version-info">
+            <span id="version-text-save-view">Version loading...</span>
+          </div>
+        </div>
+
+        <!-- Already Saved view -->
+        <div id="already-saved-view" class="view hidden">
+          <div class="success-icon">✓</div>
+          <p class="already-saved-heading">Already in your pocket</p>
+          <p id="saved-date" class="saved-date"></p>
+          <button id="open-portable-btn" class="btn btn-primary">
+            Open in Portable
+          </button>
+          <button id="open-settings-from-saved" class="btn btn-link">Settings</button>
         </div>
 
         <!-- Success view -->

@@ -20,7 +20,7 @@ type ItemType = "video" | "article" | "thread" | "image";
 // CORS headers for all responses
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
@@ -68,6 +68,68 @@ async function authenticateRequest(
   }
 
   return { userId: profile.id };
+}
+
+/**
+ * GET /api/items?url=<encoded_url> - Check if a bookmark exists
+ *
+ * Headers:
+ *   Authorization: Bearer <api_key>
+ *
+ * Response:
+ *   { exists: true, item: Item } | { exists: false }
+ */
+export async function GET(request: NextRequest) {
+  // Authenticate
+  const auth = await authenticateRequest(request);
+
+  if ("error" in auth) {
+    return jsonResponse({ exists: false, error: auth.error }, auth.status);
+  }
+
+  const { userId } = auth;
+
+  // Get URL from query params
+  const { searchParams } = new URL(request.url);
+  const url = searchParams.get("url");
+
+  if (!url) {
+    return jsonResponse(
+      { exists: false, error: "URL parameter is required" },
+      400
+    );
+  }
+
+  // Validate URL
+  try {
+    new URL(url);
+  } catch {
+    return jsonResponse({ exists: false, error: "Invalid URL format" }, 400);
+  }
+
+  const supabase = createServiceClient();
+
+  // Check for existing item
+  const { data: existingItem, error } = await supabase
+    .from("items")
+    .select("id, url, title, created_at")
+    .eq("url", url)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Error checking for existing item:", error);
+    return jsonResponse(
+      { exists: false, error: "Failed to check bookmark" },
+      500
+    );
+  }
+
+  if (existingItem) {
+    return jsonResponse({ exists: true, item: existingItem }, 200);
+  }
+
+  return jsonResponse({ exists: false }, 200);
 }
 
 /**
@@ -224,7 +286,7 @@ export async function OPTIONS() {
     status: 204,
     headers: {
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
     },
   });
