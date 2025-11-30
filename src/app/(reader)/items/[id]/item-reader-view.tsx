@@ -115,7 +115,9 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
               className="w-4 h-4"
               unoptimized
             />
-            <span className="max-w-[200px] truncate">{getDomain(item.url)}</span>
+            <span className="max-w-[200px] truncate">
+              {getDomain(item.url)}
+            </span>
             <ExternalLink className="h-3 w-3 opacity-50" />
           </a>
 
@@ -130,8 +132,18 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
             )}
 
             {/* Open Original */}
-            <Button variant="ghost" size="sm" asChild className="hidden sm:flex">
-              <a href={item.url} target="_blank" rel="noopener noreferrer" className="gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="hidden sm:flex"
+            >
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="gap-2"
+              >
                 <ExternalLink className="h-4 w-4" />
                 <span className="hidden md:inline">Original</span>
               </a>
@@ -152,7 +164,9 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
               title={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
               className="hidden sm:flex"
             >
-              <PanelRight className={cn("h-4 w-4", sidebarOpen && "text-primary")} />
+              <PanelRight
+                className={cn("h-4 w-4", sidebarOpen && "text-primary")}
+              />
             </Button>
 
             {/* User Menu */}
@@ -267,7 +281,12 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
                 </div>
 
                 <Button asChild size="lg">
-                  <a href={item.url} target="_blank" rel="noopener noreferrer" className="gap-2">
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="gap-2"
+                  >
                     <ExternalLink className="h-4 w-4" />
                     Open in {getDomain(item.url)}
                   </a>
@@ -294,7 +313,9 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
           <div className="p-6 space-y-6">
             {/* Source */}
             <section>
-              <h3 className="text-sm font-medium text-muted-foreground mb-3">Source</h3>
+              <h3 className="text-sm font-medium text-muted-foreground mb-3">
+                Source
+              </h3>
               <a
                 href={item.url}
                 target="_blank"
@@ -311,7 +332,9 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
                 />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{getDomain(item.url)}</p>
-                  <p className="text-xs text-muted-foreground truncate">{item.url}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {item.url}
+                  </p>
                 </div>
                 <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0" />
               </a>
@@ -352,11 +375,15 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
 
             {/* Metadata */}
             <section>
-              <h3 className="text-sm font-medium text-muted-foreground mb-3">Details</h3>
+              <h3 className="text-sm font-medium text-muted-foreground mb-3">
+                Details
+              </h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Type</span>
-                  <span className="capitalize">{item.ai_content_type || item.type}</span>
+                  <span className="capitalize">
+                    {item.ai_content_type || item.type}
+                  </span>
                 </div>
 
                 {item.reading_time && (
@@ -397,7 +424,11 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
             {/* Actions */}
             <section className="pt-4 border-t">
               <div className="space-y-2">
-                <Button variant="outline" className="w-full justify-start gap-2" asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-2"
+                  asChild
+                >
                   <a href={item.url} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="h-4 w-4" />
                     Open Original

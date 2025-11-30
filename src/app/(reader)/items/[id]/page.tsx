@@ -8,7 +8,9 @@ interface ItemDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-async function getItemAndUser(id: string): Promise<{ item: Item | null; user: User | null }> {
+async function getItemAndUser(
+  id: string
+): Promise<{ item: Item | null; user: User | null }> {
   const supabase = await createClient();
 
   const {
@@ -72,4 +74,3 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
 
   return <ItemReaderView item={item} topics={topics} user={user} />;
 }
-
