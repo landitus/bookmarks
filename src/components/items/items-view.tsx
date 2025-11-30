@@ -324,14 +324,23 @@ export function ItemsView({ items, emptyState }: ItemsViewProps) {
 
                         <HoverCard openDelay={300} closeDelay={100}>
                           <HoverCardTrigger asChild>
-                            <Link
-                              href={item.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="font-medium truncate hover:underline"
-                            >
-                              {item.title}
-                            </Link>
+                            {(() => {
+                              // Articles with content go to reader view
+                              const hasReaderContent = item.type === "article" && item.content && item.content.length > 100;
+                              const href = hasReaderContent ? `/items/${item.id}` : item.url;
+                              const isExternal = !hasReaderContent;
+                              
+                              return (
+                                <Link
+                                  href={href}
+                                  target={isExternal ? "_blank" : undefined}
+                                  rel={isExternal ? "noopener noreferrer" : undefined}
+                                  className="font-medium truncate hover:underline"
+                                >
+                                  {item.title}
+                                </Link>
+                              );
+                            })()}
                           </HoverCardTrigger>
                           <HoverCardContent
                             side="bottom"
@@ -381,6 +390,13 @@ export function ItemsView({ items, emptyState }: ItemsViewProps) {
                         <span className="text-sm text-muted-foreground shrink-0">
                           {getDomain(item.url)}
                         </span>
+
+                        {/* Reading time for articles */}
+                        {item.type === "article" && item.reading_time && (
+                          <span className="text-xs text-muted-foreground shrink-0 bg-muted px-1.5 py-0.5 rounded">
+                            {item.reading_time} min
+                          </span>
+                        )}
 
                         {/* Status badges */}
                         {(item.is_later || item.is_favorite) && (
