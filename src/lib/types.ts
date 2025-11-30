@@ -1,10 +1,13 @@
 export type ItemType = "video" | "article" | "thread" | "image";
 
+export type Theme = "light" | "dark" | "system";
+
 export interface Profile {
   id: string;
   email: string;
   full_name: string | null;
   avatar_url: string | null;
+  theme: Theme | null;
 }
 
 export interface Item {

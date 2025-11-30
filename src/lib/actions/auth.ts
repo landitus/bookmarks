@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import type { Theme } from "@/lib/types";
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
@@ -72,4 +73,53 @@ export async function logout() {
   await supabase.auth.signOut();
   revalidatePath("/", "layout");
   redirect("/login");
+}
+
+export async function updateTheme(theme: Theme) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ theme })
+    .eq("id", user.id);
+
+  if (error) {
+    console.error("Theme update error:", error);
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/", "layout");
+}
+
+export async function getTheme(): Promise<Theme | null> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("theme")
+    .eq("id", user.id)
+    .single();
+
+  if (error) {
+    console.error("Theme fetch error:", error);
+    return null;
+  }
+
+  return (data?.theme as Theme) || null;
 }

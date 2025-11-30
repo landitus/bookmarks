@@ -2,18 +2,20 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { logout } from "@/lib/actions/auth";
-import { LogOut, Settings, Sparkles, User } from "lucide-react";
-import { useState } from "react";
+import { logout, updateTheme } from "@/lib/actions/auth";
+import { LogOut, Settings, User, Sun, Moon, Monitor } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
+import type { Theme } from "@/lib/types";
 
 interface UserMenuProps {
   user: {
@@ -27,6 +29,19 @@ interface UserMenuProps {
 
 export function UserMenu({ user }: UserMenuProps) {
   const [open, setOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch by only showing theme selection after mount
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleThemeChange = async (newTheme: Theme) => {
+    setTheme(newTheme);
+    await updateTheme(newTheme);
+  };
 
   // Helper to format name like "Fernando Carrettoni"
   const getDisplayName = () => {
@@ -75,11 +90,8 @@ export function UserMenu({ user }: UserMenuProps) {
         alignOffset={0}
       >
         <div className="px-2 py-2 mb-1">
-          <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
-            Account
-          </p>
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 ring-1 ring-zinc-200 dark:ring-zinc-700">
+            <Avatar className="h-8 w-8 ring-1 ring-zinc-200 dark:ring-zinc-700">
               <AvatarImage
                 src={user.user_metadata?.avatar_url}
                 alt={displayName}
@@ -101,18 +113,45 @@ export function UserMenu({ user }: UserMenuProps) {
 
         <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800 mx-2" />
 
+        <div className="px-2 py-2">
+          <ButtonGroup orientation="horizontal" className="w-full">
+            <Button
+              variant={mounted && theme === "light" ? "default" : "outline"}
+              size="sm"
+              className="flex-1"
+              onClick={() => handleThemeChange("light")}
+            >
+              <Sun className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={mounted && theme === "dark" ? "default" : "outline"}
+              size="sm"
+              className="flex-1"
+              onClick={() => handleThemeChange("dark")}
+            >
+              <Moon className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={mounted && theme === "system" ? "default" : "outline"}
+              size="sm"
+              className="flex-1"
+              onClick={() => handleThemeChange("system")}
+            >
+              <Monitor className="h-4 w-4" />
+            </Button>
+          </ButtonGroup>
+        </div>
+
+        <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800 mx-2" />
+
         <div className="p-1">
-          <DropdownMenuItem className="group flex items-center gap-2 px-2 py-2 text-sm text-zinc-600 dark:text-zinc-300 rounded-lg cursor-pointer focus:bg-zinc-100 dark:focus:bg-zinc-800 focus:text-zinc-900 dark:focus:text-zinc-100 transition-colors">
-            <User className="h-4 w-4 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors" />
+          <DropdownMenuItem>
+            <User />
             Profile
           </DropdownMenuItem>
-          <DropdownMenuItem className="group flex items-center gap-2 px-2 py-2 text-sm text-zinc-600 dark:text-zinc-300 rounded-lg cursor-pointer focus:bg-zinc-100 dark:focus:bg-zinc-800 focus:text-zinc-900 dark:focus:text-zinc-100 transition-colors">
-            <Settings className="h-4 w-4 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors" />
+          <DropdownMenuItem>
+            <Settings />
             Settings
-          </DropdownMenuItem>
-          <DropdownMenuItem className="group flex items-center gap-2 px-2 py-2 text-sm text-zinc-600 dark:text-zinc-300 rounded-lg cursor-pointer focus:bg-zinc-100 dark:focus:bg-zinc-800 focus:text-zinc-900 dark:focus:text-zinc-100 transition-colors">
-            <Sparkles className="h-4 w-4 text-indigo-500" />
-            Upgrade Plan
           </DropdownMenuItem>
         </div>
 
@@ -120,13 +159,13 @@ export function UserMenu({ user }: UserMenuProps) {
 
         <div className="p-1">
           <DropdownMenuItem
-            className="group flex items-center gap-2 px-2 py-2 text-sm text-red-600 dark:text-red-400 rounded-lg cursor-pointer focus:bg-red-50 dark:focus:bg-red-900/20 focus:text-red-700 dark:focus:text-red-300 transition-colors"
+            variant="destructive"
             onSelect={async (e) => {
               e.preventDefault();
               await logout();
             }}
           >
-            <LogOut className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+            <LogOut />
             Sign out
           </DropdownMenuItem>
         </div>
