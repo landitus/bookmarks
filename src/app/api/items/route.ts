@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { after } from "next/server";
 
 // Metascraper setup
 import metascraper from "metascraper";
@@ -9,8 +10,16 @@ import metascraperTitle from "metascraper-title";
 import metascraperUrl from "metascraper-url";
 
 // Content extraction and AI services
-import { extractContent, isLikelyArticle } from "@/lib/services/content-extractor";
-import { detectContentType, generateSummary, extractTopics, mapToItemType } from "@/lib/services/ai-processor";
+import {
+  extractContent,
+  isLikelyArticle,
+} from "@/lib/services/content-extractor";
+import {
+  detectContentType,
+  generateSummary,
+  extractTopics,
+  mapToItemType,
+} from "@/lib/services/ai-processor";
 
 const scraper = metascraper([
   metascraperDescription(),
@@ -19,7 +28,13 @@ const scraper = metascraper([
   metascraperUrl(),
 ]);
 
-type ItemType = "video" | "article" | "thread" | "image" | "product" | "website";
+type ItemType =
+  | "video"
+  | "article"
+  | "thread"
+  | "image"
+  | "product"
+  | "website";
 
 // CORS headers for all responses
 const corsHeaders = {
@@ -75,16 +90,191 @@ async function authenticateRequest(
 }
 
 /**
+ * Quick URL-based type detection (no network calls)
+ */
+function detectTypeFromUrl(url: string): ItemType {
+  if (
+    url.includes("youtube.com") ||
+    url.includes("youtu.be") ||
+    url.includes("vimeo.com")
+  ) {
+    return "video";
+  }
+  if (url.match(/\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i)) {
+    return "image";
+  }
+  if (url.includes("twitter.com") || url.includes("x.com")) {
+    return "thread";
+  }
+  return "article";
+}
+
+/**
+ * Background processing for content extraction and AI
+ * Called after the response is sent to the client
+ */
+async function processItemInBackground(itemId: string, url: string, userId: string) {
+  const supabase = createServiceClient();
+  
+  console.log(`[Background] Starting processing for item ${itemId}`);
+  
+  try {
+    // Update status to processing
+    await supabase
+      .from("items")
+      .update({ processing_status: "processing" })
+      .eq("id", itemId);
+
+    let content: string | null = null;
+    let wordCount: number | null = null;
+    let readingTime: number | null = null;
+    let author: string | null = null;
+    let publishDate: string | null = null;
+    let type: ItemType = detectTypeFromUrl(url);
+    let aiContentType: string | null = null;
+    let aiSummary: string | null = null;
+    let title: string | null = null;
+    let description: string | null = null;
+    let image_url: string | null = null;
+
+    // ==========================================================================
+    // STEP 1: Content extraction with Jina Reader (for articles)
+    // ==========================================================================
+    if (isLikelyArticle(url)) {
+      try {
+        const extracted = await extractContent(url);
+        if (extracted) {
+          content = extracted.content;
+          wordCount = extracted.wordCount;
+          readingTime = extracted.readingTime;
+          author = extracted.author;
+          publishDate = extracted.publishDate?.toISOString() || null;
+          
+          // Use extracted metadata if available
+          if (extracted.title) title = extracted.title;
+          if (extracted.description) description = extracted.description;
+          if (extracted.imageUrl) image_url = extracted.imageUrl;
+        }
+      } catch (e) {
+        console.error(`[Background] Content extraction failed for ${itemId}:`, e);
+      }
+    }
+
+    // ==========================================================================
+    // STEP 2: AI Processing (type detection, summary, topics)
+    // ==========================================================================
+    const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
+    const topics: string[] = [];
+
+    if (hasOpenAIKey) {
+      try {
+        // Get current item data for AI processing
+        const { data: currentItem } = await supabase
+          .from("items")
+          .select("title, description")
+          .eq("id", itemId)
+          .single();
+
+        const itemTitle = title || currentItem?.title || url;
+        const itemDescription = description || currentItem?.description;
+
+        // Detect content type with AI
+        const typeResult = await detectContentType(
+          url,
+          itemTitle,
+          itemDescription,
+          content
+        );
+        aiContentType = typeResult.contentType;
+        type = mapToItemType(typeResult.contentType, url);
+
+        // Generate summary and extract topics (only for content with substance)
+        if (content && content.length > 200) {
+          const [summary, extractedTopics] = await Promise.all([
+            generateSummary(itemTitle, content),
+            extractTopics(itemTitle, content),
+          ]);
+          aiSummary = summary;
+          topics.push(...extractedTopics);
+        }
+      } catch (e) {
+        console.error(`[Background] AI processing failed for ${itemId}:`, e);
+      }
+    }
+
+    // ==========================================================================
+    // STEP 3: Update item with processed data
+    // ==========================================================================
+    const updateData: Record<string, unknown> = {
+      processing_status: "completed",
+      type,
+    };
+
+    // Only update fields that have values
+    if (content) updateData.content = content;
+    if (wordCount) updateData.word_count = wordCount;
+    if (readingTime) updateData.reading_time = readingTime;
+    if (author) updateData.author = author;
+    if (publishDate) updateData.publish_date = publishDate;
+    if (aiContentType) updateData.ai_content_type = aiContentType;
+    if (aiSummary) updateData.ai_summary = aiSummary;
+    if (title) updateData.title = title;
+    if (description) updateData.description = description;
+    if (image_url) updateData.image_url = image_url;
+
+    await supabase
+      .from("items")
+      .update(updateData)
+      .eq("id", itemId);
+
+    // ==========================================================================
+    // STEP 4: Create topics (if any were extracted)
+    // ==========================================================================
+    if (topics.length > 0) {
+      try {
+        for (const topicName of topics) {
+          const slug = topicName
+            .toLowerCase()
+            .replace(/\s+/g, "-")
+            .replace(/[^a-z0-9-]/g, "");
+
+          const { data: topic } = await supabase
+            .from("topics")
+            .upsert(
+              { user_id: userId, name: topicName, slug },
+              { onConflict: "user_id,slug", ignoreDuplicates: false }
+            )
+            .select("id")
+            .single();
+
+          if (topic) {
+            await supabase
+              .from("item_topics")
+              .insert({ item_id: itemId, topic_id: topic.id })
+              .select();
+          }
+        }
+      } catch (e) {
+        console.error(`[Background] Failed to create topics for ${itemId}:`, e);
+      }
+    }
+
+    console.log(`[Background] Completed processing for item ${itemId}`);
+  } catch (e) {
+    console.error(`[Background] Processing failed for ${itemId}:`, e);
+    
+    // Mark as failed
+    await supabase
+      .from("items")
+      .update({ processing_status: "failed" })
+      .eq("id", itemId);
+  }
+}
+
+/**
  * GET /api/items?url=<encoded_url> - Check if a bookmark exists
- *
- * Headers:
- *   Authorization: Bearer <api_key>
- *
- * Response:
- *   { exists: true, item: Item } | { exists: false }
  */
 export async function GET(request: NextRequest) {
-  // Authenticate
   const auth = await authenticateRequest(request);
 
   if ("error" in auth) {
@@ -92,8 +282,6 @@ export async function GET(request: NextRequest) {
   }
 
   const { userId } = auth;
-
-  // Get URL from query params
   const { searchParams } = new URL(request.url);
   const url = searchParams.get("url");
 
@@ -104,7 +292,6 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // Validate URL
   try {
     new URL(url);
   } catch {
@@ -113,7 +300,6 @@ export async function GET(request: NextRequest) {
 
   const supabase = createServiceClient();
 
-  // Check for existing item
   const { data: existingItem, error } = await supabase
     .from("items")
     .select("id, url, title, created_at")
@@ -137,19 +323,12 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * POST /api/items - Create a new bookmark
+ * POST /api/items - Create a new bookmark (FAST - returns immediately)
  *
- * Headers:
- *   Authorization: Bearer <api_key>
- *
- * Body:
- *   { url: string, skipAI?: boolean }
- *
- * Response:
- *   { success: true, item: Item } | { success: false, error: string }
+ * Background processing handles content extraction and AI.
+ * The item appears instantly with processing_status: 'pending'.
  */
 export async function POST(request: NextRequest) {
-  // Authenticate
   const auth = await authenticateRequest(request);
 
   if ("error" in auth) {
@@ -158,21 +337,19 @@ export async function POST(request: NextRequest) {
 
   const { userId } = auth;
 
-  // Parse body
-  let body: { url?: string; skipAI?: boolean };
+  let body: { url?: string };
   try {
     body = await request.json();
   } catch {
     return jsonResponse({ success: false, error: "Invalid JSON body" }, 400);
   }
 
-  const { url, skipAI = false } = body;
+  const { url } = body;
 
   if (!url) {
     return jsonResponse({ success: false, error: "URL is required" }, 400);
   }
 
-  // Validate URL
   try {
     new URL(url);
   } catch {
@@ -197,18 +374,16 @@ export async function POST(request: NextRequest) {
   }
 
   // ==========================================================================
-  // STEP 1: Basic metadata scraping (fast, always runs)
+  // FAST PATH: Basic metadata only (oEmbed for videos, metascraper for others)
   // ==========================================================================
   let title = url;
   let description: string | null = null;
   let image_url: string | null = null;
 
   try {
-    // Special handling for YouTube - use oEmbed API
+    // YouTube oEmbed (fast)
     if (url.includes("youtube.com/watch") || url.includes("youtu.be/")) {
-      const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(
-        url
-      )}&format=json`;
+      const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
       const oembedRes = await fetch(oembedUrl);
       if (oembedRes.ok) {
         const oembed = await oembedRes.json();
@@ -217,11 +392,9 @@ export async function POST(request: NextRequest) {
         description = oembed.author_name ? `By ${oembed.author_name}` : null;
       }
     }
-    // Special handling for Vimeo
+    // Vimeo oEmbed (fast)
     else if (url.includes("vimeo.com/")) {
-      const oembedUrl = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(
-        url
-      )}`;
+      const oembedUrl = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(url)}`;
       const oembedRes = await fetch(oembedUrl);
       if (oembedRes.ok) {
         const oembed = await oembedRes.json();
@@ -230,13 +403,13 @@ export async function POST(request: NextRequest) {
         description = oembed.author_name ? `By ${oembed.author_name}` : null;
       }
     }
-    // Default: use metascraper
+    // Metascraper for other URLs
     else {
       const response = await fetch(url, {
         headers: {
-          "User-Agent":
-            "Mozilla/5.0 (compatible; Portable/1.0; +https://portable.app)",
+          "User-Agent": "Mozilla/5.0 (compatible; Portable/1.0; +https://portable.app)",
         },
+        signal: AbortSignal.timeout(5000), // 5 second timeout for fast response
       });
       const html = await response.text();
       const metadata = await scraper({ html, url });
@@ -247,90 +420,18 @@ export async function POST(request: NextRequest) {
     }
   } catch (e) {
     console.error("Failed to scrape metadata:", e);
-    // Continue with URL as title
+    // Continue with URL as title - still save the item
   }
 
-  // ==========================================================================
-  // STEP 2: Content extraction (for articles) with Jina Reader
-  // ==========================================================================
-  let content: string | null = null;
-  let wordCount: number | null = null;
-  let readingTime: number | null = null;
-  let author: string | null = null;
-  let publishDate: string | null = null;
-
-  // Only extract content for likely articles (skip videos, images, etc.)
-  if (isLikelyArticle(url)) {
-    try {
-      const extracted = await extractContent(url);
-      if (extracted) {
-        content = extracted.content;
-        wordCount = extracted.wordCount;
-        readingTime = extracted.readingTime;
-        author = extracted.author;
-        publishDate = extracted.publishDate?.toISOString() || null;
-        
-        // Use extracted title/description if better
-        if (extracted.title && extracted.title !== url) {
-          title = extracted.title;
-        }
-        if (extracted.description) {
-          description = extracted.description;
-        }
-        if (extracted.imageUrl && !image_url) {
-          image_url = extracted.imageUrl;
-        }
-      }
-    } catch (e) {
-      console.error("Content extraction failed:", e);
-      // Continue without extracted content
-    }
-  }
-
-  // ==========================================================================
-  // STEP 3: AI Processing (type detection, summary, topics)
-  // ==========================================================================
-  let type: ItemType = "article"; // Default
-  let aiContentType: string | null = null;
-  let aiSummary: string | null = null;
-  let topics: string[] = [];
-
-  // Quick URL-based type detection (fast fallback)
-  if (url.includes("youtube.com") || url.includes("youtu.be") || url.includes("vimeo.com")) {
-    type = "video";
-  } else if (url.match(/\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i)) {
-    type = "image";
-  } else if (url.includes("twitter.com") || url.includes("x.com")) {
-    type = "thread";
-  }
-
-  // AI processing (if not skipped and OpenAI key is available)
-  const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
+  // Quick type detection from URL
+  const type = detectTypeFromUrl(url);
   
-  if (!skipAI && hasOpenAIKey) {
-    try {
-      // Detect content type with AI
-      const typeResult = await detectContentType(url, title, description, content);
-      aiContentType = typeResult.contentType;
-      type = mapToItemType(typeResult.contentType, url);
-
-      // Generate summary and extract topics (only for articles with content)
-      if (content && content.length > 200) {
-        const [summary, extractedTopics] = await Promise.all([
-          generateSummary(title, content),
-          extractTopics(title, content),
-        ]);
-        aiSummary = summary;
-        topics = extractedTopics;
-      }
-    } catch (e) {
-      console.error("AI processing failed:", e);
-      // Continue with URL-based type detection
-    }
-  }
+  // Determine if we need background processing
+  // Videos don't need content extraction, only articles do
+  const needsProcessing = isLikelyArticle(url) || !!process.env.OPENAI_API_KEY;
 
   // ==========================================================================
-  // STEP 4: Insert item with all extracted data
+  // INSERT IMMEDIATELY - Don't wait for AI/content extraction
   // ==========================================================================
   const { data: item, error: insertError } = await supabase
     .from("items")
@@ -344,15 +445,7 @@ export async function POST(request: NextRequest) {
       is_favorite: false,
       is_archived: false,
       user_id: userId,
-      // Content extraction fields
-      content,
-      word_count: wordCount,
-      reading_time: readingTime,
-      author,
-      publish_date: publishDate,
-      // AI fields
-      ai_summary: aiSummary,
-      ai_content_type: aiContentType,
+      processing_status: needsProcessing ? "pending" : null,
     })
     .select()
     .single();
@@ -366,39 +459,15 @@ export async function POST(request: NextRequest) {
   }
 
   // ==========================================================================
-  // STEP 5: Create topics (if any were extracted)
+  // SCHEDULE BACKGROUND PROCESSING (runs after response is sent)
   // ==========================================================================
-  if (topics.length > 0 && item) {
-    try {
-      // Create topics and link them to the item
-      for (const topicName of topics) {
-        const slug = topicName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-        
-        // Upsert topic
-        const { data: topic } = await supabase
-          .from("topics")
-          .upsert(
-            { user_id: userId, name: topicName, slug },
-            { onConflict: "user_id,slug", ignoreDuplicates: false }
-          )
-          .select("id")
-          .single();
-
-        if (topic) {
-          // Link topic to item
-          await supabase
-            .from("item_topics")
-            .insert({ item_id: item.id, topic_id: topic.id })
-            .select();
-        }
-      }
-    } catch (e) {
-      console.error("Failed to create topics:", e);
-      // Non-fatal error, item was still created
-    }
+  if (needsProcessing && item) {
+    after(() => {
+      processItemInBackground(item.id, url, userId);
+    });
   }
 
-  return jsonResponse({ success: true, item, topics }, 201);
+  return jsonResponse({ success: true, item }, 201);
 }
 
 /**
@@ -407,10 +476,6 @@ export async function POST(request: NextRequest) {
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    },
+    headers: corsHeaders,
   });
 }

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import Image from "next/image";
 import { ItemActions } from "./item-actions";
 import Link from "next/link";
-import { Clock, Star, Play, BookOpen, ShoppingBag, Globe } from "lucide-react";
+import { Clock, Star, Play, BookOpen, ShoppingBag, Globe, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // =============================================================================
@@ -127,8 +127,16 @@ export function ItemCard({ item }: ItemCardProps) {
             )}
           </div>
 
-          {/* Reading time badge (bottom right for articles) */}
-          {item.type === "article" && item.reading_time && (
+          {/* Processing indicator (bottom right) */}
+          {(item.processing_status === "pending" || item.processing_status === "processing") && (
+            <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Processing
+            </div>
+          )}
+
+          {/* Reading time badge (bottom right for articles, only when processed) */}
+          {item.type === "article" && item.reading_time && item.processing_status !== "pending" && item.processing_status !== "processing" && (
             <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
               <Clock className="h-3 w-3" />
               {item.reading_time} min

@@ -34,6 +34,8 @@ export interface Item {
   // AI-generated fields
   ai_summary: string | null; // AI-generated summary
   ai_content_type: string | null; // AI-detected content type
+  // Processing status
+  processing_status: "pending" | "processing" | "completed" | "failed" | null;
 }
 
 export interface Topic {

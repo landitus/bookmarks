@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Article Reader View** - Clean, Instapaper-style reading experience for saved articles
+- **Background Processing** - Bookmarks save instantly, AI processing happens in background
+  - Processing indicator shown in list and gallery views
+  - Real-time updates via Supabase Realtime when processing completes
 - **Content Extraction** - Automatic article content extraction using Jina Reader API
   - Supports JavaScript-rendered pages (Medium, Substack, newsletters)
   - Extracts full article content, author, publish date

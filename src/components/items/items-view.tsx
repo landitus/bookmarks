@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Item } from "@/lib/types";
 import { ItemCard } from "@/components/items/item-card";
-import { LayoutGrid, List, Clock, Star } from "lucide-react";
+import { LayoutGrid, List, Clock, Star, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { ItemActions } from "@/components/items/item-actions";
@@ -326,15 +326,24 @@ export function ItemsView({ items, emptyState }: ItemsViewProps) {
                           <HoverCardTrigger asChild>
                             {(() => {
                               // Articles with content go to reader view
-                              const hasReaderContent = item.type === "article" && item.content && item.content.length > 100;
-                              const href = hasReaderContent ? `/items/${item.id}` : item.url;
+                              const hasReaderContent =
+                                item.type === "article" &&
+                                item.content &&
+                                item.content.length > 100;
+                              const href = hasReaderContent
+                                ? `/items/${item.id}`
+                                : item.url;
                               const isExternal = !hasReaderContent;
-                              
+
                               return (
                                 <Link
                                   href={href}
                                   target={isExternal ? "_blank" : undefined}
-                                  rel={isExternal ? "noopener noreferrer" : undefined}
+                                  rel={
+                                    isExternal
+                                      ? "noopener noreferrer"
+                                      : undefined
+                                  }
                                   className="font-medium truncate hover:underline"
                                 >
                                   {item.title}
@@ -391,8 +400,16 @@ export function ItemsView({ items, emptyState }: ItemsViewProps) {
                           {getDomain(item.url)}
                         </span>
 
-                        {/* Reading time for articles */}
-                        {item.type === "article" && item.reading_time && (
+                        {/* Processing indicator */}
+                        {(item.processing_status === "pending" || item.processing_status === "processing") && (
+                          <span className="flex items-center gap-1 text-xs text-muted-foreground shrink-0 bg-muted px-1.5 py-0.5 rounded">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            <span className="hidden sm:inline">Processing</span>
+                          </span>
+                        )}
+
+                        {/* Reading time for articles (only show when processing complete) */}
+                        {item.type === "article" && item.reading_time && item.processing_status !== "pending" && item.processing_status !== "processing" && (
                           <span className="text-xs text-muted-foreground shrink-0 bg-muted px-1.5 py-0.5 rounded">
                             {item.reading_time} min
                           </span>
