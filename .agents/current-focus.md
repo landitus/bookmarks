@@ -1,13 +1,22 @@
 # Current Focus
 
-**Last Updated:** November 29, 2025
-**Session:** Layout Toggle System
+**Last Updated:** December 2025
+**Session:** Theme Picker with Profile Persistence
 
 ## 🎯 Current Session Focus
-**Completed!** Implemented layout toggle system with encapsulated sidebar and topbar layouts.
+**Completed!** Added theme picker to user menu with database persistence.
 
 ## ✅ What We Just Completed
-**Layout Toggle System**
+**Theme Picker with Profile Persistence**
+- ✅ Added theme picker UI to user menu (`src/components/layout/user-menu.tsx`)
+- ✅ Implemented ButtonGroup with light/dark/system theme options
+- ✅ Created `updateTheme` server action to persist theme preference in `profiles` table
+- ✅ Created `getTheme` server action to load user's theme preference
+- ✅ Updated ThemeProvider to sync theme from database on mount
+- ✅ Added hydration-safe theme selection (prevents SSR mismatch)
+- ✅ Theme preference persists across sessions and devices
+
+**Previous Session: Layout Toggle System**
 - ✅ Created layout config system (`src/lib/config.ts`) with `LAYOUT_MODE` constant
 - ✅ Encapsulated sidebar layout in `src/components/layout/sidebar/` folder
 - ✅ Encapsulated topbar layout in `src/components/layout/topbar/` folder

@@ -106,6 +106,21 @@
   - Email hidden by default, shown in dropdown.
   - Floating menu with rounded corners and shadow.
 
+### Theme Persistence in Database (Dec 2025)
+
+- **Decision:** Store user theme preference (`light`/`dark`/`system`) in `profiles` table instead of localStorage only.
+- **Why:**
+  1. **Cross-device sync:** Theme preference follows user across devices
+  2. **Consistency:** Server-side rendering can use correct theme from start
+  3. **User experience:** No flash of wrong theme on page load
+- **Implementation:**
+  - `profiles.theme` column stores user's theme preference
+  - `updateTheme()` server action persists theme changes to database
+  - `getTheme()` server action loads theme from database
+  - `ThemeProvider` syncs database theme with `next-themes` on mount
+  - Theme picker UI in user menu with ButtonGroup (light/dark/system icons)
+- **Trade-off:** Requires database query on mount, but provides better UX and cross-device consistency
+
 ### Layout Toggle System (Nov 2025)
 
 - **Decision:** Encapsulate both sidebar and topbar layouts in separate folders with config-driven selection.
