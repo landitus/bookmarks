@@ -16,9 +16,9 @@ A little pocket for the internet things you love. Save, watch, and read later.
 ### Prerequisites
 
 - Node.js 18+
-- [pnpm](https://pnpm.io/)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (for local Supabase)
-- [Supabase CLI](https://supabase.com/docs/guides/cli) (`brew install supabase/tap/supabase`)
+- [pnpm](https://pnpm.io/) — `npm install -g pnpm`
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) — Required for local Supabase
+- [Supabase CLI](https://supabase.com/docs/guides/cli) — `brew install supabase/tap/supabase`
 
 ### Local Development
 
@@ -26,23 +26,109 @@ A little pocket for the internet things you love. Save, watch, and read later.
 # 1. Install dependencies
 pnpm install
 
-# 2. Start local Supabase (requires Docker)
+# 2. Start Docker Desktop (required for Supabase)
+open -a Docker
+
+# 3. Start local Supabase
 supabase start
 
-# 3. Set up environment variables
-cp env.example .env.local
-# Edit .env.local with credentials shown by `supabase start`
+# 4. Get your local credentials
+supabase status
 
-# 4. Run migrations
+# 5. Create .env.local with local Supabase credentials
+cp env.example .env.local
+# Then edit .env.local (see "Local Supabase Setup" section below)
+
+# 6. Run migrations
 supabase db reset
 
-# 5. Start the app
+# 7. Start the app
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the app.
+Open [http://127.0.0.1:3000](http://127.0.0.1:3000) to see the app.
 
-### Browser Extension
+> **Note:** Use `127.0.0.1` instead of `localhost` to avoid IPv6 issues.
+
+## Local Supabase Setup
+
+### Starting Supabase
+
+```bash
+# Start all Supabase services (requires Docker)
+supabase start
+
+# View running services and credentials
+supabase status
+
+# Stop Supabase (keeps data)
+supabase stop
+
+# Stop and reset all data
+supabase stop --no-backup
+```
+
+### Getting Credentials
+
+After running `supabase start`, run `supabase status -o env` to see credentials:
+
+```
+API_URL="http://127.0.0.1:54321"
+ANON_KEY="eyJhbGci..."
+SERVICE_ROLE_KEY="eyJhbGci..."
+```
+
+Copy these to your `.env.local`:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...  # ANON_KEY from status
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGci...       # SERVICE_ROLE_KEY from status
+NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3000
+```
+
+### Local Services
+
+| Service  | URL                                                     | Purpose                                |
+| -------- | ------------------------------------------------------- | -------------------------------------- |
+| API      | http://127.0.0.1:54321                                  | Supabase API (auth, database, storage) |
+| Studio   | http://127.0.0.1:54323                                  | Database GUI (like pgAdmin)            |
+| Mailpit  | http://127.0.0.1:54324                                  | Catches auth emails locally            |
+| Database | postgresql://postgres:postgres@127.0.0.1:54322/postgres | Direct Postgres connection             |
+
+### Database Commands
+
+```bash
+# Reset database and run all migrations
+supabase db reset
+
+# Create a new migration
+supabase migration new my_new_feature
+
+# View migration status
+supabase migration list
+
+# Push migrations to remote (production)
+supabase db push
+```
+
+### Troubleshooting
+
+**"Cannot connect to Docker daemon"**
+
+- Open Docker Desktop and wait for it to start
+
+**"Port already in use"**
+
+- Stop other Supabase instances: `supabase stop`
+- Or kill the process: `lsof -ti:54321 | xargs kill`
+
+**"Migration failed"**
+
+- Reset and try again: `supabase db reset`
+- Check migration SQL for errors
+
+## Browser Extension
 
 ```bash
 cd extension
@@ -58,9 +144,14 @@ Load the extension in Chrome:
 3. Click "Load unpacked"
 4. Select `extension/.output/chrome-mv3/`
 
+Configure the extension:
+
+- **Server URL:** `http://127.0.0.1:3000` (local) or your Vercel URL (production)
+- **API Key:** Get from user menu → API Key in the webapp
+
 ## Tech Stack
 
-- **Framework:** [Next.js 15](https://nextjs.org) (App Router)
+- **Framework:** [Next.js 16](https://nextjs.org) (App Router)
 - **Database:** [Supabase](https://supabase.com) (PostgreSQL + Auth + Realtime)
 - **Styling:** [Tailwind CSS](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com)
 - **Extension:** [WXT](https://wxt.dev) (cross-browser extension framework)
@@ -84,29 +175,14 @@ Load the extension in Chrome:
 └── .agents/                 # Project documentation
 ```
 
-## Database Migrations
-
-All schema changes are tracked as SQL migration files:
-
-```bash
-# Create a new migration
-supabase migration new add_new_feature
-
-# Apply migrations to local DB
-supabase db reset
-
-# Push to production (after testing locally)
-supabase db push
-```
-
 ## Environment Variables
 
-| Variable                        | Description                  | Where               |
-| ------------------------------- | ---------------------------- | ------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase API URL             | .env.local / Vercel |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key            | .env.local / Vercel |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Supabase service role key    | .env.local / Vercel |
-| `NEXT_PUBLIC_SITE_URL`          | App URL (for auth redirects) | .env.local / Vercel |
+| Variable                        | Description                  | Local Value              |
+| ------------------------------- | ---------------------------- | ------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase API URL             | `http://127.0.0.1:54321` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key            | From `supabase status`   |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Supabase service role key    | From `supabase status`   |
+| `NEXT_PUBLIC_SITE_URL`          | App URL (for auth redirects) | `http://127.0.0.1:3000`  |
 
 ## Documentation
 
