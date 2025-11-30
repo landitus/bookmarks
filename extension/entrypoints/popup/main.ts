@@ -29,8 +29,15 @@ const errorView = document.getElementById("error-view")!;
 
 const envLocalBtn = document.getElementById("env-local")!;
 const envProdBtn = document.getElementById("env-prod")!;
-const apiKeyInput = document.getElementById("api-key-input") as HTMLInputElement;
-const serverUrlInput = document.getElementById("server-url-input") as HTMLInputElement;
+const segmentBg = document.getElementById("segment-bg")!;
+const statusDotLocal = document.getElementById("status-dot-local")!;
+const statusDotProd = document.getElementById("status-dot-prod")!;
+const apiKeyInput = document.getElementById(
+  "api-key-input"
+) as HTMLInputElement;
+const serverUrlInput = document.getElementById(
+  "server-url-input"
+) as HTMLInputElement;
 const saveSettingsBtn = document.getElementById("save-settings")!;
 const openSettingsBtn = document.getElementById("open-settings")!;
 const envIndicator = document.getElementById("env-indicator")!;
@@ -60,13 +67,38 @@ function showView(view: HTMLElement) {
 function updateEnvButtons() {
   envLocalBtn.classList.toggle("active", selectedEnv === "local");
   envProdBtn.classList.toggle("active", selectedEnv === "prod");
+
+  // Animate sliding background
+  if (selectedEnv === "local") {
+    segmentBg.classList.remove("prod");
+  } else {
+    segmentBg.classList.add("prod");
+  }
+}
+
+// Update status dots based on whether credentials exist
+async function updateStatusDots() {
+  const result = await browser.storage.local.get([
+    STORAGE_KEYS.API_KEY_LOCAL,
+    STORAGE_KEYS.API_KEY_PROD,
+  ]);
+
+  const hasLocalKey = !!result[STORAGE_KEYS.API_KEY_LOCAL];
+  const hasProdKey = !!result[STORAGE_KEYS.API_KEY_PROD];
+
+  statusDotLocal.classList.toggle("configured", hasLocalKey);
+  statusDotProd.classList.toggle("configured", hasProdKey);
 }
 
 // Get storage keys for current environment
 function getEnvStorageKeys(env: EnvKey) {
   return {
-    apiKey: env === "local" ? STORAGE_KEYS.API_KEY_LOCAL : STORAGE_KEYS.API_KEY_PROD,
-    serverUrl: env === "local" ? STORAGE_KEYS.SERVER_URL_LOCAL : STORAGE_KEYS.SERVER_URL_PROD,
+    apiKey:
+      env === "local" ? STORAGE_KEYS.API_KEY_LOCAL : STORAGE_KEYS.API_KEY_PROD,
+    serverUrl:
+      env === "local"
+        ? STORAGE_KEYS.SERVER_URL_LOCAL
+        : STORAGE_KEYS.SERVER_URL_PROD,
   };
 }
 
@@ -86,7 +118,8 @@ async function getSettings() {
   return {
     env,
     apiKey: result[keys.apiKey] as string | undefined,
-    serverUrl: (result[keys.serverUrl] as string) || ENVIRONMENTS[env].serverUrl,
+    serverUrl:
+      (result[keys.serverUrl] as string) || ENVIRONMENTS[env].serverUrl,
   };
 }
 
@@ -94,6 +127,11 @@ async function getSettings() {
 async function selectEnv(env: EnvKey) {
   selectedEnv = env;
   updateEnvButtons();
+  await updateStatusDots();
+
+  // Update env indicator in header
+  envIndicator.textContent = ENVIRONMENTS[env].name;
+  envIndicator.className = `env-indicator env-${env}`;
 
   // Load settings for this environment
   const result = await browser.storage.local.get([
@@ -105,13 +143,15 @@ async function selectEnv(env: EnvKey) {
 
   const keys = getEnvStorageKeys(env);
   apiKeyInput.value = (result[keys.apiKey] as string) || "";
-  serverUrlInput.value = (result[keys.serverUrl] as string) || ENVIRONMENTS[env].serverUrl;
+  serverUrlInput.value =
+    (result[keys.serverUrl] as string) || ENVIRONMENTS[env].serverUrl;
 }
 
 // Save settings
 async function saveSettings() {
   const apiKey = apiKeyInput.value.trim();
-  const serverUrl = serverUrlInput.value.trim() || ENVIRONMENTS[selectedEnv].serverUrl;
+  const serverUrl =
+    serverUrlInput.value.trim() || ENVIRONMENTS[selectedEnv].serverUrl;
 
   if (!apiKey) {
     apiKeyInput.focus();
@@ -126,6 +166,7 @@ async function saveSettings() {
     [keys.serverUrl]: serverUrl,
   });
 
+  await updateStatusDots();
   init();
 }
 
@@ -194,6 +235,13 @@ async function init() {
   currentUrl = tab.url;
   currentTitle = tab.title;
 
+  // Update status dots
+  await updateStatusDots();
+
+  // Update env indicator in header
+  envIndicator.textContent = ENVIRONMENTS[settings.env].name;
+  envIndicator.className = `env-indicator env-${settings.env}`;
+
   if (!settings.apiKey) {
     // Show settings view
     updateEnvButtons();
@@ -204,8 +252,6 @@ async function init() {
     // Show save view with page info
     pageTitleEl.textContent = currentTitle;
     pageUrlEl.textContent = currentUrl;
-    envIndicator.textContent = ENVIRONMENTS[settings.env].name;
-    envIndicator.className = `env-indicator env-${settings.env}`;
     showView(saveView);
   }
 }
@@ -219,6 +265,9 @@ openSettingsBtn.addEventListener("click", async () => {
   const settings = await getSettings();
   selectedEnv = settings.env;
   updateEnvButtons();
+  await updateStatusDots();
+  envIndicator.textContent = ENVIRONMENTS[settings.env].name;
+  envIndicator.className = `env-indicator env-${settings.env}`;
   apiKeyInput.value = settings.apiKey || "";
   serverUrlInput.value = settings.serverUrl;
   showView(settingsView);

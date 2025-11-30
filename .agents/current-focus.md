@@ -1,7 +1,7 @@
 # Current Focus
 
 **Last Updated:** November 30, 2025
-**Session:** Link Capture System + Local Development Setup
+**Session:** Link Capture System + Extension UI Polish + Production Deployment
 
 ## ✅ Completed This Session
 
@@ -13,6 +13,16 @@
 - [x] PWA manifest with share_target for mobile
 - [x] Serwist service worker for offline support
 - [x] Real-time sync via Supabase Realtime
+- [x] YouTube/Vimeo oEmbed support for proper metadata extraction
+- [x] Production deployment on Vercel
+
+### Extension UI Improvements
+
+- [x] Segmented control (iOS/macOS style) for environment switching
+- [x] Status dots (green/gray) showing credential configuration state
+- [x] Environment indicator moved to header next to logo
+- [x] Local/Production environment presets with separate API keys
+- [x] Fixed overflow issues in segmented control
 
 ### Local Development Setup
 
@@ -21,6 +31,12 @@
 - [x] Local Supabase configuration
 - [x] Environment variable templates (`env.example`)
 - [x] Comprehensive documentation
+
+### Bug Fixes
+
+- [x] Fixed Next.js redirect error flash in auth form
+- [x] Fixed localhost IPv6 issues (use 127.0.0.1)
+- [x] Fixed server action sync issues in production
 
 ### Documentation
 
@@ -65,15 +81,17 @@ vercel --prod          # Deploy webapp
 
 ## 📁 Key Files Changed
 
-| File                                   | Purpose                           |
-| -------------------------------------- | --------------------------------- |
-| `src/app/api/items/route.ts`           | API endpoint for external capture |
-| `src/components/layout/user-menu.tsx`  | API key management UI             |
-| `extension/`                           | WXT browser extension             |
-| `public/manifest.json`                 | PWA with share_target             |
-| `supabase/migrations/`                 | Database schema as code           |
-| `.agents/docs/production-checklist.md` | Deployment guide                  |
-| `README.md`                            | Updated project documentation     |
+| File                                   | Purpose                                    |
+| -------------------------------------- | ------------------------------------------ |
+| `src/app/api/items/route.ts`           | API endpoint with YouTube/Vimeo oEmbed    |
+| `src/components/auth/auth-form.tsx`    | Fixed redirect error handling              |
+| `src/components/layout/user-menu.tsx`  | API key management UI                      |
+| `extension/entrypoints/popup/`        | Segmented control UI, status dots, header  |
+| `public/manifest.json`                 | PWA with share_target                      |
+| `next.config.ts`                       | Next.js 16 warnings fixes                  |
+| `supabase/migrations/`                 | Database schema as code                    |
+| `.agents/docs/production-checklist.md` | Deployment guide                           |
+| `README.md`                            | Complete setup instructions                |
 
 ## ✅ Previous Sessions
 
