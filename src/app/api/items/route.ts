@@ -132,22 +132,47 @@ export async function POST(request: NextRequest) {
 
   // Scrape metadata
   let title = url;
-  let description = null;
-  let image_url = null;
+  let description: string | null = null;
+  let image_url: string | null = null;
 
   try {
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; Portable/1.0; +https://portable.app)",
-      },
-    });
-    const html = await response.text();
-    const metadata = await scraper({ html, url });
+    // Special handling for YouTube - use oEmbed API
+    if (url.includes("youtube.com/watch") || url.includes("youtu.be/")) {
+      const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
+      const oembedRes = await fetch(oembedUrl);
+      if (oembedRes.ok) {
+        const oembed = await oembedRes.json();
+        title = oembed.title || title;
+        image_url = oembed.thumbnail_url || null;
+        description = oembed.author_name ? `By ${oembed.author_name}` : null;
+      }
+    }
+    // Special handling for Vimeo
+    else if (url.includes("vimeo.com/")) {
+      const oembedUrl = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(url)}`;
+      const oembedRes = await fetch(oembedUrl);
+      if (oembedRes.ok) {
+        const oembed = await oembedRes.json();
+        title = oembed.title || title;
+        image_url = oembed.thumbnail_url || null;
+        description = oembed.author_name ? `By ${oembed.author_name}` : null;
+      }
+    }
+    // Default: use metascraper
+    else {
+      const response = await fetch(url, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (compatible; Portable/1.0; +https://portable.app)",
+        },
+      });
+      const html = await response.text();
+      const metadata = await scraper({ html, url });
 
-    if (metadata.title) title = metadata.title;
-    if (metadata.description) description = metadata.description;
-    if (metadata.image) image_url = metadata.image;
+      if (metadata.title) title = metadata.title;
+      if (metadata.description) description = metadata.description;
+      if (metadata.image) image_url = metadata.image;
+    }
   } catch (e) {
     console.error("Failed to scrape metadata:", e);
     // Continue with URL as title
