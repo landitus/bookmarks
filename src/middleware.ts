@@ -2,6 +2,17 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Skip middleware for HMR and Next.js internal endpoints
+  if (
+    pathname.startsWith("/_next/") ||
+    pathname.startsWith("/__nextjs_") ||
+    pathname.includes("webpack-hmr")
+  ) {
+    return NextResponse.next();
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -33,8 +44,6 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
 
   // Define route types
   const isAuthRoute = pathname.startsWith("/login");
@@ -74,11 +83,11 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
+     * - _next/* (all Next.js internal paths including HMR)
+     * - __nextjs_* (Next.js internal paths)
      * - favicon.ico (favicon file)
-     * - public folder
+     * - static assets (images, etc.)
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next|__nextjs|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
