@@ -14,12 +14,20 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Use different favicon for local development
+function getFavicon() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  const isLocalDev =
+    supabaseUrl.includes("127.0.0.1") || supabaseUrl.includes("localhost");
+  return isLocalDev ? "/favicon-local.svg" : "/favicon.svg";
+}
+
 export const metadata: Metadata = {
   title: "Portable",
   description: "A little pocket for the internet things you love",
   manifest: "/manifest.json",
   icons: {
-    icon: "/favicon.svg",
+    icon: getFavicon(),
     apple: "/icons/icon.svg",
   },
   appleWebApp: {
