@@ -68,9 +68,14 @@ export function ItemsView({ items, emptyState }: ItemsViewProps) {
             table: "items",
             filter: `user_id=eq.${user.id}`,
           },
-          () => router.refresh()
+          (payload) => {
+            console.log("[Realtime] Item change detected:", payload.eventType);
+            router.refresh();
+          }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log("[Realtime] Subscription status:", status);
+        });
     }
 
     setupRealtimeSubscription();

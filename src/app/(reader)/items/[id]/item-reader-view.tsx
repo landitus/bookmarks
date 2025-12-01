@@ -4,13 +4,12 @@ import { useState } from "react";
 import { Item } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { ItemActions } from "@/components/items/item-actions";
-import { UserMenu } from "@/components/layout/user-menu";
+import { AppHeader } from "@/components/layout/app-header";
 import Image from "next/image";
-import Link from "next/link";
 import Markdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
 import {
   ExternalLink,
-  Clock,
   Calendar,
   User as UserIcon,
   BookOpen,
@@ -73,7 +72,81 @@ function formatDate(dateString: string | null) {
 }
 
 // =============================================================================
-// COMPONENT
+// HEADER COMPONENTS
+// =============================================================================
+
+function SourceDomainCenter({ url }: { url: string }) {
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted transition-colors text-sm text-muted-foreground hover:text-foreground"
+    >
+      <Image
+        src={getFaviconUrl(url)}
+        alt=""
+        width={16}
+        height={16}
+        className="w-4 h-4"
+        unoptimized
+      />
+      <span className="max-w-[200px] truncate">{getDomain(url)}</span>
+      <ExternalLink className="h-3 w-3 opacity-50" />
+    </a>
+  );
+}
+
+interface ReaderActionsProps {
+  item: Item;
+  sidebarOpen: boolean;
+  onToggleSidebar: () => void;
+}
+
+function ReaderActions({
+  item,
+  sidebarOpen,
+  onToggleSidebar,
+}: ReaderActionsProps) {
+  return (
+    <>
+      {/* Open Original */}
+      <Button variant="ghost" size="sm" asChild className="hidden sm:flex">
+        <a
+          href={item.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="gap-2"
+        >
+          <ExternalLink className="h-4 w-4" />
+          <span className="hidden md:inline">Original</span>
+        </a>
+      </Button>
+
+      {/* Item Actions (Later, Favorite, etc.) */}
+      <ItemActions
+        itemId={item.id}
+        isLater={item.is_later}
+        isFavorite={item.is_favorite}
+        alwaysVisible
+      />
+
+      {/* Toggle Sidebar */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onToggleSidebar}
+        title={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
+        className="hidden sm:flex"
+      >
+        <PanelRight className={cn("h-4 w-4", sidebarOpen && "text-primary")} />
+      </Button>
+    </>
+  );
+}
+
+// =============================================================================
+// MAIN COMPONENT
 // =============================================================================
 
 export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
@@ -84,96 +157,19 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header Bar - Logo | Domain | Actions + User */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b">
-        <div className="relative flex items-center justify-between h-14 px-4">
-          {/* Left: Logo */}
-          <div className="flex items-center gap-4">
-            <Link
-              href="/everything"
-              className="flex items-center gap-2 font-bold text-xl"
-            >
-              <div className="h-6 w-6 bg-primary rounded-md flex items-center justify-center">
-                <span className="text-white text-sm font-bold">P</span>
-              </div>
-              <span className="hidden sm:inline">Portable</span>
-            </Link>
-          </div>
-
-          {/* Center: Source domain */}
-          <a
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted transition-colors text-sm text-muted-foreground hover:text-foreground"
-          >
-            <Image
-              src={getFaviconUrl(item.url)}
-              alt=""
-              width={16}
-              height={16}
-              className="w-4 h-4"
-              unoptimized
-            />
-            <span className="max-w-[200px] truncate">
-              {getDomain(item.url)}
-            </span>
-            <ExternalLink className="h-3 w-3 opacity-50" />
-          </a>
-
-          {/* Right: Actions + User Menu */}
-          <div className="flex items-center gap-2">
-            {/* Reading time (desktop only) */}
-            {item.reading_time && (
-              <div className="hidden md:flex items-center gap-1.5 text-sm text-muted-foreground mr-2">
-                <Clock className="h-4 w-4" />
-                <span>{item.reading_time} min</span>
-              </div>
-            )}
-
-            {/* Open Original */}
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
-              className="hidden sm:flex"
-            >
-              <a
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="gap-2"
-              >
-                <ExternalLink className="h-4 w-4" />
-                <span className="hidden md:inline">Original</span>
-              </a>
-            </Button>
-
-            {/* Item Actions (Later, Favorite, etc.) */}
-            <ItemActions
-              itemId={item.id}
-              isLater={item.is_later}
-              isFavorite={item.is_favorite}
-            />
-
-            {/* Toggle Sidebar */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              title={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
-              className="hidden sm:flex"
-            >
-              <PanelRight
-                className={cn("h-4 w-4", sidebarOpen && "text-primary")}
-              />
-            </Button>
-
-            {/* User Menu */}
-            <UserMenu user={user} />
-          </div>
-        </div>
-      </header>
+      {/* Shared Header */}
+      <AppHeader
+        user={user}
+        // center={<SourceDomainCenter url={item.url} />}
+        actions={
+          <ReaderActions
+            item={item}
+            sidebarOpen={sidebarOpen}
+            onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+          />
+        }
+        bordered
+      />
 
       {/* Main Content */}
       <div className="flex">
@@ -186,24 +182,24 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
         >
           {isArticle ? (
             // Article Reader View
-            <article className="max-w-2xl mx-auto px-6 py-12">
+            <article className="max-w-[750px] mx-auto px-6 py-12">
               {/* Article Header */}
-              <header className="mb-10">
-                <h1 className="text-3xl sm:text-4xl font-serif font-bold leading-tight mb-4">
+              <header className="mb-12">
+                <h1 className="text-[2.5rem] sm:text-[2.75rem] font-bold leading-[1.15] tracking-tight mb-5">
                   {item.title}
                 </h1>
 
                 {item.description && (
-                  <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                  <p className="text-xl text-muted-foreground leading-relaxed mb-8">
                     {item.description}
                   </p>
                 )}
 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground border-t border-b py-4 border-border/50">
                   {item.author && (
                     <div className="flex items-center gap-1.5">
                       <UserIcon className="h-4 w-4" />
-                      <span>{item.author}</span>
+                      <span className="font-medium">{item.author}</span>
                     </div>
                   )}
 
@@ -218,34 +214,55 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
                     <div className="flex items-center gap-1.5">
                       <BookOpen className="h-4 w-4" />
                       <span>{item.reading_time} min read</span>
-                      {item.word_count && (
-                        <span className="text-muted-foreground/60">
-                          ({item.word_count.toLocaleString()} words)
-                        </span>
-                      )}
                     </div>
                   )}
                 </div>
               </header>
 
-              {/* Feature Image */}
-              {item.image_url && (
-                <div className="relative aspect-video mb-10 rounded-lg overflow-hidden bg-muted">
-                  <Image
-                    src={item.image_url}
-                    alt=""
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                </div>
-              )}
-
               {/* Article Content */}
-              <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-serif prose-p:leading-relaxed prose-a:text-primary">
-                <Markdown>{item.content}</Markdown>
+              <div className="prose-reader">
+                <Markdown rehypePlugins={[rehypeRaw]}>{item.content}</Markdown>
               </div>
             </article>
+          ) : item.processing_status === "failed" ? (
+            // Failed extraction view (likely paywall)
+            <div className="max-w-2xl mx-auto px-6 py-12">
+              <div className="text-center space-y-6">
+                {item.image_url && (
+                  <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
+                    <Image
+                      src={item.image_url}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  </div>
+                )}
+
+                <h1 className="text-2xl sm:text-3xl font-bold">{item.title}</h1>
+
+                {item.description && (
+                  <p className="text-muted-foreground">{item.description}</p>
+                )}
+
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 text-sm">
+                  <p className="text-amber-600 dark:text-amber-400 font-medium">
+                    Content couldn&apos;t be extracted
+                  </p>
+                  <p className="text-muted-foreground mt-1">
+                    This article may be behind a paywall or require login.
+                  </p>
+                </div>
+
+                <Button asChild size="lg">
+                  <a href={item.url} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Read on {getDomain(item.url)}
+                  </a>
+                </Button>
+              </div>
+            </div>
           ) : (
             // Non-Article View (Preview + Link)
             <div className="max-w-2xl mx-auto px-6 py-12">
@@ -307,7 +324,7 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
           className={cn(
             "fixed right-0 top-14 bottom-0 w-80 bg-muted/30 border-l overflow-y-auto transition-transform duration-300",
             sidebarOpen ? "translate-x-0" : "translate-x-full",
-            "hidden sm:block" // Hide on mobile
+            "hidden sm:block"
           )}
         >
           <div className="p-6 space-y-6">

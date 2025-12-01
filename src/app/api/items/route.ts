@@ -1,6 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-import { after } from "next/server";
 
 // Metascraper setup
 import metascraper from "metascraper";
@@ -145,8 +144,14 @@ async function processItemInBackground(
     // STEP 1: Content extraction with Jina Reader (for articles)
     // ==========================================================================
     if (isLikelyArticle(url)) {
+      console.log(`[Background] URL is likely article, starting extraction...`);
       try {
         const extracted = await extractContent(url);
+        console.log(
+          `[Background] Extraction result:`,
+          extracted ? `${extracted.content.length} chars` : "null"
+        );
+
         if (extracted) {
           content = extracted.content;
           wordCount = extracted.wordCount;
@@ -154,10 +159,18 @@ async function processItemInBackground(
           author = extracted.author;
           publishDate = extracted.publishDate?.toISOString() || null;
 
-          // Use extracted metadata if available
+          // Use extracted metadata if available (but NOT image - keep og:image from initial save)
           if (extracted.title) title = extracted.title;
           if (extracted.description) description = extracted.description;
-          if (extracted.imageUrl) image_url = extracted.imageUrl;
+          // Don't overwrite image_url - the og:image from metascraper is more reliable
+
+          console.log(
+            `[Background] Content extracted: ${
+              content?.length || 0
+            } chars, ${wordCount} words`
+          );
+        } else {
+          console.log(`[Background] No content extracted from Jina`);
         }
       } catch (e) {
         console.error(
@@ -165,6 +178,10 @@ async function processItemInBackground(
           e
         );
       }
+    } else {
+      console.log(
+        `[Background] URL is NOT likely article, skipping extraction`
+      );
     }
 
     // ==========================================================================
@@ -212,8 +229,15 @@ async function processItemInBackground(
     // ==========================================================================
     // STEP 3: Update item with processed data
     // ==========================================================================
+    // Determine final processing status
+    // For articles: if no content was extracted, mark as "failed" (likely paywall)
+    const isArticleType = type === "article";
+    const hasContent = content && content.length > 100;
+    const processingStatus =
+      isArticleType && !hasContent ? "failed" : "completed";
+
     const updateData: Record<string, unknown> = {
-      processing_status: "completed",
+      processing_status: processingStatus,
       type,
     };
 
@@ -468,11 +492,12 @@ export async function POST(request: NextRequest) {
   }
 
   // ==========================================================================
-  // SCHEDULE BACKGROUND PROCESSING (runs after response is sent)
+  // BACKGROUND PROCESSING (fire-and-forget)
   // ==========================================================================
   if (needsProcessing && item) {
-    after(() => {
-      processItemInBackground(item.id, url, userId);
+    // Don't await - let processing happen in background
+    processItemInBackground(item.id, url, userId).catch((e) => {
+      console.error(`[Background] Unhandled error for ${item.id}:`, e);
     });
   }
 

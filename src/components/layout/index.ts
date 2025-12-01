@@ -2,6 +2,8 @@ import { LAYOUT_MODE } from "@/lib/config";
 import { SidebarLayout } from "./sidebar";
 import { TopbarLayout } from "./topbar";
 
+export { AppHeader } from "./app-header";
+
 export type LayoutProps = {
   user: {
     email?: string;

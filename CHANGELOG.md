@@ -9,27 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Article Reader View** - Clean, Instapaper-style reading experience for saved articles
+  - Dedicated reader route (`/items/[id]`) with unified header design
+  - Typography-optimized prose styling with proper heading scales
+  - Collapsible metadata sidebar with AI summary and topics
 - **Background Processing** - Bookmarks save instantly, AI processing happens in background
   - Processing indicator shown in list and gallery views
   - Real-time updates via Supabase Realtime when processing completes
-- **Content Extraction** - Automatic article content extraction using Jina Reader API
+- **Content Extraction** - Automatic article content extraction using Firecrawl API
   - Supports JavaScript-rendered pages (Medium, Substack, newsletters)
   - Extracts full article content, author, publish date
   - Calculates reading time and word count
+  - Smart content cleaning to remove header boilerplate
 - **AI Processing** - OpenAI GPT-4o-mini integration for intelligent content analysis
   - Automatic content type detection (article, video, product, website, etc.)
   - AI-generated summaries (2-3 sentences)
   - Auto-tagging with relevant topics
-- **Item Detail Page** (`/items/[id]`) with:
-  - Full article reader with clean typography
-  - Collapsible metadata sidebar
-  - AI summary and topics display
-  - Source information and actions
-- **Enhanced Item Cards**
-  - Type-specific icons and colors (video, article, product, etc.)
-  - Reading time badge for articles
-  - Video play button overlay
-  - AI summary in card description
+- **Shared App Header** - Unified header component across all views
+  - Consistent branding and user menu
+  - Customizable center content per page
 - GET `/api/items` endpoint to check if a bookmark exists before saving
 - `/api/extension/version` endpoint for extension version checking
 - New item types: `product` and `website`
@@ -39,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refined timeline grouping in items view: Today, Yesterday, This week, This month, This year, and year labels
 - Articles with content now link to reader view instead of external URL
 - List view shows reading time for articles
+- Switched from Jina Reader to Firecrawl for better content extraction quality
 
 ### Fixed
 - Fixed layout shift in sign-in form when clicking submit button

@@ -1,29 +1,29 @@
 /**
  * Content Extraction Service
  *
- * Uses Jina Reader API to extract clean, readable content from any URL.
- * Handles JavaScript-rendered pages (Medium, Substack, etc.) and returns markdown.
+ * Uses Firecrawl API to extract clean, readable content from any URL.
+ * Handles JavaScript-rendered pages (Medium, Substack, etc.) and returns clean markdown.
  *
- * @see https://jina.ai/reader/
+ * @see https://firecrawl.dev
  */
 
 // =============================================================================
 // TYPES
 // =============================================================================
 
-export interface JinaReaderResponse {
-  code: number;
-  status: number;
-  data: {
-    title: string;
-    description: string;
-    url: string;
-    content: string; // Markdown content
-    publishedTime?: string;
-    usage: {
-      tokens: number;
+interface FirecrawlResponse {
+  success: boolean;
+  data?: {
+    markdown?: string;
+    metadata?: {
+      title?: string;
+      description?: string;
+      ogImage?: string;
+      publishedTime?: string;
+      author?: string | string[]; // Can be array from some sources
     };
   };
+  error?: string;
 }
 
 export interface ExtractedContent {
@@ -41,7 +41,7 @@ export interface ExtractedContent {
 // CONSTANTS
 // =============================================================================
 
-const JINA_READER_BASE_URL = "https://r.jina.ai";
+const FIRECRAWL_API_URL = "https://api.firecrawl.dev/v2/scrape";
 const WORDS_PER_MINUTE = 200; // Average reading speed
 
 // =============================================================================
@@ -72,24 +72,52 @@ function calculateReadingTime(wordCount: number): number {
 }
 
 /**
- * Try to extract author from content
- * Looks for common patterns like "By Author Name" at the start
+ * Clean extracted content by removing header boilerplate
+ * Finds the first real content paragraph and starts from there
  */
-function extractAuthor(content: string): string | null {
-  // Look for "By [Name]" pattern at the beginning
-  const byMatch = content.match(/^(?:By|Written by|Author:?)\s+([A-Z][a-zA-Z\s.'-]+)/im);
-  if (byMatch) {
-    return byMatch[1].trim();
-  }
-  return null;
-}
+function cleanContent(content: string): string {
+  const lines = content.split("\n");
+  let startIndex = 0;
 
-/**
- * Extract first image URL from markdown content
- */
-function extractFirstImage(content: string): string | null {
-  const imageMatch = content.match(/!\[[^\]]*\]\(([^)]+)\)/);
-  return imageMatch ? imageMatch[1] : null;
+  for (let i = 0; i < Math.min(lines.length, 100); i++) {
+    const line = lines[i].trim();
+
+    // Skip empty lines
+    if (!line) continue;
+
+    // Skip image-link lines (logos, avatars): [![text](url)](link)
+    if (line.startsWith("[![")) continue;
+
+    // Skip standalone images: ![alt](url)
+    if (line.startsWith("![") && !line.includes(" ")) continue;
+
+    // Skip navigation/metadata
+    if (/^(Subscribe|Sign in|Share|SubscribeSign)$/i.test(line)) continue;
+    if (/^(Subscribe|Sign in)/i.test(line) && line.length < 30) continue;
+
+    // Skip title headings (# Title) - we already have title from metadata
+    if (line.startsWith("# ") && i < 10) continue;
+
+    // Skip subtitle headings right after title (### For something...)
+    if (line.startsWith("### ") && i < 15 && line.length < 60) continue;
+
+    // Found real content: a paragraph > 100 chars or a section heading
+    if (line.length > 100) {
+      startIndex = i;
+      break;
+    }
+
+    // Section headings (### Sleep, ## Food) are real content
+    if ((line.startsWith("## ") || line.startsWith("### ")) && i > 10) {
+      startIndex = i;
+      break;
+    }
+  }
+
+  const cleaned = lines.slice(startIndex).join("\n").trim();
+
+  // Remove excessive newlines
+  return cleaned.replace(/\n{4,}/g, "\n\n\n");
 }
 
 // =============================================================================
@@ -97,61 +125,113 @@ function extractFirstImage(content: string): string | null {
 // =============================================================================
 
 /**
- * Extract content from a URL using Jina Reader API
+ * Extract content from a URL using Firecrawl API
+ *
+ * Firecrawl returns clean markdown without boilerplate, navigation, ads, etc.
+ * Much cleaner than other extractors.
  *
  * @param url - The URL to extract content from
  * @returns Extracted content with metadata, or null if extraction fails
  */
-export async function extractContent(url: string): Promise<ExtractedContent | null> {
+export async function extractContent(
+  url: string
+): Promise<ExtractedContent | null> {
+  const apiKey = process.env.FIRECRAWL_API_KEY;
+
+  if (!apiKey) {
+    console.error("[Firecrawl] No API key configured (FIRECRAWL_API_KEY)");
+    return null;
+  }
+
+  console.log(`[Firecrawl] Starting extraction for: ${url}`);
+
   try {
-    // Call Jina Reader API
-    const response = await fetch(`${JINA_READER_BASE_URL}/${url}`, {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+    const response = await fetch(FIRECRAWL_API_URL, {
+      method: "POST",
       headers: {
-        Accept: "application/json",
-        // Optional: Add API key for higher rate limits
-        // 'Authorization': `Bearer ${process.env.JINA_API_KEY}`,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
       },
+      body: JSON.stringify({
+        url,
+        formats: ["markdown"],
+        onlyMainContent: true, // Strip navigation, headers, footers - just article content
+      }),
+      signal: controller.signal,
     });
 
+    clearTimeout(timeoutId);
+
+    console.log(`[Firecrawl] Response status: ${response.status}`);
+
     if (!response.ok) {
-      console.error(`Jina Reader API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error(`[Firecrawl] API error: ${response.status} - ${errorText}`);
       return null;
     }
 
-    const result: JinaReaderResponse = await response.json();
+    const result: FirecrawlResponse = await response.json();
 
-    if (!result.data || !result.data.content) {
-      console.error("Jina Reader returned empty content");
+    if (!result.success || !result.data?.markdown) {
+      console.error("[Firecrawl] Extraction failed:", result.error);
       return null;
     }
 
     const { data } = result;
-    const wordCount = countWords(data.content);
+    const rawContent = data.markdown!.trim();
+    const content = cleanContent(rawContent);
+
+    console.log(
+      `[Firecrawl] Got content, raw: ${rawContent.length}, cleaned: ${content.length}`
+    );
+
+    const wordCount = countWords(content);
     const readingTime = calculateReadingTime(wordCount);
-    const author = extractAuthor(data.content);
-    const imageUrl = extractFirstImage(data.content);
 
     // Parse publish date if available
     let publishDate: Date | null = null;
-    if (data.publishedTime) {
-      const parsed = new Date(data.publishedTime);
+    if (data.metadata?.publishedTime) {
+      const parsed = new Date(data.metadata.publishedTime);
       if (!isNaN(parsed.getTime())) {
         publishDate = parsed;
       }
     }
 
+    // Handle author - can be string or array from Firecrawl
+    let author: string | null = null;
+    if (data.metadata?.author) {
+      if (Array.isArray(data.metadata.author)) {
+        // Take first non-"Substack" author if available
+        author =
+          data.metadata.author.find(
+            (a: string) => a.toLowerCase() !== "substack"
+          ) ||
+          data.metadata.author[0] ||
+          null;
+      } else {
+        author = data.metadata.author;
+      }
+    }
+
     return {
-      title: data.title || url,
-      description: data.description || null,
-      content: data.content,
+      title: data.metadata?.title || url,
+      description: data.metadata?.description || null,
+      content,
       author,
       publishDate,
       wordCount,
       readingTime,
-      imageUrl,
+      imageUrl: null, // Rely on og:image from metascraper instead
     };
   } catch (error) {
-    console.error("Failed to extract content:", error);
+    if (error instanceof Error && error.name === "AbortError") {
+      console.error("[Firecrawl] Request timed out after 30s");
+    } else {
+      console.error("[Firecrawl] Failed to extract content:", error);
+    }
     return null;
   }
 }
@@ -192,4 +272,3 @@ export function isLikelyArticle(url: string): boolean {
   // Default: assume it could be an article
   return true;
 }
-

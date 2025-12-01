@@ -120,3 +120,227 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* =============================================================================
+   ARTICLE READER TYPOGRAPHY
+   Beautiful, readable typography for long-form content
+   ============================================================================= */
+
+.prose-reader {
+  font-size: 1.125rem;
+  line-height: 1.75;
+  color: var(--foreground);
+}
+
+/* Headings */
+.prose-reader h1 {
+  font-size: 2rem;
+  line-height: 1.2;
+  font-weight: 700;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  letter-spacing: -0.025em;
+}
+
+.prose-reader h2 {
+  font-size: 1.625rem;
+  line-height: 1.3;
+  font-weight: 600;
+  margin-top: 2.25rem;
+  margin-bottom: 0.875rem;
+  letter-spacing: -0.02em;
+}
+
+.prose-reader h3 {
+  font-size: 1.375rem;
+  line-height: 1.4;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose-reader h4 {
+  font-size: 1.125rem;
+  line-height: 1.5;
+  font-weight: 600;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Paragraphs */
+.prose-reader p {
+  margin-bottom: 1.5rem;
+}
+
+.prose-reader h1 + p,
+.prose-reader h2 + p,
+.prose-reader h3 + p,
+.prose-reader h4 + p {
+  margin-top: 0;
+}
+
+/* Links */
+.prose-reader a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+.prose-reader a:hover {
+  opacity: 0.8;
+}
+
+/* Lists */
+.prose-reader ul,
+.prose-reader ol {
+  margin-top: 1.25rem;
+  margin-bottom: 1.5rem;
+  padding-left: 1.75rem;
+}
+
+.prose-reader li {
+  margin-bottom: 0.5rem;
+}
+
+.prose-reader li > ul,
+.prose-reader li > ol {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose-reader ul {
+  list-style-type: disc;
+}
+
+.prose-reader ol {
+  list-style-type: decimal;
+}
+
+/* Blockquotes */
+.prose-reader blockquote {
+  border-left: 4px solid var(--border);
+  padding-left: 1.25rem;
+  margin: 2rem 0;
+  font-style: italic;
+  color: var(--muted-foreground);
+}
+
+.prose-reader blockquote p {
+  margin-bottom: 0.75rem;
+}
+
+.prose-reader blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Code */
+.prose-reader code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--muted);
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+}
+
+.prose-reader pre {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  background: var(--muted);
+  padding: 1.25rem 1.5rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 1.75rem 0;
+}
+
+.prose-reader pre code {
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* Images */
+.prose-reader img {
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  margin: 1.75rem 0;
+  display: block;
+}
+
+.prose-reader figure {
+  margin: 2rem 0;
+}
+
+.prose-reader figure img {
+  margin: 0;
+}
+
+.prose-reader figcaption {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+.prose-reader p img {
+  display: inline-block;
+  margin: 0.25rem 0;
+  vertical-align: middle;
+}
+
+/* Horizontal rule */
+.prose-reader hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 3rem 0;
+}
+
+/* Tables */
+.prose-reader table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  font-size: 0.95rem;
+}
+
+.prose-reader th,
+.prose-reader td {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+.prose-reader th {
+  background: var(--muted);
+  font-weight: 600;
+}
+
+/* Strong and emphasis */
+.prose-reader strong {
+  font-weight: 600;
+}
+
+.prose-reader em {
+  font-style: italic;
+}
+
+/* First/last element margins */
+.prose-reader > *:first-child {
+  margin-top: 0;
+}
+
+.prose-reader > *:last-child {
+  margin-bottom: 0;
+}
+
+/* Dark mode */
+.dark .prose-reader code {
+  background: oklch(1 0 0 / 10%);
+}
+
+.dark .prose-reader pre {
+  background: oklch(1 0 0 / 8%);
+}

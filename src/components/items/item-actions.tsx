@@ -14,13 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Archive,
-  Clock,
-  MoreVertical,
-  Star,
-  Trash2,
-} from "lucide-react";
+import { Archive, Clock, MoreVertical, Star, Trash2 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +23,8 @@ interface ItemActionsProps {
   isLater: boolean;
   isFavorite: boolean;
   onOpenChange?: (open: boolean) => void;
+  /** Always show the button (don't hide until hover) */
+  alwaysVisible?: boolean;
 }
 
 export function ItemActions({
@@ -36,6 +32,7 @@ export function ItemActions({
   isLater,
   isFavorite,
   onOpenChange,
+  alwaysVisible = false,
 }: ItemActionsProps) {
   const [isPending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
@@ -76,7 +73,8 @@ export function ItemActions({
   return (
     <div
       className={cn(
-        "shrink-0 opacity-0 group-hover:opacity-100 transition-opacity",
+        "shrink-0 transition-opacity",
+        !alwaysVisible && "opacity-0 group-hover:opacity-100",
         open && "opacity-100"
       )}
     >

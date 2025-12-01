@@ -1,10 +1,10 @@
 "use client";
 
-import { UserMenu } from "@/components/layout/user-menu";
+import { AppHeader } from "@/components/layout/app-header";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { BookMarked, ChevronsUpDown, Clock, Folder, Star } from "lucide-react";
+import { BookMarked, ChevronsUpDown, Clock, Star } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,102 +24,92 @@ interface TopbarNavProps {
   };
 }
 
-export function TopbarNav({ user }: TopbarNavProps) {
+const navItems = [
+  { href: "/everything", label: "Everything", icon: BookMarked },
+  { href: "/later", label: "Later", icon: Clock },
+  { href: "/favorites", label: "Favorites", icon: Star },
+];
+
+function NavigationCenter() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const navItems = [
-    { href: "/everything", label: "Everything", icon: BookMarked },
-    { href: "/later", label: "Later", icon: Clock },
-    { href: "/favorites", label: "Favorites", icon: Star },
-  ];
 
   const activeItem =
     navItems.find((item) => pathname === item.href) || navItems[0];
   const ActiveIcon = activeItem.icon;
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-      <div className="relative flex h-16 items-center px-4 md:px-8">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/everything"
-            className="flex items-center gap-2 font-bold text-xl"
-          >
-            <div className="h-6 w-6 bg-primary rounded-md flex items-center justify-center">
-              <span className="text-white text-sm font-bold">P</span>
-            </div>
-            <span className="hidden md:inline">Portable</span>
-          </Link>
-        </div>
+    <>
+      {/* Desktop Navigation */}
+      <nav className="hidden md:flex items-center gap-1">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href;
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors",
+                isActive
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-1">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Mobile Navigation Dropdown */}
-        <div className="md:hidden absolute left-1/2 -translate-x-1/2">
-          <DropdownMenu open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className={cn(
-                  "gap-1",
-                  mobileMenuOpen && "bg-accent text-accent-foreground"
-                )}
-              >
-                {ActiveIcon && <ActiveIcon className="h-4 w-4" />}
-                <span className="text-sm font-medium">{activeItem.label}</span>
-                <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="center">
-              {navItems.map((item) => {
-                const isActive = pathname === item.href;
-                const Icon = item.icon;
-                return (
-                  <DropdownMenuItem key={item.href} asChild>
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        "w-full flex items-center gap-2",
-                        isActive && "bg-accent text-accent-foreground"
-                      )}
-                    >
-                      <Icon className="h-4 w-4" />
-                      {item.label}
-                    </Link>
-                  </DropdownMenuItem>
-                );
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        <div className="ml-auto flex items-center gap-4">
-          <UserMenu user={user} />
-        </div>
+      {/* Mobile Navigation Dropdown */}
+      <div className="md:hidden">
+        <DropdownMenu open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className={cn(
+                "gap-1",
+                mobileMenuOpen && "bg-accent text-accent-foreground"
+              )}
+            >
+              {ActiveIcon && <ActiveIcon className="h-4 w-4" />}
+              <span className="text-sm font-medium">{activeItem.label}</span>
+              <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="center">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
+              return (
+                <DropdownMenuItem key={item.href} asChild>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "w-full flex items-center gap-2",
+                      isActive && "bg-accent text-accent-foreground"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                </DropdownMenuItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-    </header>
+    </>
   );
 }
 
+export function TopbarNav({ user }: TopbarNavProps) {
+  return (
+    <AppHeader
+      user={user}
+      center={<NavigationCenter />}
+    />
+  );
+}
