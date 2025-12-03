@@ -18,3 +18,5 @@ CREATE INDEX IF NOT EXISTS items_processing_status_idx ON items(processing_statu
 
 COMMENT ON COLUMN items.processing_status IS 'Background processing status: pending, processing, completed, failed';
 
+
+

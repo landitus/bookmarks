@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Articles with content now link to reader view instead of external URL
 - List view shows reading time for articles
 - Switched from Jina Reader to Firecrawl for better content extraction quality
+- Improved content cleaning to preserve article headings while removing boilerplate
 
 ### Fixed
 - Fixed layout shift in sign-in form when clicking submit button

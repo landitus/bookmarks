@@ -1,8 +1,10 @@
 /**
  * Content Extraction Service
  *
- * Uses Firecrawl API to extract clean, readable content from any URL.
- * Handles JavaScript-rendered pages (Medium, Substack, etc.) and returns clean markdown.
+ * Uses Firecrawl to fetch markdown content (preserves headings better than Readability
+ * which can strip them if they're outside the detected article container).
+ *
+ * Applies light cleanup to remove common boilerplate (intros, CTAs, etc.)
  *
  * @see https://firecrawl.dev
  */
@@ -20,7 +22,7 @@ interface FirecrawlResponse {
       description?: string;
       ogImage?: string;
       publishedTime?: string;
-      author?: string | string[]; // Can be array from some sources
+      author?: string | string[];
     };
   };
   error?: string;
@@ -42,23 +44,22 @@ export interface ExtractedContent {
 // =============================================================================
 
 const FIRECRAWL_API_URL = "https://api.firecrawl.dev/v2/scrape";
-const WORDS_PER_MINUTE = 200; // Average reading speed
+const WORDS_PER_MINUTE = 200;
 
 // =============================================================================
 // HELPER FUNCTIONS
 // =============================================================================
 
 /**
- * Calculate word count from text content
+ * Calculate word count from markdown
  */
 function countWords(text: string): number {
-  // Remove markdown syntax for more accurate count
   const cleanText = text
     .replace(/```[\s\S]*?```/g, "") // Remove code blocks
     .replace(/`[^`]+`/g, "") // Remove inline code
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // Replace links with text
-    .replace(/[#*_~>\-|]/g, "") // Remove markdown symbols
-    .replace(/\s+/g, " ") // Normalize whitespace
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // Remove links, keep text
+    .replace(/[#*_~>\-|]/g, "") // Remove markdown chars
+    .replace(/\s+/g, " ")
     .trim();
 
   return cleanText.split(/\s+/).filter((word) => word.length > 0).length;
@@ -72,52 +73,98 @@ function calculateReadingTime(wordCount: number): number {
 }
 
 /**
- * Clean extracted content by removing header boilerplate
- * Finds the first real content paragraph and starts from there
+ * Parse author from Firecrawl metadata (can be string or array)
+ */
+function parseAuthor(author: string | string[] | undefined): string | null {
+  if (!author) return null;
+
+  if (Array.isArray(author)) {
+    // Filter out generic platform names, take first real author
+    const realAuthor = author.find(
+      (a) => !["substack", "medium"].includes(a.toLowerCase())
+    );
+    return realAuthor || author[0] || null;
+  }
+
+  return author;
+}
+
+/**
+ * Clean markdown content by finding the real article start
+ *
+ * Strategy: Find the first substantial paragraph (>150 chars) after any short intro/metadata
+ * This handles newsletters that start with "Hey there, I'm X..." or subscription CTAs
  */
 function cleanContent(content: string): string {
   const lines = content.split("\n");
   let startIndex = 0;
+  let foundStart = false;
 
-  for (let i = 0; i < Math.min(lines.length, 100); i++) {
+  // Scan first 50 lines for the real article start
+  for (let i = 0; i < Math.min(lines.length, 50); i++) {
     const line = lines[i].trim();
 
     // Skip empty lines
     if (!line) continue;
 
-    // Skip image-link lines (logos, avatars): [![text](url)](link)
-    if (line.startsWith("[![")) continue;
+    // Skip image lines at the start
+    if (line.startsWith("![") || line.startsWith("[![")) continue;
 
-    // Skip standalone images: ![alt](url)
-    if (line.startsWith("![") && !line.includes(" ")) continue;
+    // Skip short lines (metadata, CTAs, etc.)
+    if (line.length < 80) continue;
 
-    // Skip navigation/metadata
-    if (/^(Subscribe|Sign in|Share|SubscribeSign)$/i.test(line)) continue;
-    if (/^(Subscribe|Sign in)/i.test(line) && line.length < 30) continue;
+    // Skip lines that look like newsletter intros
+    if (
+      line.includes("Hey there, I'm") ||
+      line.includes("Each week, I tackle") ||
+      line.includes("Annual subscribers get") ||
+      line.includes("Subscribe now") ||
+      line.includes("while supplies last")
+    ) {
+      continue;
+    }
 
-    // Skip title headings (# Title) - we already have title from metadata
-    if (line.startsWith("# ") && i < 10) continue;
-
-    // Skip subtitle headings right after title (### For something...)
-    if (line.startsWith("### ") && i < 15 && line.length < 60) continue;
-
-    // Found real content: a paragraph > 100 chars or a section heading
-    if (line.length > 100) {
-      startIndex = i;
+    // Found a substantial paragraph - this is likely the article start
+    // But look for the previous heading if there is one
+    for (let j = i - 1; j >= 0; j--) {
+      const prevLine = lines[j].trim();
+      if (prevLine.startsWith("#")) {
+        startIndex = j;
+        foundStart = true;
+        break;
+      }
+      if (!prevLine) continue;
+      // If we hit non-empty non-heading, start from current line
       break;
     }
 
-    // Section headings (### Sleep, ## Food) are real content
-    if ((line.startsWith("## ") || line.startsWith("### ")) && i > 10) {
+    if (!foundStart) {
       startIndex = i;
-      break;
+      foundStart = true;
     }
+    break;
   }
 
-  const cleaned = lines.slice(startIndex).join("\n").trim();
+  // Take content from start point
+  let cleaned = lines.slice(startIndex).join("\n").trim();
 
-  // Remove excessive newlines
-  return cleaned.replace(/\n{4,}/g, "\n\n\n");
+  // Clean up footer boilerplate
+  cleaned = cleaned
+    // Remove paywall text
+    .replace(
+      /\n+This post is for paid subscribers[\s\S]*?Subscribe\s*\n*/gi,
+      "\n\n"
+    )
+    .replace(/\n+Already a paid subscriber\? Sign in\s*/gi, "\n\n")
+    // Remove trailing metadata tables
+    .replace(/\|.*\|(?:\n\|.*\|)+\s*$/g, "")
+    // Remove common footer text
+    .replace(/\n{2,}(?:PreviousNext|Subscribe to [^\n]+)\s*$/gi, "")
+    // Normalize excessive newlines
+    .replace(/\n{4,}/g, "\n\n\n")
+    .trim();
+
+  return cleaned;
 }
 
 // =============================================================================
@@ -125,10 +172,7 @@ function cleanContent(content: string): string {
 // =============================================================================
 
 /**
- * Extract content from a URL using Firecrawl API
- *
- * Firecrawl returns clean markdown without boilerplate, navigation, ads, etc.
- * Much cleaner than other extractors.
+ * Extract content from a URL using Firecrawl
  *
  * @param url - The URL to extract content from
  * @returns Extracted content with metadata, or null if extraction fails
@@ -139,15 +183,15 @@ export async function extractContent(
   const apiKey = process.env.FIRECRAWL_API_KEY;
 
   if (!apiKey) {
-    console.error("[Firecrawl] No API key configured (FIRECRAWL_API_KEY)");
+    console.error("[Extractor] No FIRECRAWL_API_KEY configured");
     return null;
   }
 
-  console.log(`[Firecrawl] Starting extraction for: ${url}`);
+  console.log(`[Extractor] Starting extraction for: ${url}`);
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
 
     const response = await fetch(FIRECRAWL_API_URL, {
       method: "POST",
@@ -158,79 +202,64 @@ export async function extractContent(
       body: JSON.stringify({
         url,
         formats: ["markdown"],
-        onlyMainContent: true, // Strip navigation, headers, footers - just article content
+        onlyMainContent: true, // Let Firecrawl do initial cleanup
       }),
       signal: controller.signal,
     });
 
     clearTimeout(timeoutId);
 
-    console.log(`[Firecrawl] Response status: ${response.status}`);
-
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`[Firecrawl] API error: ${response.status} - ${errorText}`);
+      console.error(
+        `[Extractor] Firecrawl error: ${response.status} - ${errorText}`
+      );
       return null;
     }
 
     const result: FirecrawlResponse = await response.json();
 
     if (!result.success || !result.data?.markdown) {
-      console.error("[Firecrawl] Extraction failed:", result.error);
+      console.error("[Extractor] Firecrawl failed:", result.error);
       return null;
     }
 
-    const { data } = result;
-    const rawContent = data.markdown!.trim();
-    const content = cleanContent(rawContent);
-
     console.log(
-      `[Firecrawl] Got content, raw: ${rawContent.length}, cleaned: ${content.length}`
+      `[Extractor] Got markdown, length: ${result.data.markdown.length}`
     );
+
+    // Apply our cleanup
+    const content = cleanContent(result.data.markdown);
+
+    console.log(`[Extractor] After cleanup, length: ${content.length}`);
 
     const wordCount = countWords(content);
     const readingTime = calculateReadingTime(wordCount);
 
-    // Parse publish date if available
+    // Parse publish date from metadata
     let publishDate: Date | null = null;
-    if (data.metadata?.publishedTime) {
-      const parsed = new Date(data.metadata.publishedTime);
+    if (result.data.metadata?.publishedTime) {
+      const parsed = new Date(result.data.metadata.publishedTime);
       if (!isNaN(parsed.getTime())) {
         publishDate = parsed;
       }
     }
 
-    // Handle author - can be string or array from Firecrawl
-    let author: string | null = null;
-    if (data.metadata?.author) {
-      if (Array.isArray(data.metadata.author)) {
-        // Take first non-"Substack" author if available
-        author =
-          data.metadata.author.find(
-            (a: string) => a.toLowerCase() !== "substack"
-          ) ||
-          data.metadata.author[0] ||
-          null;
-      } else {
-        author = data.metadata.author;
-      }
-    }
-
     return {
-      title: data.metadata?.title || url,
-      description: data.metadata?.description || null,
+      title: result.data.metadata?.title || url,
+      description: result.data.metadata?.description || null,
       content,
-      author,
+      author: parseAuthor(result.data.metadata?.author),
       publishDate,
       wordCount,
       readingTime,
-      imageUrl: null, // Rely on og:image from metascraper instead
+      imageUrl: null, // Rely on og:image from metascraper
     };
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
-      console.error("[Firecrawl] Request timed out after 30s");
+      console.error("[Extractor] Request timed out after 30s");
     } else {
-      console.error("[Firecrawl] Failed to extract content:", error);
+      console.error("[Extractor] Failed:", error);
     }
     return null;
   }
@@ -238,7 +267,6 @@ export async function extractContent(
 
 /**
  * Check if a URL is likely to be an article (vs video, product page, etc.)
- * This is a heuristic check before running full extraction
  */
 export function isLikelyArticle(url: string): boolean {
   const urlLower = url.toLowerCase();
@@ -254,7 +282,7 @@ export function isLikelyArticle(url: string): boolean {
     return false;
   }
 
-  // Social media (often not extractable as articles)
+  // Social media
   if (
     urlLower.includes("twitter.com/") ||
     urlLower.includes("x.com/") ||
@@ -269,6 +297,5 @@ export function isLikelyArticle(url: string): boolean {
     return false;
   }
 
-  // Default: assume it could be an article
   return true;
 }
