@@ -133,7 +133,8 @@ async function processItemInBackground(
     let readingTime: number | null = null;
     let author: string | null = null;
     let publishDate: string | null = null;
-    let type: ItemType = detectTypeFromUrl(url);
+    const originalType: ItemType = detectTypeFromUrl(url); // Keep original for failure detection
+    let type: ItemType = originalType;
     let aiContentType: string | null = null;
     let aiSummary: string | null = null;
     let title: string | null = null;
@@ -231,10 +232,13 @@ async function processItemInBackground(
     // ==========================================================================
     // Determine final processing status
     // For articles: if no content was extracted, mark as "failed" (likely paywall)
-    const isArticleType = type === "article";
+    // Use originalType (from URL detection) NOT the AI-reassigned type
+    // This ensures a Medium article that fails extraction is marked "failed"
+    // even if AI later classifies it as "website" based on limited metadata
+    const wasIntendedAsArticle = originalType === "article";
     const hasContent = content && content.length > 100;
     const processingStatus =
-      isArticleType && !hasContent ? "failed" : "completed";
+      wasIntendedAsArticle && !hasContent ? "failed" : "completed";
 
     const updateData: Record<string, unknown> = {
       processing_status: processingStatus,
@@ -462,7 +466,8 @@ export async function POST(request: NextRequest) {
   // Determine if we need background processing
   // Only articles benefit from content extraction and AI processing
   // Videos, images, and social posts don't need it
-  const needsProcessing = isLikelyArticle(url) && !!process.env.FIRECRAWL_API_KEY;
+  const needsProcessing =
+    isLikelyArticle(url) && !!process.env.FIRECRAWL_API_KEY;
 
   // ==========================================================================
   // INSERT IMMEDIATELY - Don't wait for AI/content extraction

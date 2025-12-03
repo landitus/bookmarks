@@ -39,7 +39,7 @@ supabase status
 cp env.example .env.local
 # Then edit .env.local (see "Local Supabase Setup" section below)
 
-# 6. Run migrations
+# 6. Run migrations (first time only - creates tables)
 supabase db reset
 
 # 7. Start the app
@@ -99,18 +99,31 @@ NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3000
 ### Database Commands
 
 ```bash
-# Reset database and run all migrations
-supabase db reset
-
-# Create a new migration
-supabase migration new my_new_feature
+# Apply pending migrations (preserves data) — USE THIS MOST OF THE TIME
+supabase migration up
 
 # View migration status
 supabase migration list
 
+# Create a new migration
+supabase migration new my_new_feature
+
+# Reset database (DESTROYS ALL DATA) — only for fresh start or testing seed data
+supabase db reset
+
 # Push migrations to remote (production)
 supabase db push
 ```
+
+#### When to Use Each Command
+
+| Command | Use When | Data Preserved? |
+|---------|----------|-----------------|
+| `migration up` | Applying new migrations during development | ✅ Yes |
+| `migration list` | Checking which migrations have been applied | — |
+| `migration new` | Creating a new schema change | — |
+| `db reset` | Starting fresh, testing seeds, or after editing old migrations | ❌ No |
+| `db push` | Deploying to production | ✅ Yes |
 
 ### Troubleshooting
 
@@ -125,8 +138,9 @@ supabase db push
 
 **"Migration failed"**
 
-- Reset and try again: `supabase db reset`
 - Check migration SQL for errors
+- If the migration was already partially applied, you may need to reset: `supabase db reset`
+- For new migrations, fix the SQL and run `supabase migration up` again
 
 ## Browser Extension
 

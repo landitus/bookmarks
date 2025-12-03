@@ -56,8 +56,9 @@ OPENAI_API_KEY=sk-...
 
 1. **Apply migration:**
    ```bash
-   supabase db reset  # or apply migration manually
+   supabase migration up  # applies pending migrations, keeps your data
    ```
+   > **Note:** Only use `supabase db reset` if you need a completely fresh database.
 
 2. **Add OpenAI API key** to `.env.local`:
    ```bash

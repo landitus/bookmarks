@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed layout shift in sign-in form when clicking submit button
+- Fixed incorrect processing status when AI reclassifies article type (articles that fail extraction now correctly marked as "failed")
 
 ## [0.0.1] - 2025-11-30
 

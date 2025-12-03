@@ -61,7 +61,8 @@ supabase migration new add_topics_table
 
 # 5. Edit the migration file in supabase/migrations/
 # 6. Test locally (optional - requires Docker)
-supabase db reset  # Resets local DB and runs all migrations
+supabase migration up  # Apply new migrations (keeps data)
+# OR: supabase db reset  # Full reset (destroys all data)
 
 # 7. Push to production when ready
 supabase db push
@@ -150,14 +151,18 @@ supabase db push --project-ref sqyarjblpozowlqluasg
 ```bash
 # Supabase CLI (recommended)
 supabase migration new <name>     # Create new migration file
-supabase db push                  # Apply migrations to linked project
+supabase migration up             # Apply pending migrations (keeps data) ← USE THIS
+supabase migration list           # Check migration status
+supabase db push                  # Apply migrations to linked project (production)
 supabase db pull                  # Pull remote schema to local
-supabase db reset                 # Reset local DB (requires Docker)
+supabase db reset                 # Reset local DB + run all migrations (DESTROYS DATA)
 supabase db diff                  # Show schema differences
-
-# Check migration status
-supabase migration list
 ```
+
+**When to use each:**
+- `migration up` — Daily development, applying new migrations
+- `db reset` — Starting fresh, testing seed data, or after editing old migrations
+- `db push` — Deploying to production
 
 ---
 
@@ -180,7 +185,10 @@ cp env.example .env.local
 # Edit .env.local with the values from step 2
 
 # 4. Run migrations on local database
-supabase db reset  # This runs all migrations fresh
+supabase db reset  # First time: runs all migrations fresh
+
+# For subsequent migrations (preserves your data):
+supabase migration up
 
 # 5. Start the app
 pnpm dev
@@ -189,11 +197,12 @@ pnpm dev
 **Local Supabase Commands:**
 
 ```bash
-supabase start      # Start local Supabase (Docker)
-supabase stop       # Stop local Supabase
-supabase db reset   # Reset DB and run all migrations
-supabase status     # Show local URLs and keys
-supabase studio     # Open local Supabase Studio (GUI)
+supabase start        # Start local Supabase (Docker)
+supabase stop         # Stop local Supabase
+supabase migration up # Apply pending migrations (keeps data)
+supabase db reset     # Reset DB and run all migrations (destroys data)
+supabase status       # Show local URLs and keys
+supabase studio       # Open local Supabase Studio (GUI)
 ```
 
 **Local URLs:**
