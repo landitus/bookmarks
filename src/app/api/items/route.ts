@@ -460,8 +460,9 @@ export async function POST(request: NextRequest) {
   const type = detectTypeFromUrl(url);
 
   // Determine if we need background processing
-  // Videos don't need content extraction, only articles do
-  const needsProcessing = isLikelyArticle(url) || !!process.env.OPENAI_API_KEY;
+  // Only articles benefit from content extraction and AI processing
+  // Videos, images, and social posts don't need it
+  const needsProcessing = isLikelyArticle(url) && !!process.env.FIRECRAWL_API_KEY;
 
   // ==========================================================================
   // INSERT IMMEDIATELY - Don't wait for AI/content extraction
