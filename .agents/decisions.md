@@ -164,3 +164,58 @@
   - `ItemsView` subscribes to `postgres_changes` filtered by `user_id`
   - On change event, calls `router.refresh()` to re-fetch server data
 - **Trade-off:** Requires Supabase Realtime (included in free tier)
+
+### Background Processing Architecture (Nov 2025)
+
+- **Decision:** Queue AI processing as background jobs instead of blocking the save request.
+- **Why:**
+  1. **UX:** Items save instantly, processing happens asynchronously
+  2. **Reliability:** Users don't see failures if AI/extraction takes too long
+  3. **Flexibility:** Can retry failed jobs without user intervention
+- **Implementation:**
+  - `processing_status` enum: `pending`, `processing`, `completed`, `failed`
+  - Items save immediately with `pending` status
+  - Background job processes extraction + AI in sequence
+  - Real-time updates notify UI when processing completes
+  - Processing indicator shown in item cards
+- **Trade-off:** Requires status tracking and real-time updates, but provides much better UX
+
+### Content Extraction: Firecrawl over Jina Reader (Nov 2025)
+
+- **Decision:** Use Firecrawl API for content extraction instead of Jina Reader.
+- **Why:**
+  1. **Quality:** Better markdown conversion and content cleaning
+  2. **Reliability:** More consistent results across different sites
+  3. **Features:** Better handling of JavaScript-rendered content
+- **Implementation:**
+  - Firecrawl API with markdown mode
+  - Content cleaning to remove header/footer boilerplate
+  - Preserves article headings and structure
+- **Trade-off:** Requires API key and has usage limits, but quality improvement is worth it
+
+### AI Processing: OpenAI GPT-4o-mini (Nov 2025)
+
+- **Decision:** Use OpenAI GPT-4o-mini for content analysis (type detection, summaries, topic extraction).
+- **Why:**
+  1. **Cost:** GPT-4o-mini is affordable for this use case
+  2. **Quality:** Excellent at text analysis and classification
+  3. **Simplicity:** Single API for all AI features
+- **Implementation:**
+  - Structured JSON output with type safety
+  - Temperature 0.3 for consistent results
+  - Fallback to basic type detection if AI fails
+  - Topic matching against existing user topics
+- **Trade-off:** API costs and rate limits, but enables powerful features
+
+### Shared Header Component (Nov 2025)
+
+- **Decision:** Extract shared header logic into reusable `AppHeader` component.
+- **Why:**
+  1. **Consistency:** Same header across protected and reader views
+  2. **Flexibility:** Center content slot for page-specific elements
+  3. **Maintainability:** Single source of truth for header UI
+- **Implementation:**
+  - `AppHeader` component with customizable center content
+  - Used in both `(protected)` and `(reader)` layouts
+  - Includes logo, user menu, and theme switcher
+- **Trade-off:** None, pure win for code organization
