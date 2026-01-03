@@ -623,7 +623,7 @@ INSERT INTO items (
   'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800',
   'video',
   false, false, false,
-  'processing',
+  'completed', -- Videos don't need content extraction
   now() - interval '15 minutes'
 );
 

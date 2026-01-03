@@ -436,6 +436,25 @@ export async function getItemProcessingStatus(
   };
 }
 
+/**
+ * Mark an item's processing as timed out (failed)
+ * Called when client-side polling times out
+ */
+export async function markProcessingTimedOut(id: string): Promise<void> {
+  const supabase = await createClient();
+
+  await supabase
+    .from("items")
+    .update({
+      processing_status: "failed",
+      processing_error: "Content extraction timed out",
+    })
+    .eq("id", id)
+    .eq("processing_status", "pending"); // Only update if still pending
+
+  revalidateAllPaths();
+}
+
 // =============================================================================
 // HELPERS
 // =============================================================================

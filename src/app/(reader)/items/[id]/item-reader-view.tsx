@@ -3,7 +3,11 @@
 import { useState, useTransition, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Item } from "@/lib/types";
-import { refreshContent, getItemProcessingStatus } from "@/lib/actions/items";
+import {
+  refreshContent,
+  getItemProcessingStatus,
+  markProcessingTimedOut,
+} from "@/lib/actions/items";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -198,11 +202,14 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
       } else {
         pollingItems.delete(item.id);
         setIsRefreshing(false);
+        // Mark as failed in database so list view updates
+        markProcessingTimedOut(item.id);
         // Show timeout error only once
         if (!errorShownItems.has(item.id)) {
           errorShownItems.add(item.id);
           toast.error("Content extraction timed out. Try again later.");
         }
+        router.refresh();
       }
     };
 
