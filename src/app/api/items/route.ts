@@ -528,7 +528,7 @@ export async function POST(request: NextRequest) {
       description,
       image_url,
       type,
-      is_later: false,
+      is_kept: false, // New items go to Inbox
       is_favorite: false,
       is_archived: false,
       user_id: userId,

@@ -123,12 +123,14 @@ function ReaderActions({
         </a>
       </Button>
 
-      {/* Item Actions (Later, Favorite, etc.) */}
+      {/* Triage Actions (Keep/Discard for Inbox, Favorite for Library, Restore for Archive) */}
       <ItemActions
         itemId={item.id}
         url={item.url}
-        isLater={item.is_later}
+        isKept={item.is_kept}
         isFavorite={item.is_favorite}
+        isArchived={item.is_archived}
+        showTriageButtons
         alwaysVisible
       />
 

@@ -71,7 +71,7 @@ ON CONFLICT DO NOTHING;
 -- Today's articles
 INSERT INTO items (
   id, user_id, url, title, description, image_url, type,
-  is_later, is_favorite, is_archived, content, word_count, reading_time,
+  is_kept, is_favorite, is_archived, content, word_count, reading_time,
   author, publish_date, ai_summary, ai_content_type, processing_status, created_at
 ) VALUES
 (
@@ -82,7 +82,7 @@ INSERT INTO items (
   'One of the most important things I didn''t understand about the world when I was a child is the degree to which the returns for performance are superlinear.',
   'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800',
   'article',
-  false, true, false,
+  true, true, false,
   '# Superlinear Returns
 
 One of the most important things I didn''t understand about the world when I was a child is the degree to which the returns for performance are superlinear.
@@ -131,7 +131,7 @@ Next.js 15 is officially stable and ready for production. This release builds on
 -- Yesterday's articles
 INSERT INTO items (
   id, user_id, url, title, description, image_url, type,
-  is_later, is_favorite, is_archived, content, word_count, reading_time,
+  is_kept, is_favorite, is_archived, content, word_count, reading_time,
   author, publish_date, ai_summary, ai_content_type, processing_status, created_at
 ) VALUES
 (
@@ -171,7 +171,7 @@ Just because cloud services offer "unlimited" scaling doesn''t mean your archite
   'In praise of wandering without a destination.',
   'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800',
   'article',
-  true, true, false,
+  true, false, false,
   '# The Art of Getting Lost
 
 There is something deeply human about wanting to know where we are going. GPS has eliminated the possibility of getting lost, but has it also eliminated something essential?
@@ -190,7 +190,7 @@ When we wander without a destination, we open ourselves to serendipity. The best
 -- Last week's articles
 INSERT INTO items (
   id, user_id, url, title, description, image_url, type,
-  is_later, is_favorite, is_archived, content, word_count, reading_time,
+  is_kept, is_favorite, is_archived, content, word_count, reading_time,
   author, publish_date, ai_summary, ai_content_type, processing_status, created_at
 ) VALUES
 (
@@ -245,7 +245,7 @@ New research using advanced imaging techniques has revealed that memory formatio
 -- Last month's articles (some archived)
 INSERT INTO items (
   id, user_id, url, title, description, image_url, type,
-  is_later, is_favorite, is_archived, content, word_count, reading_time,
+  is_kept, is_favorite, is_archived, content, word_count, reading_time,
   author, publish_date, ai_summary, ai_content_type, processing_status, created_at
 ) VALUES
 (
@@ -256,7 +256,7 @@ INSERT INTO items (
   'A new approach to product development from Basecamp.',
   'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800',
   'article',
-  false, true, false,
+  true, false, false,
   '# Shape Up
 
 Shape Up is a product development methodology that emphasizes fixed time, variable scope. Instead of estimating how long things take, you decide how much time something is worth.
@@ -301,7 +301,7 @@ The metaverse hype has faded, replaced by a more practical vision: spatial compu
 
 INSERT INTO items (
   id, user_id, url, title, description, image_url, type,
-  is_later, is_favorite, is_archived, metadata, ai_summary, ai_content_type, processing_status, created_at
+  is_kept, is_favorite, is_archived, metadata, ai_summary, ai_content_type, processing_status, created_at
 ) VALUES
 (
   '20000000-0000-0000-0000-000000000010',
@@ -311,7 +311,7 @@ INSERT INTO items (
   'A talk about the joy and creativity in programming, featuring musical code and esoteric languages.',
   'https://img.youtube.com/vi/kYfNvmF0Bqw/maxresdefault.jpg',
   'video',
-  true, true, false,
+  true, false, false,
   '{"duration": "3632", "channel": "NDC Conferences", "platform": "youtube"}',
   'Dylan Beattie explores the artistic side of programming through musical code, esoteric languages, and creative coding experiments. A celebration of programming as art.',
   'conference-talk',
@@ -341,7 +341,7 @@ INSERT INTO items (
   'A legendary talk on creative tools and immediate feedback.',
   'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=800',
   'video',
-  false, true, false,
+  true, true, false,
   '{"duration": "3240", "channel": "Bret Victor", "platform": "vimeo"}',
   'Bret Victor demonstrates revolutionary ideas about creative tools, showing how immediate feedback and direct manipulation can transform how we create software and art.',
   'conference-talk',
@@ -370,7 +370,7 @@ INSERT INTO items (
 
 INSERT INTO items (
   id, user_id, url, title, description, image_url, type,
-  is_later, is_favorite, is_archived, metadata, ai_summary, ai_content_type, processing_status, created_at
+  is_kept, is_favorite, is_archived, metadata, ai_summary, ai_content_type, processing_status, created_at
 ) VALUES
 (
   '20000000-0000-0000-0000-000000000020',
@@ -395,7 +395,7 @@ INSERT INTO items (
   'A blazingly fast, totally extendable launcher for macOS.',
   'https://images.unsplash.com/photo-1548611635-b6e7827d2f75?w=800',
   'product',
-  false, true, false,
+  true, false, false,
   '{"price": 0, "currency": "USD", "brand": "Raycast"}',
   'Raycast is a productivity app that replaces Spotlight with a more powerful, extensible launcher. Features include clipboard history, snippets, and custom extensions.',
   'product-page',
@@ -410,7 +410,7 @@ INSERT INTO items (
   'Premium gasket-mounted mechanical keyboard with hot-swappable switches.',
   'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800',
   'product',
-  true, true, false,
+  true, false, false,
   '{"price": 179, "currency": "USD", "brand": "Keychron"}',
   'The Keychron Q1 is a premium mechanical keyboard with gasket mount design, QMK/VIA support, and hot-swappable switches. A favorite among keyboard enthusiasts.',
   'product-page',
@@ -424,7 +424,7 @@ INSERT INTO items (
 
 INSERT INTO items (
   id, user_id, url, title, description, image_url, type,
-  is_later, is_favorite, is_archived, content, word_count, reading_time,
+  is_kept, is_favorite, is_archived, content, word_count, reading_time,
   ai_summary, ai_content_type, processing_status, created_at
 ) VALUES
 (
@@ -435,7 +435,7 @@ INSERT INTO items (
   'A legendary thread on wealth creation and leverage.',
   'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800',
   'thread',
-  false, true, false,
+  true, true, false,
   '1/ Seek wealth, not money or status. Wealth is having assets that earn while you sleep. Money is how we transfer time and wealth. Status is your place in the social hierarchy.
 
 2/ You''re not going to get rich renting out your time. You must own equity - a piece of a business - to gain your financial freedom.
@@ -477,7 +477,7 @@ INSERT INTO items (
 
 INSERT INTO items (
   id, user_id, url, title, description, image_url, type,
-  is_later, is_favorite, is_archived, metadata, ai_summary, ai_content_type, processing_status, created_at
+  is_kept, is_favorite, is_archived, metadata, ai_summary, ai_content_type, processing_status, created_at
 ) VALUES
 (
   '20000000-0000-0000-0000-000000000040',
@@ -487,7 +487,7 @@ INSERT INTO items (
   'A clean, minimal desk setup with natural light.',
   'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=800',
   'image',
-  false, true, false,
+  true, false, false,
   '{"photographer": "Unsplash", "dimensions": "4000x2667"}',
   'A minimalist workspace featuring natural wood, plants, and plenty of natural light. Perfect inspiration for home office design.',
   'photography',
@@ -531,7 +531,7 @@ INSERT INTO items (
 
 INSERT INTO items (
   id, user_id, url, title, description, image_url, type,
-  is_later, is_favorite, is_archived, ai_summary, ai_content_type, processing_status, created_at
+  is_kept, is_favorite, is_archived, ai_summary, ai_content_type, processing_status, created_at
 ) VALUES
 (
   '20000000-0000-0000-0000-000000000050',
@@ -541,7 +541,7 @@ INSERT INTO items (
   'A modern project management tool built for software teams.',
   'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800',
   'website',
-  false, true, false,
+  true, false, false,
   'Linear is a streamlined project management tool designed specifically for software teams. Known for its speed, keyboard shortcuts, and beautiful design.',
   'saas-landing-page',
   'completed',
@@ -569,7 +569,7 @@ INSERT INTO items (
   'Personal site with interactive tutorials on CSS, React, and web development.',
   'https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=800',
   'website',
-  true, true, false,
+  true, false, false,
   'Josh W Comeau''s personal site features interactive tutorials and blog posts about CSS, React, and web development. Known for its playful, educational approach.',
   'personal-blog',
   'completed',
@@ -596,7 +596,7 @@ INSERT INTO items (
 
 INSERT INTO items (
   id, user_id, url, title, description, image_url, type,
-  is_later, is_favorite, is_archived, processing_status, created_at
+  is_kept, is_favorite, is_archived, processing_status, created_at
 ) VALUES
 (
   '20000000-0000-0000-0000-000000000060',
@@ -758,6 +758,21 @@ INSERT INTO project_items (project_id, item_id) VALUES
 ON CONFLICT DO NOTHING;
 
 -- ============================================================================
+-- SET TRIAGE TIMESTAMPS
+-- ============================================================================
+-- Set kept_at for items in Library (is_kept = true)
+-- Use created_at as the kept_at to preserve relative ordering
+UPDATE items 
+SET kept_at = created_at 
+WHERE is_kept = true AND kept_at IS NULL;
+
+-- Set archived_at for archived items
+-- Use updated_at as archived_at since that's when they were last modified
+UPDATE items 
+SET archived_at = COALESCE(updated_at, created_at)
+WHERE is_archived = true AND archived_at IS NULL;
+
+-- ============================================================================
 -- SUMMARY
 -- ============================================================================
 -- 
@@ -771,11 +786,11 @@ ON CONFLICT DO NOTHING;
 --   - Images: 3 (photography, design)
 --   - Websites: 4 (tools, resources)
 -- 
--- Items by Section:
---   - Everything: 22 total items
---   - Later (is_later=true): 10 items
---   - Favorites (is_favorite=true): 11 items
---   - Archived (is_archived=true): 2 items
+-- Items by Bucket:
+--   - Inbox (is_kept=false, is_archived=false): ~8 items
+--   - Library (is_kept=true, is_archived=false): ~14 items
+--   - Archive (is_archived=true): 2 items
+--   - Favorites (is_favorite=true): 3 items
 -- 
 -- Items by Time Period:
 --   - Today: 3 items

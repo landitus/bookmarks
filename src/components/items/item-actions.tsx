@@ -1,9 +1,10 @@
 "use client";
 
 import {
-  toggleLater,
+  keepItem,
+  discardItem,
+  restoreItem,
   toggleFavorite,
-  archiveItem,
   deleteItem,
 } from "@/lib/actions/items";
 import { Button } from "@/components/ui/button";
@@ -14,30 +15,61 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Archive, Clock, Copy, MoreVertical, Star, Trash2 } from "lucide-react";
+import {
+  Archive,
+  Check,
+  Copy,
+  MoreVertical,
+  RotateCcw,
+  Star,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useState, useTransition } from "react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+
+// =============================================================================
+// TYPES
+// =============================================================================
+
+export type ItemContext = "inbox" | "library" | "archive";
 
 interface ItemActionsProps {
   itemId: string;
   url: string;
-  isLater: boolean;
   isFavorite: boolean;
+  isKept: boolean;
+  isArchived: boolean;
+  /** Context determines which actions to show */
+  context?: ItemContext;
   onOpenChange?: (open: boolean) => void;
   /** Always show the button (don't hide until hover) */
   alwaysVisible?: boolean;
+  /** Show inline triage buttons (for reader view) */
+  showTriageButtons?: boolean;
 }
+
+// =============================================================================
+// COMPONENT
+// =============================================================================
 
 export function ItemActions({
   itemId,
   url,
-  isLater,
   isFavorite,
+  isKept,
+  isArchived,
+  context: explicitContext,
   onOpenChange,
   alwaysVisible = false,
+  showTriageButtons = false,
 }: ItemActionsProps) {
   const [isPending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
+
+  // Infer context from item state if not explicitly provided
+  const context: ItemContext = explicitContext ?? inferContext(isKept, isArchived);
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
@@ -53,23 +85,34 @@ export function ItemActions({
     }
   };
 
-  const handleToggleLater = () => {
+  const handleKeep = () => {
     startTransition(async () => {
-      await toggleLater(itemId);
+      await keepItem(itemId);
+      toast.success("Added to Library");
+      setOpen(false);
+    });
+  };
+
+  const handleDiscard = () => {
+    startTransition(async () => {
+      await discardItem(itemId);
+      toast.success("Moved to Archive");
+      setOpen(false);
+    });
+  };
+
+  const handleRestore = () => {
+    startTransition(async () => {
+      await restoreItem(itemId);
+      toast.success("Restored");
       setOpen(false);
     });
   };
 
   const handleToggleFavorite = () => {
     startTransition(async () => {
-      await toggleFavorite(itemId);
-      setOpen(false);
-    });
-  };
-
-  const handleArchive = () => {
-    startTransition(async () => {
-      await archiveItem(itemId);
+      const result = await toggleFavorite(itemId);
+      toast.success(result.is_favorite ? "Added to Favorites" : "Removed from Favorites");
       setOpen(false);
     });
   };
@@ -77,6 +120,7 @@ export function ItemActions({
   const handleDelete = () => {
     startTransition(async () => {
       await deleteItem(itemId);
+      toast.success("Deleted permanently");
       setOpen(false);
     });
   };
@@ -84,11 +128,73 @@ export function ItemActions({
   return (
     <div
       className={cn(
-        "shrink-0 transition-opacity",
+        "shrink-0 flex items-center gap-1 transition-opacity",
         !alwaysVisible && "opacity-0 group-hover:opacity-100",
-        open && "opacity-100"
+        (open || isPending) && "opacity-100"
       )}
     >
+      {/* Inline triage buttons for Inbox items (shown in reader view) */}
+      {showTriageButtons && context === "inbox" && (
+        <>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handleKeep}
+            disabled={isPending}
+            className="gap-1.5"
+          >
+            <Check className="h-4 w-4" />
+            <span className="hidden sm:inline">Keep</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleDiscard}
+            disabled={isPending}
+            className="gap-1.5 text-muted-foreground"
+          >
+            <X className="h-4 w-4" />
+            <span className="hidden sm:inline">Discard</span>
+          </Button>
+        </>
+      )}
+
+      {/* Inline restore button for Archive items (shown in reader view) */}
+      {showTriageButtons && context === "archive" && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRestore}
+          disabled={isPending}
+          className="gap-1.5"
+        >
+          <RotateCcw className="h-4 w-4" />
+          <span className="hidden sm:inline">Restore</span>
+        </Button>
+      )}
+
+      {/* Inline favorite toggle for Library items (shown in reader view) */}
+      {showTriageButtons && context === "library" && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleToggleFavorite}
+          disabled={isPending}
+          className="gap-1.5"
+        >
+          <Star
+            className={cn(
+              "h-4 w-4",
+              isFavorite && "fill-yellow-400 text-yellow-400"
+            )}
+          />
+          <span className="hidden sm:inline">
+            {isFavorite ? "Unfavorite" : "Favorite"}
+          </span>
+        </Button>
+      )}
+
+      {/* More actions dropdown */}
       <DropdownMenu open={open} onOpenChange={handleOpenChange}>
         <DropdownMenuTrigger asChild>
           <Button
@@ -105,51 +211,80 @@ export function ItemActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
-          {/* Copy Link */}
+          {/* Copy Link - always available */}
           <DropdownMenuItem onSelect={handleCopyLink}>
             <Copy className="h-4 w-4" />
             Copy link
           </DropdownMenuItem>
 
-          {/* Toggle Later */}
-          <DropdownMenuItem onSelect={handleToggleLater} disabled={isPending}>
-            <Clock className={cn("h-4 w-4", isLater && "text-blue-500")} />
-            {isLater ? "Remove from Later" : "Add to Later"}
-          </DropdownMenuItem>
+          {/* INBOX CONTEXT */}
+          {context === "inbox" && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={handleKeep} disabled={isPending}>
+                <Check className="h-4 w-4" />
+                Keep to Library
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={handleDiscard} disabled={isPending}>
+                <Archive className="h-4 w-4" />
+                Discard
+              </DropdownMenuItem>
+            </>
+          )}
 
-          {/* Toggle Favorite */}
-          <DropdownMenuItem
-            onSelect={handleToggleFavorite}
-            disabled={isPending}
-          >
-            <Star
-              className={cn(
-                "h-4 w-4",
-                isFavorite && "fill-yellow-400 text-yellow-400"
-              )}
-            />
-            {isFavorite ? "Remove from Favorites" : "Add to Favorites"}
-          </DropdownMenuItem>
+          {/* LIBRARY CONTEXT */}
+          {context === "library" && (
+            <>
+              <DropdownMenuItem
+                onSelect={handleToggleFavorite}
+                disabled={isPending}
+              >
+                <Star
+                  className={cn(
+                    "h-4 w-4",
+                    isFavorite && "fill-yellow-400 text-yellow-400"
+                  )}
+                />
+                {isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={handleDiscard} disabled={isPending}>
+                <Archive className="h-4 w-4" />
+                Archive
+              </DropdownMenuItem>
+            </>
+          )}
 
-          <DropdownMenuSeparator />
-
-          {/* Archive */}
-          <DropdownMenuItem onSelect={handleArchive} disabled={isPending}>
-            <Archive className="h-4 w-4" />
-            Archive
-          </DropdownMenuItem>
-
-          {/* Delete */}
-          <DropdownMenuItem
-            variant="destructive"
-            onSelect={handleDelete}
-            disabled={isPending}
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete
-          </DropdownMenuItem>
+          {/* ARCHIVE CONTEXT */}
+          {context === "archive" && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={handleRestore} disabled={isPending}>
+                <RotateCcw className="h-4 w-4" />
+                Restore
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                variant="destructive"
+                onSelect={handleDelete}
+                disabled={isPending}
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete permanently
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
   );
+}
+
+// =============================================================================
+// HELPERS
+// =============================================================================
+
+function inferContext(isKept: boolean, isArchived: boolean): ItemContext {
+  if (isArchived) return "archive";
+  if (isKept) return "library";
+  return "inbox";
 }

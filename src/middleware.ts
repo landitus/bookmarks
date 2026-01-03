@@ -48,24 +48,42 @@ export async function middleware(request: NextRequest) {
   // Define route types
   const isAuthRoute = pathname.startsWith("/login");
   const isProtectedRoute =
-    pathname.startsWith("/everything") ||
-    pathname.startsWith("/later") ||
-    pathname.startsWith("/favorites") ||
+    pathname.startsWith("/inbox") ||
+    pathname.startsWith("/library") ||
+    pathname.startsWith("/archive") ||
+    pathname.startsWith("/items") ||
     pathname.startsWith("/projects") ||
     pathname.startsWith("/share");
   const isRootRoute = pathname === "/";
+  
+  // Legacy routes - redirect to new locations
+  const isLegacyRoute = 
+    pathname.startsWith("/everything") ||
+    pathname.startsWith("/later") ||
+    pathname.startsWith("/favorites");
 
-  // Authenticated user on root → redirect to /everything
-  if (user && isRootRoute) {
+  // Redirect legacy routes to new locations
+  if (isLegacyRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = "/everything";
+    if (pathname.startsWith("/everything")) {
+      url.pathname = "/inbox";
+    } else if (pathname.startsWith("/later") || pathname.startsWith("/favorites")) {
+      url.pathname = "/library";
+    }
     return NextResponse.redirect(url);
   }
 
-  // Authenticated user on auth routes → redirect to /everything
+  // Authenticated user on root → redirect to /inbox
+  if (user && isRootRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/inbox";
+    return NextResponse.redirect(url);
+  }
+
+  // Authenticated user on auth routes → redirect to /inbox
   if (user && isAuthRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = "/everything";
+    url.pathname = "/inbox";
     return NextResponse.redirect(url);
   }
 

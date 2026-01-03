@@ -23,7 +23,82 @@ const scraper = metascraper([
 // =============================================================================
 
 /**
- * Get all non-archived items (Everything view)
+ * Get Inbox items (not yet triaged)
+ * Inbox: is_kept = false AND is_archived = false
+ */
+export async function getInboxItems(): Promise<Item[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("items")
+    .select("*")
+    .eq("is_kept", false)
+    .eq("is_archived", false)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching inbox items:", error);
+    return [];
+  }
+
+  return data as Item[];
+}
+
+/**
+ * Get Library items (kept/saved items)
+ * Library: is_kept = true AND is_archived = false
+ */
+export async function getLibraryItems(
+  favoritesOnly: boolean = false
+): Promise<Item[]> {
+  const supabase = await createClient();
+
+  let query = supabase
+    .from("items")
+    .select("*")
+    .eq("is_kept", true)
+    .eq("is_archived", false);
+
+  if (favoritesOnly) {
+    query = query.eq("is_favorite", true);
+  }
+
+  // Sort by kept_at (when item was added to Library), newest first
+  const { data, error } = await query.order("kept_at", { ascending: false, nullsFirst: false });
+
+  if (error) {
+    console.error("Error fetching library items:", error);
+    return [];
+  }
+
+  return data as Item[];
+}
+
+/**
+ * Get Archived items (discarded/soft-deleted)
+ * Archive: is_archived = true
+ */
+export async function getArchivedItems(): Promise<Item[]> {
+  const supabase = await createClient();
+
+  // Sort by archived_at (when item was archived), newest first
+  const { data, error } = await supabase
+    .from("items")
+    .select("*")
+    .eq("is_archived", true)
+    .order("archived_at", { ascending: false, nullsFirst: false });
+
+  if (error) {
+    console.error("Error fetching archived items:", error);
+    return [];
+  }
+
+  return data as Item[];
+}
+
+/**
+ * @deprecated Use getInboxItems or getLibraryItems instead
+ * Get all non-archived items (for backwards compatibility)
  */
 export async function getItems(): Promise<Item[]> {
   const supabase = await createClient();
@@ -36,48 +111,6 @@ export async function getItems(): Promise<Item[]> {
 
   if (error) {
     console.error("Error fetching items:", error);
-    return [];
-  }
-
-  return data as Item[];
-}
-
-/**
- * Get items marked as "Later" (to watch/read later)
- */
-export async function getLaterItems(): Promise<Item[]> {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
-    .from("items")
-    .select("*")
-    .eq("is_later", true)
-    .eq("is_archived", false)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Error fetching later items:", error);
-    return [];
-  }
-
-  return data as Item[];
-}
-
-/**
- * Get items marked as "Favorites"
- */
-export async function getFavoriteItems(): Promise<Item[]> {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
-    .from("items")
-    .select("*")
-    .eq("is_favorite", true)
-    .eq("is_archived", false)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Error fetching favorite items:", error);
     return [];
   }
 
@@ -151,7 +184,7 @@ export async function createItem(
     description,
     image_url,
     type,
-    is_later: false,
+    is_kept: false, // New items go to Inbox
     is_favorite: false,
     is_archived: false,
     user_id: user?.id,
@@ -170,41 +203,82 @@ export async function createItem(
 }
 
 // =============================================================================
-// TOGGLE OPERATIONS
+// TRIAGE OPERATIONS
 // =============================================================================
 
 /**
- * Toggle "Later" flag on an item
+ * Keep an item (move from Inbox to Library)
+ * Sets kept_at to current timestamp for sorting
  */
-export async function toggleLater(id: string): Promise<{ is_later: boolean }> {
+export async function keepItem(id: string): Promise<void> {
   const supabase = await createClient();
 
-  // Get current state
-  const { data: item, error: fetchError } = await supabase
-    .from("items")
-    .select("is_later")
-    .eq("id", id)
-    .single();
-
-  if (fetchError || !item) {
-    throw new Error("Failed to fetch item");
-  }
-
-  // Toggle the flag
-  const newValue = !item.is_later;
   const { error } = await supabase
     .from("items")
-    .update({ is_later: newValue })
+    .update({ 
+      is_kept: true,
+      kept_at: new Date().toISOString(),
+    })
     .eq("id", id);
 
   if (error) {
-    console.error("Error toggling later:", error);
-    throw new Error("Failed to toggle later status");
+    console.error("Error keeping item:", error);
+    throw new Error("Failed to keep item");
   }
 
   revalidateAllPaths();
-  return { is_later: newValue };
 }
+
+/**
+ * Discard an item (move to Archive)
+ * Sets archived_at to current timestamp for sorting
+ */
+export async function discardItem(id: string): Promise<void> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("items")
+    .update({ 
+      is_archived: true,
+      archived_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error discarding item:", error);
+    throw new Error("Failed to discard item");
+  }
+
+  revalidateAllPaths();
+}
+
+/**
+ * Restore an item from Archive
+ * Returns to Inbox if is_kept = false, or Library if is_kept = true
+ * Clears archived_at timestamp
+ */
+export async function restoreItem(id: string): Promise<void> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("items")
+    .update({ 
+      is_archived: false,
+      archived_at: null,
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error restoring item:", error);
+    throw new Error("Failed to restore item");
+  }
+
+  revalidateAllPaths();
+}
+
+// =============================================================================
+// TOGGLE OPERATIONS
+// =============================================================================
 
 /**
  * Toggle "Favorite" flag on an item
@@ -242,41 +316,17 @@ export async function toggleFavorite(
 }
 
 /**
- * Archive an item (removes from Everything view)
+ * Archive an item (alias for discardItem, for backwards compatibility)
  */
 export async function archiveItem(id: string): Promise<void> {
-  const supabase = await createClient();
-
-  const { error } = await supabase
-    .from("items")
-    .update({ is_archived: true })
-    .eq("id", id);
-
-  if (error) {
-    console.error("Error archiving item:", error);
-    throw new Error("Failed to archive item");
-  }
-
-  revalidateAllPaths();
+  return discardItem(id);
 }
 
 /**
- * Unarchive an item (restore to Everything view)
+ * Unarchive an item (alias for restoreItem, for backwards compatibility)
  */
 export async function unarchiveItem(id: string): Promise<void> {
-  const supabase = await createClient();
-
-  const { error } = await supabase
-    .from("items")
-    .update({ is_archived: false })
-    .eq("id", id);
-
-  if (error) {
-    console.error("Error unarchiving item:", error);
-    throw new Error("Failed to unarchive item");
-  }
-
-  revalidateAllPaths();
+  return restoreItem(id);
 }
 
 /**
@@ -300,6 +350,10 @@ export async function deleteItem(id: string): Promise<void> {
 // =============================================================================
 
 function revalidateAllPaths() {
+  revalidatePath("/inbox");
+  revalidatePath("/library");
+  revalidatePath("/archive");
+  // Keep old paths for backwards compatibility during migration
   revalidatePath("/everything");
   revalidatePath("/later");
   revalidatePath("/favorites");

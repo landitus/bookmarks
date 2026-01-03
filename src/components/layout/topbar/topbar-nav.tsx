@@ -4,7 +4,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { BookMarked, ChevronsUpDown, Clock, Star } from "lucide-react";
+import { Archive, BookMarked, ChevronsUpDown, Inbox } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,9 +25,9 @@ interface TopbarNavProps {
 }
 
 const navItems = [
-  { href: "/everything", label: "Everything", icon: BookMarked },
-  { href: "/later", label: "Later", icon: Clock },
-  { href: "/favorites", label: "Favorites", icon: Star },
+  { href: "/inbox", label: "Inbox", icon: Inbox },
+  { href: "/library", label: "Library", icon: BookMarked },
+  { href: "/archive", label: "Archive", icon: Archive },
 ];
 
 function NavigationCenter() {
@@ -35,7 +35,7 @@ function NavigationCenter() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const activeItem =
-    navItems.find((item) => pathname === item.href) || navItems[0];
+    navItems.find((item) => pathname.startsWith(item.href)) || navItems[0];
   const ActiveIcon = activeItem.icon;
 
   return (
@@ -43,7 +43,7 @@ function NavigationCenter() {
       {/* Desktop Navigation */}
       <nav className="hidden md:flex items-center gap-1">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname.startsWith(item.href);
           const Icon = item.icon;
           return (
             <Link
@@ -81,7 +81,7 @@ function NavigationCenter() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="center">
             {navItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname.startsWith(item.href);
               const Icon = item.icon;
               return (
                 <DropdownMenuItem key={item.href} asChild>

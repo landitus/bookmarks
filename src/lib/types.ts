@@ -19,9 +19,11 @@ export interface Item {
   description: string | null;
   image_url: string | null;
   type: ItemType;
-  is_later: boolean; // "Later" filter - items to watch/read later
-  is_favorite: boolean; // "Favorites" filter - starred/favorite items
-  is_archived: boolean; // Archive state - hidden from Everything view
+  is_kept: boolean; // Triage state: false = Inbox, true = Library
+  is_favorite: boolean; // Star items within Library
+  is_archived: boolean; // Soft delete - moves to Archive
+  kept_at: string | null; // When item was moved to Library (for sorting)
+  archived_at: string | null; // When item was moved to Archive (for sorting)
   metadata: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;

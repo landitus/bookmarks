@@ -1,9 +1,17 @@
 import { Item } from "@/lib/types";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import Image from "next/image";
-import { ItemActions } from "./item-actions";
+import { ItemActions, ItemContext } from "./item-actions";
 import Link from "next/link";
-import { Clock, Star, Play, BookOpen, ShoppingBag, Globe, Loader2 } from "lucide-react";
+import {
+  Clock,
+  Star,
+  Play,
+  BookOpen,
+  ShoppingBag,
+  Globe,
+  Loader2,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // =============================================================================
@@ -12,6 +20,7 @@ import { cn } from "@/lib/utils";
 
 interface ItemCardProps {
   item: Item;
+  context?: ItemContext;
 }
 
 // =============================================================================
@@ -61,10 +70,11 @@ function getTypeColor(type: string) {
 // COMPONENT
 // =============================================================================
 
-export function ItemCard({ item }: ItemCardProps) {
+export function ItemCard({ item, context }: ItemCardProps) {
   // Determine link destination
   // Articles with content go to reader view, everything else goes to external URL
-  const hasReaderContent = item.type === "article" && item.content && item.content.length > 100;
+  const hasReaderContent =
+    item.type === "article" && item.content && item.content.length > 100;
   const href = hasReaderContent ? `/items/${item.id}` : item.url;
   const isExternal = !hasReaderContent;
 
@@ -113,22 +123,18 @@ export function ItemCard({ item }: ItemCardProps) {
             {item.type}
           </div>
 
-          {/* Status badges */}
-          <div className="absolute top-2 left-2 flex gap-1">
-            {item.is_later && (
-              <div className="bg-blue-500 text-white p-1 rounded">
-                <Clock className="h-3 w-3" />
-              </div>
-            )}
-            {item.is_favorite && (
+          {/* Favorite badge (only shown in library context) */}
+          {item.is_favorite && context === "library" && (
+            <div className="absolute top-2 left-2">
               <div className="bg-yellow-400 text-white p-1 rounded">
                 <Star className="h-3 w-3 fill-current" />
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Processing indicator (bottom right) */}
-          {(item.processing_status === "pending" || item.processing_status === "processing") && (
+          {(item.processing_status === "pending" ||
+            item.processing_status === "processing") && (
             <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
               <Loader2 className="h-3 w-3 animate-spin" />
               Processing
@@ -136,12 +142,15 @@ export function ItemCard({ item }: ItemCardProps) {
           )}
 
           {/* Reading time badge (bottom right for articles, only when processed) */}
-          {item.type === "article" && item.reading_time && item.processing_status !== "pending" && item.processing_status !== "processing" && (
-            <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {item.reading_time} min
-            </div>
-          )}
+          {item.type === "article" &&
+            item.reading_time &&
+            item.processing_status !== "pending" &&
+            item.processing_status !== "processing" && (
+              <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {item.reading_time} min
+              </div>
+            )}
         </div>
       </Link>
 
@@ -159,13 +168,17 @@ export function ItemCard({ item }: ItemCardProps) {
               {item.title}
             </h3>
           </Link>
-          <p className="text-xs text-muted-foreground truncate">{getDomain(item.url)}</p>
+          <p className="text-xs text-muted-foreground truncate">
+            {getDomain(item.url)}
+          </p>
         </div>
         <ItemActions
           itemId={item.id}
           url={item.url}
-          isLater={item.is_later}
+          isKept={item.is_kept}
           isFavorite={item.is_favorite}
+          isArchived={item.is_archived}
+          context={context}
         />
       </CardHeader>
 

@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Inbox/Library/Archive UX Model** - Complete redesign of app navigation around a triage-based workflow
+  - New **Inbox** view for uncategorized/incoming items (replaces Everything)
+  - New **Library** view for kept/saved items with favorites filter
+  - New **Archive** view for discarded items with restore capability
+  - Context-aware actions: Keep/Discard for Inbox, Favorite/Archive for Library, Restore/Delete for Archive
+  - Toast notifications for all triage actions
+  - Legacy route redirects for backwards compatibility (/everything → /inbox)
+- **Reader Triage Actions** - Prominent Keep/Discard buttons in reader view header
+  - Actions adapt based on item state (inbox/library/archive)
+  - Consistent experience across all buckets
 - **Copy Link Action** - Added "Copy link" option as first item in bookmark actions dropdown menu
 - **Enhanced Logging** - Improved server-side logging for debugging AI processing and API requests
   - Timestamped logs for all background processing steps
@@ -15,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Clear indicators when processing is skipped (e.g., for videos)
 
 ### Changed
+- **Navigation Restructure** - Replaced Everything/Later/Favorites with Inbox/Library/Archive tabs
+- **Data Model** - Added `is_kept`, `kept_at`, `archived_at` columns for triage state, deprecated `is_later`
+- **Smart Sorting** - Inbox sorts by capture date, Library by "kept at" date, Archive by "archived at" date
+- **Library List View** - Flat list (not grouped by date) since items are sorted by when they were kept
+- **Item Actions** - Now context-aware based on which bucket the item is in
 - **Production Database** - Applied content extraction and processing status migrations to production Supabase instance
 
 ### Added
