@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect, useCallback } from "react";
+import { useState, useTransition, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Item } from "@/lib/types";
 import { refreshContent, getItemProcessingStatus } from "@/lib/actions/items";
@@ -147,11 +147,20 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const router = useRouter();
 
+  // Refs to prevent duplicate polling and toasts
+  const isPollingRef = useRef(false);
+  const hasShownErrorRef = useRef(false);
+
   const hasContent = item.content && item.content.length > 100;
   const isArticle = item.type === "article" && hasContent;
 
   // Poll for processing status when refreshing
   const pollForCompletion = useCallback(async () => {
+    // Prevent multiple polling loops
+    if (isPollingRef.current) return;
+    isPollingRef.current = true;
+    hasShownErrorRef.current = false;
+
     const maxAttempts = 30; // 30 seconds max
     let attempts = 0;
 
@@ -160,10 +169,12 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
       const { status, hasContent } = await getItemProcessingStatus(item.id);
 
       if (status === "completed" || status === "failed" || hasContent) {
+        isPollingRef.current = false;
         setIsRefreshing(false);
         router.refresh();
-        // Only show toast on failure
-        if (status === "failed" && !hasContent) {
+        // Only show toast on failure, and only once
+        if (status === "failed" && !hasContent && !hasShownErrorRef.current) {
+          hasShownErrorRef.current = true;
           toast.error("Content extraction failed");
         }
         return;
@@ -172,6 +183,7 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
       if (attempts < maxAttempts) {
         setTimeout(poll, 1000);
       } else {
+        isPollingRef.current = false;
         setIsRefreshing(false);
         // Silently stop - the UI already shows the current state
       }
@@ -181,6 +193,8 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
   }, [item.id, router]);
 
   const handleRefreshContent = () => {
+    // Reset error flag when manually refreshing
+    hasShownErrorRef.current = false;
     setIsRefreshing(true);
     startTransition(async () => {
       await refreshContent(item.id);
@@ -193,7 +207,7 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
     const isProcessing =
       item.processing_status === "pending" ||
       item.processing_status === "processing";
-    if (isProcessing && !isRefreshing) {
+    if (isProcessing && !isRefreshing && !isPollingRef.current) {
       setIsRefreshing(true);
       pollForCompletion();
     }
