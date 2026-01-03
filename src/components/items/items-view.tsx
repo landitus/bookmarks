@@ -440,6 +440,7 @@ export function ItemsView({ items, emptyState }: ItemsViewProps) {
                       {/* Right side: Actions dropdown */}
                       <ItemActions
                         itemId={item.id}
+                        url={item.url}
                         isLater={item.is_later}
                         isFavorite={item.is_favorite}
                         onOpenChange={(open) =>

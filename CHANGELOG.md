@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Copy Link Action** - Added "Copy link" option as first item in bookmark actions dropdown menu
+- **Enhanced Logging** - Improved server-side logging for debugging AI processing and API requests
+  - Timestamped logs for all background processing steps
+  - Detailed API endpoint logging showing item creation, type detection, and processing decisions
+  - Clear indicators when processing is skipped (e.g., for videos)
+
 ### Changed
 - **Production Database** - Applied content extraction and processing status migrations to production Supabase instance
 

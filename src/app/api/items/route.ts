@@ -119,7 +119,15 @@ async function processItemInBackground(
 ) {
   const supabase = createServiceClient();
 
-  console.log(`[Background] Starting processing for item ${itemId}`);
+  // Helper for timestamped logging
+  const log = (message: string) => {
+    const timestamp = new Date().toISOString();
+    const shortId = itemId.slice(0, 8);
+    console.log(`[${timestamp}] [Background] [Item:${shortId}] ${message}`);
+  };
+
+  log(`Starting processing`);
+  log(`URL: ${url}`);
 
   try {
     // Update status to processing
@@ -139,18 +147,18 @@ async function processItemInBackground(
     let aiSummary: string | null = null;
     let title: string | null = null;
     let description: string | null = null;
-    let image_url: string | null = null;
 
     // ==========================================================================
     // STEP 1: Content extraction with Jina Reader (for articles)
     // ==========================================================================
     if (isLikelyArticle(url)) {
-      console.log(`[Background] URL is likely article, starting extraction...`);
+      log(`URL is likely article, starting extraction...`);
       try {
         const extracted = await extractContent(url);
-        console.log(
-          `[Background] Extraction result:`,
-          extracted ? `${extracted.content.length} chars` : "null"
+        log(
+          `Extraction result: ${
+            extracted ? `${extracted.content.length} chars` : "null"
+          }`
         );
 
         if (extracted) {
@@ -165,24 +173,21 @@ async function processItemInBackground(
           if (extracted.description) description = extracted.description;
           // Don't overwrite image_url - the og:image from metascraper is more reliable
 
-          console.log(
-            `[Background] Content extracted: ${
+          log(
+            `Content extracted: ${
               content?.length || 0
-            } chars, ${wordCount} words`
+            } chars, ${wordCount} words, ${readingTime} min read`
           );
         } else {
-          console.log(`[Background] No content extracted from Jina`);
+          log(`No content extracted`);
         }
       } catch (e) {
-        console.error(
-          `[Background] Content extraction failed for ${itemId}:`,
-          e
-        );
+        const errorMsg = e instanceof Error ? e.message : String(e);
+        log(`Content extraction failed: ${errorMsg}`);
+        console.error(`[Background] Content extraction error details:`, e);
       }
     } else {
-      console.log(
-        `[Background] URL is NOT likely article, skipping extraction`
-      );
+      log(`URL is NOT likely article, skipping extraction`);
     }
 
     // ==========================================================================
@@ -192,6 +197,7 @@ async function processItemInBackground(
     const topics: string[] = [];
 
     if (hasOpenAIKey) {
+      log(`AI processing started`);
       try {
         // Get current item data for AI processing
         const { data: currentItem } = await supabase
@@ -212,6 +218,7 @@ async function processItemInBackground(
         );
         aiContentType = typeResult.contentType;
         type = mapToItemType(typeResult.contentType, url);
+        log(`Content type detected: ${aiContentType} → ${type}`);
 
         // Generate summary and extract topics (only for content with substance)
         if (content && content.length > 200) {
@@ -221,10 +228,17 @@ async function processItemInBackground(
           ]);
           aiSummary = summary;
           topics.push(...extractedTopics);
+          log(`AI summary generated, ${topics.length} topics extracted`);
+        } else {
+          log(`Skipping summary/topics (insufficient content)`);
         }
       } catch (e) {
-        console.error(`[Background] AI processing failed for ${itemId}:`, e);
+        const errorMsg = e instanceof Error ? e.message : String(e);
+        log(`AI processing failed: ${errorMsg}`);
+        console.error(`[Background] AI processing error details:`, e);
       }
+    } else {
+      log(`Skipping AI processing (no OPENAI_API_KEY)`);
     }
 
     // ==========================================================================
@@ -255,14 +269,15 @@ async function processItemInBackground(
     if (aiSummary) updateData.ai_summary = aiSummary;
     if (title) updateData.title = title;
     if (description) updateData.description = description;
-    if (image_url) updateData.image_url = image_url;
 
     await supabase.from("items").update(updateData).eq("id", itemId);
+    log(`Database updated with status: ${processingStatus}`);
 
     // ==========================================================================
     // STEP 4: Create topics (if any were extracted)
     // ==========================================================================
     if (topics.length > 0) {
+      log(`Creating ${topics.length} topics...`);
       try {
         for (const topicName of topics) {
           const slug = topicName
@@ -286,14 +301,19 @@ async function processItemInBackground(
               .select();
           }
         }
+        log(`Topics created successfully`);
       } catch (e) {
-        console.error(`[Background] Failed to create topics for ${itemId}:`, e);
+        const errorMsg = e instanceof Error ? e.message : String(e);
+        log(`Failed to create topics: ${errorMsg}`);
+        console.error(`[Background] Topic creation error details:`, e);
       }
     }
 
-    console.log(`[Background] Completed processing for item ${itemId}`);
+    log(`✅ Processing completed successfully`);
   } catch (e) {
-    console.error(`[Background] Processing failed for ${itemId}:`, e);
+    const errorMsg = e instanceof Error ? e.message : String(e);
+    log(`❌ Processing failed: ${errorMsg}`);
+    console.error(`[Background] Processing error details:`, e);
 
     // Mark as failed
     await supabase
@@ -388,6 +408,14 @@ export async function POST(request: NextRequest) {
     return jsonResponse({ success: false, error: "Invalid URL format" }, 400);
   }
 
+  // Helper for timestamped logging
+  const log = (message: string) => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] [API] [POST /api/items] ${message}`);
+  };
+
+  log(`Creating bookmark: ${url}`);
+
   const supabase = createServiceClient();
 
   // Check for duplicate
@@ -415,6 +443,7 @@ export async function POST(request: NextRequest) {
   try {
     // YouTube oEmbed (fast)
     if (url.includes("youtube.com/watch") || url.includes("youtu.be/")) {
+      log(`Fetching YouTube metadata via oEmbed...`);
       const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(
         url
       )}&format=json`;
@@ -424,6 +453,9 @@ export async function POST(request: NextRequest) {
         title = oembed.title || title;
         image_url = oembed.thumbnail_url || null;
         description = oembed.author_name ? `By ${oembed.author_name}` : null;
+        log(`YouTube metadata fetched: "${title}"`);
+      } else {
+        log(`YouTube oEmbed failed: ${oembedRes.status}`);
       }
     }
     // Vimeo oEmbed (fast)
@@ -441,6 +473,7 @@ export async function POST(request: NextRequest) {
     }
     // Metascraper for other URLs
     else {
+      log(`Fetching metadata via metascraper...`);
       const response = await fetch(url, {
         headers: {
           "User-Agent":
@@ -454,20 +487,35 @@ export async function POST(request: NextRequest) {
       if (metadata.title) title = metadata.title;
       if (metadata.description) description = metadata.description;
       if (metadata.image) image_url = metadata.image;
+      log(`Metadata scraped: "${title}"`);
     }
   } catch (e) {
+    const errorMsg = e instanceof Error ? e.message : String(e);
+    log(`⚠️  Metadata scraping failed: ${errorMsg}`);
     console.error("Failed to scrape metadata:", e);
     // Continue with URL as title - still save the item
   }
 
   // Quick type detection from URL
   const type = detectTypeFromUrl(url);
+  log(`Detected type: ${type}`);
 
   // Determine if we need background processing
   // Only articles benefit from content extraction and AI processing
   // Videos, images, and social posts don't need it
-  const needsProcessing =
-    isLikelyArticle(url) && !!process.env.FIRECRAWL_API_KEY;
+  const isArticle = isLikelyArticle(url);
+  const hasFirecrawlKey = !!process.env.FIRECRAWL_API_KEY;
+  const needsProcessing = isArticle && hasFirecrawlKey;
+
+  if (!needsProcessing) {
+    if (!isArticle) {
+      log(`Skipping processing: URL is not an article (type: ${type})`);
+    } else if (!hasFirecrawlKey) {
+      log(`Skipping processing: FIRECRAWL_API_KEY not configured`);
+    }
+  } else {
+    log(`Background processing will be triggered`);
+  }
 
   // ==========================================================================
   // INSERT IMMEDIATELY - Don't wait for AI/content extraction
@@ -490,6 +538,7 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (insertError) {
+    log(`❌ Failed to create item: ${insertError.message}`);
     console.error("Error creating item:", insertError);
     return jsonResponse(
       { success: false, error: "Failed to create bookmark" },
@@ -497,12 +546,20 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const shortId = item.id.slice(0, 8);
+  log(`✅ Item created: ${shortId} (${item.title})`);
+
   // ==========================================================================
   // BACKGROUND PROCESSING (fire-and-forget)
   // ==========================================================================
   if (needsProcessing && item) {
+    log(`🚀 Triggering background processing for ${shortId}`);
     // Don't await - let processing happen in background
     processItemInBackground(item.id, url, userId).catch((e) => {
+      const errorMsg = e instanceof Error ? e.message : String(e);
+      log(
+        `❌ Unhandled error in background processing for ${shortId}: ${errorMsg}`
+      );
       console.error(`[Background] Unhandled error for ${item.id}:`, e);
     });
   }

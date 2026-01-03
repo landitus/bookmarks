@@ -14,12 +14,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Archive, Clock, MoreVertical, Star, Trash2 } from "lucide-react";
+import { Archive, Clock, Copy, MoreVertical, Star, Trash2 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { cn } from "@/lib/utils";
 
 interface ItemActionsProps {
   itemId: string;
+  url: string;
   isLater: boolean;
   isFavorite: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -29,6 +30,7 @@ interface ItemActionsProps {
 
 export function ItemActions({
   itemId,
+  url,
   isLater,
   isFavorite,
   onOpenChange,
@@ -40,6 +42,15 @@ export function ItemActions({
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
     onOpenChange?.(newOpen);
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setOpen(false);
+    } catch (err) {
+      console.error("Failed to copy link:", err);
+    }
   };
 
   const handleToggleLater = () => {
@@ -94,6 +105,12 @@ export function ItemActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
+          {/* Copy Link */}
+          <DropdownMenuItem onSelect={handleCopyLink}>
+            <Copy className="h-4 w-4" />
+            Copy link
+          </DropdownMenuItem>
+
           {/* Toggle Later */}
           <DropdownMenuItem onSelect={handleToggleLater} disabled={isPending}>
             <Clock className={cn("h-4 w-4", isLater && "text-blue-500")} />
