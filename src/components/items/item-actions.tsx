@@ -6,6 +6,7 @@ import {
   restoreItem,
   toggleFavorite,
   deleteItem,
+  refreshContent,
 } from "@/lib/actions/items";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +21,7 @@ import {
   Check,
   Copy,
   MoreVertical,
+  RefreshCw,
   RotateCcw,
   Star,
   Trash2,
@@ -48,6 +50,8 @@ interface ItemActionsProps {
   alwaysVisible?: boolean;
   /** Show inline triage buttons (for reader view) */
   showTriageButtons?: boolean;
+  /** Custom handler for refresh content (used in reader view for loading state) */
+  onRefreshContent?: () => void;
 }
 
 // =============================================================================
@@ -64,12 +68,14 @@ export function ItemActions({
   onOpenChange,
   alwaysVisible = false,
   showTriageButtons = false,
+  onRefreshContent,
 }: ItemActionsProps) {
   const [isPending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
 
   // Infer context from item state if not explicitly provided
-  const context: ItemContext = explicitContext ?? inferContext(isKept, isArchived);
+  const context: ItemContext =
+    explicitContext ?? inferContext(isKept, isArchived);
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
@@ -112,7 +118,9 @@ export function ItemActions({
   const handleToggleFavorite = () => {
     startTransition(async () => {
       const result = await toggleFavorite(itemId);
-      toast.success(result.is_favorite ? "Added to Favorites" : "Removed from Favorites");
+      toast.success(
+        result.is_favorite ? "Added to Favorites" : "Removed from Favorites"
+      );
       setOpen(false);
     });
   };
@@ -122,6 +130,19 @@ export function ItemActions({
       await deleteItem(itemId);
       toast.success("Deleted permanently");
       setOpen(false);
+    });
+  };
+
+  const handleRefreshContent = () => {
+    setOpen(false);
+    // Use custom handler if provided (for reader view loading state)
+    if (onRefreshContent) {
+      onRefreshContent();
+      return;
+    }
+    // Default behavior: just trigger refresh silently
+    startTransition(async () => {
+      await refreshContent(itemId);
     });
   };
 
@@ -215,6 +236,13 @@ export function ItemActions({
           <DropdownMenuItem onSelect={handleCopyLink}>
             <Copy className="h-4 w-4" />
             Copy link
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={handleRefreshContent}
+            disabled={isPending}
+          >
+            <RefreshCw className="h-4 w-4" />
+            Refresh content
           </DropdownMenuItem>
 
           {/* INBOX CONTEXT */}

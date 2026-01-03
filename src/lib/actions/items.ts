@@ -64,7 +64,10 @@ export async function getLibraryItems(
   }
 
   // Sort by kept_at (when item was added to Library), newest first
-  const { data, error } = await query.order("kept_at", { ascending: false, nullsFirst: false });
+  const { data, error } = await query.order("kept_at", {
+    ascending: false,
+    nullsFirst: false,
+  });
 
   if (error) {
     console.error("Error fetching library items:", error);
@@ -215,7 +218,7 @@ export async function keepItem(id: string): Promise<void> {
 
   const { error } = await supabase
     .from("items")
-    .update({ 
+    .update({
       is_kept: true,
       kept_at: new Date().toISOString(),
     })
@@ -238,7 +241,7 @@ export async function discardItem(id: string): Promise<void> {
 
   const { error } = await supabase
     .from("items")
-    .update({ 
+    .update({
       is_archived: true,
       archived_at: new Date().toISOString(),
     })
@@ -262,7 +265,7 @@ export async function restoreItem(id: string): Promise<void> {
 
   const { error } = await supabase
     .from("items")
-    .update({ 
+    .update({
       is_archived: false,
       archived_at: null,
     })
@@ -343,6 +346,94 @@ export async function deleteItem(id: string): Promise<void> {
   }
 
   revalidateAllPaths();
+}
+
+/**
+ * Refresh an item's content extraction
+ * Resets processing fields and sets status to "pending" to trigger reprocessing
+ */
+export async function refreshContent(id: string): Promise<void> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("items")
+    .update({
+      processing_status: "pending",
+      content: null,
+      word_count: null,
+      reading_time: null,
+      author: null,
+      publish_date: null,
+      ai_summary: null,
+      ai_content_type: null,
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error refreshing content:", error);
+    throw new Error("Failed to refresh content");
+  }
+
+  // Trigger background processing by calling the API
+  const { data: item, error: fetchError } = await supabase
+    .from("items")
+    .select("url, user_id")
+    .eq("id", id)
+    .single();
+
+  if (fetchError || !item) {
+    console.error("Error fetching item for refresh:", fetchError);
+    throw new Error("Failed to fetch item");
+  }
+
+  // Get user's API key for authentication
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("api_key")
+    .eq("id", item.user_id)
+    .single();
+
+  if (profile?.api_key) {
+    // Trigger processing via internal fetch (non-blocking)
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    fetch(`${baseUrl}/api/items/reprocess`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${profile.api_key}`,
+      },
+      body: JSON.stringify({ itemId: id }),
+    }).catch((e) => {
+      console.error("Error triggering reprocess:", e);
+    });
+  }
+
+  revalidateAllPaths();
+  revalidatePath(`/items/${id}`);
+}
+
+/**
+ * Check the processing status of an item
+ */
+export async function getItemProcessingStatus(
+  id: string
+): Promise<{ status: string; hasContent: boolean }> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("items")
+    .select("processing_status, content")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) {
+    return { status: "unknown", hasContent: false };
+  }
+
+  return {
+    status: data.processing_status || "unknown",
+    hasContent: !!data.content && data.content.length > 100,
+  };
 }
 
 // =============================================================================

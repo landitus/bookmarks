@@ -177,14 +177,17 @@ export async function extractTopics(
   // Truncate content to avoid token limits (first 3000 chars)
   const truncatedContent = content.slice(0, 3000);
 
-  const prompt = `Extract 3-5 relevant topics/tags from this article. Return only the most specific and useful tags for categorization.
+  const prompt = `Extract 1-5 broad topics from this article for classification. Use generic category names that could apply to many similar articles, not specific names, brands, or details from this particular article.
+
+Good examples: "architecture", "interior design", "technology", "cooking", "travel", "personal finance", "productivity"
+Bad examples: "cloaked house", "trias architecture", "sydney renovation" (too specific to this article)
 
 Title: ${title}
 
 Content:
 ${truncatedContent}
 
-Return as a JSON array of lowercase strings, e.g.: ["javascript", "web development", "react"]
+Return as a JSON array of 1-5 lowercase topic strings. Prefer fewer, broader topics over many specific ones.
 
 Topics:`;
 

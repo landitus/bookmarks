@@ -46,6 +46,10 @@ INSERT INTO auth.users (
 ) ON CONFLICT (id) DO NOTHING;
 
 -- The profile will be created automatically via the trigger
+-- Set a known API key for testing
+UPDATE profiles 
+SET api_key = 'test-api-key-12345' 
+WHERE id = '00000000-0000-0000-0000-000000000001';
 
 -- ============================================================================
 -- TOPICS (Tags)

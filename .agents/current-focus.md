@@ -2,9 +2,24 @@
 
 **Last Updated:** January 3, 2026
 **Branch:** `main`
-**Status:** Inbox/Library/Archive UX Overhaul - Complete & Merged ✅
+**Status:** Content Extraction Improvements ✅
 
 ## 🎉 Recently Completed
+
+### Content Extraction Improvements (Jan 3, 2026)
+
+Improved Firecrawl content extraction to better detect main content and filter unnecessary images:
+
+- [x] Added `excludeTags` to Firecrawl API request (nav, footer, header, aside, sidebars, ads, etc.)
+- [x] Enabled `removeBase64Images` and `blockAds` Firecrawl options
+- [x] Filter out UI images (icons, logos, avatars, badges, spinners, tiny images)
+- [x] Added content quality check - rejects extractions with <50 words
+- [x] Added cleanup for social sharing buttons and "Read more" links
+- [x] Added "Refresh content" action in item dropdown to re-extract content
+- [x] Shows loading spinner during extraction with automatic page refresh
+- [x] **Smart fallback extraction**: Tries content selectors (`.post-content`, `.article-content`, etc.) when initial extraction gets <100 words
+- [x] Added cleanup for design blog metadata headers (title/author/photographer)
+- [x] Fixed malformed image URLs with spaces
 
 ### Inbox/Library/Archive UX Model (Jan 3, 2026)
 

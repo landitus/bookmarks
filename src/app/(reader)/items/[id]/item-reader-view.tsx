@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Item } from "@/lib/types";
+import { refreshContent, getItemProcessingStatus } from "@/lib/actions/items";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ItemActions } from "@/components/items/item-actions";
 import { AppHeader } from "@/components/layout/app-header";
@@ -16,6 +20,7 @@ import {
   Sparkles,
   Tag,
   PanelRight,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { User } from "@supabase/supabase-js";
@@ -75,38 +80,18 @@ function formatDate(dateString: string | null) {
 // HEADER COMPONENTS
 // =============================================================================
 
-function SourceDomainCenter({ url }: { url: string }) {
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted transition-colors text-sm text-muted-foreground hover:text-foreground"
-    >
-      <Image
-        src={getFaviconUrl(url)}
-        alt=""
-        width={16}
-        height={16}
-        className="w-4 h-4"
-        unoptimized
-      />
-      <span className="max-w-[200px] truncate">{getDomain(url)}</span>
-      <ExternalLink className="h-3 w-3 opacity-50" />
-    </a>
-  );
-}
-
 interface ReaderActionsProps {
   item: Item;
   sidebarOpen: boolean;
   onToggleSidebar: () => void;
+  onRefreshContent: () => void;
 }
 
 function ReaderActions({
   item,
   sidebarOpen,
   onToggleSidebar,
+  onRefreshContent,
 }: ReaderActionsProps) {
   return (
     <>
@@ -132,6 +117,7 @@ function ReaderActions({
         isArchived={item.is_archived}
         showTriageButtons
         alwaysVisible
+        onRefreshContent={onRefreshContent}
       />
 
       {/* Toggle Sidebar */}
@@ -154,9 +140,58 @@ function ReaderActions({
 
 export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isPending, startTransition] = useTransition();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const router = useRouter();
 
   const hasContent = item.content && item.content.length > 100;
   const isArticle = item.type === "article" && hasContent;
+
+  // Poll for processing status when refreshing
+  const pollForCompletion = useCallback(async () => {
+    const maxAttempts = 30; // 30 seconds max
+    let attempts = 0;
+
+    const poll = async () => {
+      attempts++;
+      const { status, hasContent } = await getItemProcessingStatus(item.id);
+
+      if (status === "completed" || status === "failed" || hasContent) {
+        setIsRefreshing(false);
+        router.refresh();
+        // Only show toast on failure
+        if (status === "failed" && !hasContent) {
+          toast.error("Content extraction failed");
+        }
+        return;
+      }
+
+      if (attempts < maxAttempts) {
+        setTimeout(poll, 1000);
+      } else {
+        setIsRefreshing(false);
+        // Silently stop - the UI already shows the current state
+      }
+    };
+
+    poll();
+  }, [item.id, router]);
+
+  const handleRefreshContent = () => {
+    setIsRefreshing(true);
+    startTransition(async () => {
+      await refreshContent(item.id);
+      pollForCompletion();
+    });
+  };
+
+  // Auto-start polling if item is in pending state (e.g., page was refreshed during processing)
+  useEffect(() => {
+    if (item.processing_status === "pending" && !isRefreshing) {
+      setIsRefreshing(true);
+      pollForCompletion();
+    }
+  }, [item.processing_status, isRefreshing, pollForCompletion]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -169,6 +204,7 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
             item={item}
             sidebarOpen={sidebarOpen}
             onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+            onRefreshContent={handleRefreshContent}
           />
         }
         bordered
@@ -183,7 +219,46 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
             sidebarOpen ? "sm:mr-80" : "mr-0"
           )}
         >
-          {isArticle ? (
+          {isRefreshing ? (
+            // Loading state while refreshing content
+            <div className="max-w-2xl mx-auto px-6 py-12">
+              <div className="text-center space-y-6">
+                {item.image_url && (
+                  <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
+                    <Image
+                      src={item.image_url}
+                      alt=""
+                      fill
+                      className="object-cover opacity-50"
+                      unoptimized
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="bg-background/90 rounded-full p-4">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {!item.image_url && (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                  </div>
+                )}
+
+                <h1 className="text-2xl sm:text-3xl font-bold">{item.title}</h1>
+
+                <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Extracting content...</span>
+                </div>
+
+                <p className="text-sm text-muted-foreground">
+                  This usually takes a few seconds
+                </p>
+              </div>
+            </div>
+          ) : isArticle ? (
             // Article Reader View
             <article className="max-w-[750px] mx-auto px-6 py-12">
               {/* Article Header */}
@@ -224,7 +299,31 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
 
               {/* Article Content */}
               <div className="prose-reader">
-                <Markdown rehypePlugins={[rehypeRaw]}>{item.content}</Markdown>
+                <Markdown
+                  rehypePlugins={[rehypeRaw]}
+                  components={{
+                    // Custom image component with error handling and lazy loading
+                    img: ({ src, alt, ...props }) => {
+                      if (!src) return null;
+                      return (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={src}
+                          alt={alt || ""}
+                          loading="lazy"
+                          onError={(e) => {
+                            // Hide broken images
+                            e.currentTarget.style.display = "none";
+                          }}
+                          className="rounded-lg max-w-full h-auto my-6"
+                          {...props}
+                        />
+                      );
+                    },
+                  }}
+                >
+                  {item.content}
+                </Markdown>
               </div>
             </article>
           ) : item.processing_status === "failed" ? (
@@ -258,12 +357,32 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
                   </p>
                 </div>
 
-                <Button asChild size="lg">
-                  <a href={item.url} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Read on {getDomain(item.url)}
-                  </a>
-                </Button>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <Button asChild size="lg">
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Read on {getDomain(item.url)}
+                    </a>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={handleRefreshContent}
+                    disabled={isPending}
+                  >
+                    <RefreshCw
+                      className={cn(
+                        "h-4 w-4 mr-2",
+                        isPending && "animate-spin"
+                      )}
+                    />
+                    Try again
+                  </Button>
+                </div>
               </div>
             </div>
           ) : (
