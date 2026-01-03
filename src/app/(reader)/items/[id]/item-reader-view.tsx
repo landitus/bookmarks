@@ -126,6 +126,7 @@ function ReaderActions({
       {/* Item Actions (Later, Favorite, etc.) */}
       <ItemActions
         itemId={item.id}
+        url={item.url}
         isLater={item.is_later}
         isFavorite={item.is_favorite}
         alwaysVisible
