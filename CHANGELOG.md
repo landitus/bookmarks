@@ -27,6 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Shared App Header** - Unified header component across all views
   - Consistent branding and user menu
   - Customizable center content per page
+- **Comprehensive Seed Data** - Rich development dataset for local testing
+  - Test user account (test@portable.dev / password123)
+  - 24 sample items across all types (articles, videos, products, threads, images, websites)
+  - 10 sample topics with realistic categorization
+  - 3 sample projects/collections with item associations
+  - Items distributed across time periods (today, yesterday, last week, last month)
+  - Various states: favorites, later, archived, and processing statuses
 - GET `/api/items` endpoint to check if a bookmark exists before saving
 - `/api/extension/version` endpoint for extension version checking
 - New item types: `product` and `website`
