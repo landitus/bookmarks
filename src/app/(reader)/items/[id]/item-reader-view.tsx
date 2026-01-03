@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect, useCallback, useRef } from "react";
+import { useState, useTransition, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Item } from "@/lib/types";
 import { refreshContent, getItemProcessingStatus } from "@/lib/actions/items";
@@ -24,6 +24,15 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { User } from "@supabase/supabase-js";
+
+// =============================================================================
+// MODULE-LEVEL STATE (persists across remounts)
+// =============================================================================
+
+// Track which items are currently being polled (persists across component remounts)
+const pollingItems = new Set<string>();
+// Track which items have shown error toast (prevents duplicate toasts)
+const errorShownItems = new Set<string>();
 
 // =============================================================================
 // TYPES
@@ -147,34 +156,34 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const router = useRouter();
 
-  // Refs to prevent duplicate polling and toasts
-  const isPollingRef = useRef(false);
-  const hasShownErrorRef = useRef(false);
-
   const hasContent = item.content && item.content.length > 100;
   const isArticle = item.type === "article" && hasContent;
 
   // Poll for processing status when refreshing
   const pollForCompletion = useCallback(async () => {
-    // Prevent multiple polling loops
-    if (isPollingRef.current) return;
-    isPollingRef.current = true;
-    hasShownErrorRef.current = false;
+    // Prevent multiple polling loops using module-level Set
+    if (pollingItems.has(item.id)) return;
+    pollingItems.add(item.id);
+    // Clear error flag when starting new poll
+    errorShownItems.delete(item.id);
 
     const maxAttempts = 30; // 30 seconds max
     let attempts = 0;
 
     const poll = async () => {
+      // Check if still polling (might have been cancelled)
+      if (!pollingItems.has(item.id)) return;
+
       attempts++;
       const { status, hasContent } = await getItemProcessingStatus(item.id);
 
       if (status === "completed" || status === "failed" || hasContent) {
-        isPollingRef.current = false;
+        pollingItems.delete(item.id);
         setIsRefreshing(false);
         router.refresh();
-        // Only show toast on failure, and only once
-        if (status === "failed" && !hasContent && !hasShownErrorRef.current) {
-          hasShownErrorRef.current = true;
+        // Only show toast on failure, and only once per item
+        if (status === "failed" && !hasContent && !errorShownItems.has(item.id)) {
+          errorShownItems.add(item.id);
           toast.error("Content extraction failed");
         }
         return;
@@ -183,7 +192,7 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
       if (attempts < maxAttempts) {
         setTimeout(poll, 1000);
       } else {
-        isPollingRef.current = false;
+        pollingItems.delete(item.id);
         setIsRefreshing(false);
         // Silently stop - the UI already shows the current state
       }
@@ -194,7 +203,9 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
 
   const handleRefreshContent = () => {
     // Reset error flag when manually refreshing
-    hasShownErrorRef.current = false;
+    errorShownItems.delete(item.id);
+    // Stop any existing poll for this item
+    pollingItems.delete(item.id);
     setIsRefreshing(true);
     startTransition(async () => {
       await refreshContent(item.id);
@@ -207,11 +218,18 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
     const isProcessing =
       item.processing_status === "pending" ||
       item.processing_status === "processing";
-    if (isProcessing && !isRefreshing && !isPollingRef.current) {
+    // Only start polling if not already polling for this item
+    if (isProcessing && !pollingItems.has(item.id)) {
       setIsRefreshing(true);
       pollForCompletion();
     }
-  }, [item.processing_status, isRefreshing, pollForCompletion]);
+    // Cleanup: remove from polling set when component unmounts
+    return () => {
+      // Don't delete - let the polling complete naturally
+      // pollingItems.delete(item.id);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.id, item.processing_status]);
 
   return (
     <div className="min-h-screen bg-background">
