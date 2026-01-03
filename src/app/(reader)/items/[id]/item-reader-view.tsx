@@ -85,6 +85,7 @@ interface ReaderActionsProps {
   sidebarOpen: boolean;
   onToggleSidebar: () => void;
   onRefreshContent: () => void;
+  isRefreshing: boolean;
 }
 
 function ReaderActions({
@@ -92,6 +93,7 @@ function ReaderActions({
   sidebarOpen,
   onToggleSidebar,
   onRefreshContent,
+  isRefreshing,
 }: ReaderActionsProps) {
   return (
     <>
@@ -118,6 +120,7 @@ function ReaderActions({
         showTriageButtons
         alwaysVisible
         onRefreshContent={onRefreshContent}
+        isRefreshing={isRefreshing}
       />
 
       {/* Toggle Sidebar */}
@@ -185,9 +188,12 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
     });
   };
 
-  // Auto-start polling if item is in pending state (e.g., page was refreshed during processing)
+  // Auto-start polling if item is in pending/processing state (e.g., page was refreshed during processing)
   useEffect(() => {
-    if (item.processing_status === "pending" && !isRefreshing) {
+    const isProcessing =
+      item.processing_status === "pending" ||
+      item.processing_status === "processing";
+    if (isProcessing && !isRefreshing) {
       setIsRefreshing(true);
       pollForCompletion();
     }
@@ -205,6 +211,7 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
             sidebarOpen={sidebarOpen}
             onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
             onRefreshContent={handleRefreshContent}
+            isRefreshing={isRefreshing}
           />
         }
         bordered

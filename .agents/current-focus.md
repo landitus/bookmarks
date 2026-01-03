@@ -17,6 +17,8 @@ Improved Firecrawl content extraction to better detect main content and filter u
 - [x] Added cleanup for social sharing buttons and "Read more" links
 - [x] Added "Refresh content" action in item dropdown to re-extract content
 - [x] Shows loading spinner during extraction with automatic page refresh
+- [x] Disabled refresh action during processing (shows "Refreshing..." with spinner)
+- [x] Articles always link to reader view (even when processing)
 - [x] **Smart fallback extraction**: Tries content selectors (`.post-content`, `.article-content`, etc.) when initial extraction gets <100 words
 - [x] Added cleanup for design blog metadata headers (title/author/photographer)
 - [x] Fixed malformed image URLs with spaces

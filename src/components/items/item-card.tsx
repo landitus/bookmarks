@@ -72,11 +72,10 @@ function getTypeColor(type: string) {
 
 export function ItemCard({ item, context }: ItemCardProps) {
   // Determine link destination
-  // Articles with content go to reader view, everything else goes to external URL
-  const hasReaderContent =
-    item.type === "article" && item.content && item.content.length > 100;
-  const href = hasReaderContent ? `/items/${item.id}` : item.url;
-  const isExternal = !hasReaderContent;
+  // Articles always go to reader view (even while processing), other types go to external URL
+  const isArticle = item.type === "article";
+  const href = isArticle ? `/items/${item.id}` : item.url;
+  const isExternal = !isArticle;
 
   const TypeIcon = getTypeIcon(item.type);
   const typeColor = getTypeColor(item.type);

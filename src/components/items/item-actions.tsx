@@ -52,6 +52,8 @@ interface ItemActionsProps {
   showTriageButtons?: boolean;
   /** Custom handler for refresh content (used in reader view for loading state) */
   onRefreshContent?: () => void;
+  /** Whether content is currently being refreshed */
+  isRefreshing?: boolean;
 }
 
 // =============================================================================
@@ -69,6 +71,7 @@ export function ItemActions({
   alwaysVisible = false,
   showTriageButtons = false,
   onRefreshContent,
+  isRefreshing = false,
 }: ItemActionsProps) {
   const [isPending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
@@ -239,10 +242,12 @@ export function ItemActions({
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={handleRefreshContent}
-            disabled={isPending}
+            disabled={isPending || isRefreshing}
           >
-            <RefreshCw className="h-4 w-4" />
-            Refresh content
+            <RefreshCw
+              className={cn("h-4 w-4", isRefreshing && "animate-spin")}
+            />
+            {isRefreshing ? "Refreshing..." : "Refresh content"}
           </DropdownMenuItem>
 
           {/* INBOX CONTEXT */}

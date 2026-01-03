@@ -58,10 +58,10 @@ function ListItem({
   getFaviconUrl,
 }: ListItemProps) {
   // Determine link destination
-  const hasReaderContent =
-    item.type === "article" && item.content && item.content.length > 100;
-  const href = hasReaderContent ? `/items/${item.id}` : item.url;
-  const isExternal = !hasReaderContent;
+  // Articles always go to reader view (even while processing), other types go to external URL
+  const isArticle = item.type === "article";
+  const href = isArticle ? `/items/${item.id}` : item.url;
+  const isExternal = !isArticle;
 
   return (
     <div

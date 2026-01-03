@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Shows loading spinner in reader view during extraction
   - Automatically refreshes content when extraction completes
   - Polls for completion status with 30-second timeout
+  - Disables refresh action while processing to prevent duplicate requests
+  - Detects both "pending" and "processing" states for proper polling
+- **Always Clickable Articles** - Articles in list/gallery view now always link to reader view
+  - Previously, articles without content linked to external URL
+  - Now articles always open in reader view (where refresh content can be triggered)
 - **Improved Topic Extraction** - AI extracts 1-5 broad, generic topics for better classification
   - Topics are now generic categories (e.g., "business", "economics") rather than specific article terms
   - Previous topics are cleared when reprocessing content
