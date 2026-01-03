@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Production Database** - Applied content extraction and processing status migrations to production Supabase instance
+
 ### Added
 - **Article Reader View** - Clean, Instapaper-style reading experience for saved articles
   - Dedicated reader route (`/items/[id]`) with unified header design

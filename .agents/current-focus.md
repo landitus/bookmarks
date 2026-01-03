@@ -29,6 +29,7 @@
 - [x] Comprehensive seed data for local development (24 items, 10 topics, 3 projects)
 - [x] Branch merged to main (`feature/article-reader-ai` → `main`)
 - [x] Security update: Next.js 16.0.4 → 16.1.1 (CVE-2025-66478)
+- [x] **Production database updated** - Applied content extraction and processing status migrations
 
 ### Key Features
 
