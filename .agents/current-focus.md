@@ -1,18 +1,16 @@
 # Current Focus
 
 **Last Updated:** January 3, 2026
-**Branch:** `feature/inbox-library-ux`
-**Status:** Inbox/Library/Archive UX Overhaul - In Progress
+**Branch:** `main`
+**Status:** Inbox/Library/Archive UX Overhaul - Complete & Merged ✅
 
-## 🚧 Currently Working On
+## 🎉 Recently Completed
 
-### Inbox/Library/Archive UX Model
+### Inbox/Library/Archive UX Model (Jan 3, 2026)
 
-Restructuring the app around a triage-based workflow: **Capture → Consume → Keep or Discard**
+Restructured the app around a triage-based workflow: **Capture → Consume → Keep or Discard**
 
-#### Completed
-
-- [x] Database migration: Added `is_kept` column for triage state
+- [x] Database migration: Added `is_kept`, `kept_at`, `archived_at` columns
 - [x] Updated types.ts: `is_kept` replaces `is_later`
 - [x] New server actions: `keepItem()`, `discardItem()`, `restoreItem()`
 - [x] Created new routes: `/inbox`, `/library`, `/archive`
@@ -21,10 +19,12 @@ Restructuring the app around a triage-based workflow: **Capture → Consume → 
 - [x] Context-aware ItemActions component
 - [x] Reader view triage buttons (Keep/Discard in header)
 - [x] Toast notifications for all actions
+- [x] Smart sorting: Inbox by capture date, Library by kept_at, Archive by archived_at
+- [x] Flat list view for Library/Archive (no date grouping)
 - [x] Legacy route redirects in middleware
-- [x] Updated seed data to use `is_kept`
+- [x] Updated seed data with 3 favorites, realistic triage states
 
-#### Remaining
+## 🚀 Next Steps
 
 - [ ] Apply migration to production database
 - [ ] Test full flow end-to-end
