@@ -182,7 +182,11 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
         setIsRefreshing(false);
         router.refresh();
         // Only show toast on failure, and only once per item
-        if (status === "failed" && !hasContent && !errorShownItems.has(item.id)) {
+        if (
+          status === "failed" &&
+          !hasContent &&
+          !errorShownItems.has(item.id)
+        ) {
           errorShownItems.add(item.id);
           toast.error("Content extraction failed");
         }
@@ -194,7 +198,11 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
       } else {
         pollingItems.delete(item.id);
         setIsRefreshing(false);
-        // Silently stop - the UI already shows the current state
+        // Show timeout error only once
+        if (!errorShownItems.has(item.id)) {
+          errorShownItems.add(item.id);
+          toast.error("Content extraction timed out. Try again later.");
+        }
       }
     };
 
