@@ -6,6 +6,10 @@
 
 ## 🎉 Recently Completed
 
+### Prod Reprocess Fix (Jan 4, 2026)
+
+- [x] Reprocess trigger now uses deployed base URL (SITE_URL → APP_URL → VERCEL_URL) instead of localhost to avoid `ECONNREFUSED` in production
+
 ### Realtime Processing Reliability (Jan 4, 2026)
 
 Fixed unreliable UI updates when background processing completes:
@@ -64,6 +68,7 @@ Restructured the app around a triage-based workflow: **Capture → Consume → K
 | `src/components/items/items-view.tsx`  | Added polling fallback for processing items |
 | `src/app/api/items/route.ts`           | Added 45s timeout guard to processing       |
 | `src/app/api/items/reprocess/route.ts` | Added 45s timeout guard to reprocessing     |
+| `src/lib/actions/items.ts`             | Reprocess trigger uses deployed base URL    |
 
 ## 🧭 Data Model
 

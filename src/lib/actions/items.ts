@@ -395,7 +395,14 @@ export async function refreshContent(id: string): Promise<void> {
 
   if (profile?.api_key) {
     // Trigger processing via internal fetch (non-blocking)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const vercelUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : null;
+    const baseUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.NEXT_PUBLIC_APP_URL ||
+      vercelUrl ||
+      "http://localhost:3000";
     fetch(`${baseUrl}/api/items/reprocess`, {
       method: "POST",
       headers: {
