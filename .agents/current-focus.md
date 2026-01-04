@@ -6,15 +6,18 @@
 
 ## 🎉 Recently Completed
 
-### Advanced Code Block Extraction (Jan 4, 2026)
+### Content Extraction Robustness (Jan 4, 2026)
 
-Fixed code block extraction for sites with complex syntax highlighting (like Stripe's blog):
+Fixed multiple content extraction issues for complex sites like Stripe's blog:
 
-- [x] **Two-pass extraction**: Extract code blocks first with placeholders, convert HTML, then inject clean code fences
+- [x] **Two-pass code extraction**: Extract code blocks first with placeholders, convert HTML, then inject clean code fences
 - [x] **Hidden element removal**: Remove `display: none` elements that contain duplicate code content
 - [x] **Syntax highlighting support**: Extract text from nested `<span class="token ...">` elements (Prism.js, HLJS, etc.)
 - [x] **`waitFor` option**: Added 3-second wait for JS-rendered content before extraction
 - [x] **Clean code fences**: Outputs proper triple-backtick fences without escaping issues
+- [x] **Stray backtick cleanup**: Remove single/double backticks on their own lines (from wrapper `<code>` elements)
+- [x] **Broken URL fix**: Fixed regex for gallery counters that was corrupting URLs containing digit patterns like `65/6`
+- [x] **HTML URL cleanup**: Added preprocessing to fix newlines/whitespace in `src`/`href` attributes
 
 ### Content Extraction: HTML Format + Readability Fallback (Jan 4, 2026)
 
