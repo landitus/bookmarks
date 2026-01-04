@@ -343,8 +343,8 @@ function cleanContent(content: string): string {
     .replace(/\n*Save Image to MOODS\s*\n*/gi, "\n")
     .replace(/\n*ENQUIRE\s*\n*/gi, "\n")
     .replace(/\n*Visit Website\s*\n*/gi, "\n")
-    // Remove image gallery counters (01 / 21, etc.)
-    .replace(/\n*\d{1,2}\s*\/\s*\d{1,2}\s*\n*/g, "\n")
+    // Remove image gallery counters (01 / 21, etc.) - only match standalone counters on their own line
+    .replace(/^\s*\d{1,2}\s*\/\s*\d{1,2}\s*$/gm, "")
     // Remove "As seen in image" references
     .replace(/\n*As seen in image[^\n]*\n*/gi, "\n")
     // Remove MOODS modal UI text
@@ -438,6 +438,19 @@ function htmlToMarkdown(html: string): string {
   // First remove hidden elements
   let processedHtml = removeHiddenElements(html);
 
+  // Fix broken URLs in src/href attributes (remove newlines and extra whitespace)
+  // Use [\s\S]+? to match across newlines (non-greedy)
+  processedHtml = processedHtml.replace(
+    /((?:src|href)=["'])([\s\S]+?)(["'])/gi,
+    (match, prefix, url, suffix) => {
+      if (/\s/.test(url)) {
+        const cleanUrl = url.replace(/\s+/g, "");
+        return prefix + cleanUrl + suffix;
+      }
+      return match;
+    }
+  );
+
   // Extract code blocks and store them with placeholders
   const codeBlocks: string[] = [];
   const PLACEHOLDER_PREFIX = "___CODE_BLOCK_PLACEHOLDER_";
@@ -469,6 +482,21 @@ function htmlToMarkdown(html: string): string {
   // Clean up stray backticks on their own lines (from wrapper <code> elements)
   // Pattern: line with just ` or `` before/after code blocks
   markdown = markdown.replace(/^\s*`{1,2}\s*$/gm, "");
+
+  // Fix broken image/link URLs that contain newlines
+  // Pattern: ![alt](url with newlines) or [text](url with newlines)
+  // Use [\s\S] to match across newlines (since [^)] doesn't match newlines in JS regex)
+  markdown = markdown.replace(
+    /(!?\[[^\]]*\]\()([\s\S]+?\))/g,
+    (match, prefix, urlPart) => {
+      // Only fix if the URL actually contains whitespace
+      if (/\s/.test(urlPart)) {
+        const cleanUrl = urlPart.replace(/\s+/g, "");
+        return prefix + cleanUrl;
+      }
+      return match;
+    }
+  );
 
   // Clean up multiple consecutive blank lines
   markdown = markdown.replace(/\n{3,}/g, "\n\n");
