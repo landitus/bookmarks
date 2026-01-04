@@ -59,11 +59,11 @@ Restructured the app around a triage-based workflow: **Capture → Consume → K
 
 ## 📁 Key Files Changed
 
-| File                                      | Change                                      |
-| ----------------------------------------- | ------------------------------------------- |
-| `src/components/items/items-view.tsx`     | Added polling fallback for processing items |
-| `src/app/api/items/route.ts`              | Added 45s timeout guard to processing       |
-| `src/app/api/items/reprocess/route.ts`    | Added 45s timeout guard to reprocessing     |
+| File                                   | Change                                      |
+| -------------------------------------- | ------------------------------------------- |
+| `src/components/items/items-view.tsx`  | Added polling fallback for processing items |
+| `src/app/api/items/route.ts`           | Added 45s timeout guard to processing       |
+| `src/app/api/items/reprocess/route.ts` | Added 45s timeout guard to reprocessing     |
 
 ## 🧭 Data Model
 
