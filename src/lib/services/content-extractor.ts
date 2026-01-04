@@ -1,13 +1,24 @@
 /**
  * Content Extraction Service
  *
- * Uses Firecrawl to fetch markdown content (preserves headings better than Readability
- * which can strip them if they're outside the detected article container).
+ * Supports multiple extraction backends:
+ * - Firecrawl (default): Cloud-based, handles JS rendering, anti-bot bypass
+ * - Readability: Local, free, uses Mozilla's Reader View algorithm
  *
- * Applies light cleanup to remove common boilerplate (intros, CTAs, etc.)
+ * Set CONTENT_PARSER env var to "readability" to use the local extractor.
  *
  * @see https://firecrawl.dev
+ * @see https://github.com/mozilla/readability
  */
+
+import { NodeHtmlMarkdown } from "node-html-markdown";
+import {
+  extractWithReadability,
+  type ExtractedContent,
+} from "./readability-extractor";
+
+// Re-export ExtractedContent type for consumers
+export type { ExtractedContent };
 
 // =============================================================================
 // TYPES
@@ -16,6 +27,7 @@
 interface FirecrawlResponse {
   success: boolean;
   data?: {
+    html?: string;
     markdown?: string;
     metadata?: {
       title?: string;
@@ -28,16 +40,30 @@ interface FirecrawlResponse {
   error?: string;
 }
 
-export interface ExtractedContent {
-  title: string;
-  description: string | null;
-  content: string; // Markdown
-  author: string | null;
-  publishDate: Date | null;
-  wordCount: number;
-  readingTime: number; // in minutes
-  imageUrl: string | null;
-}
+// Initialize HTML to Markdown converter with options optimized for articles
+const nhm = new NodeHtmlMarkdown(
+  {
+    // Use fenced code blocks with language hints
+    codeFence: "```",
+    // Preserve code block language if specified
+    codeBlockStyle: "fenced",
+    // Keep bullet style consistent
+    bulletMarker: "-",
+    // Use ** for bold
+    strongDelimiter: "**",
+    // Use * for italic
+    emDelimiter: "*",
+  },
+  // Custom transformers for better code handling
+  {
+    // Preserve pre blocks as fenced code blocks
+    pre: {
+      preserveWhitespace: true,
+    },
+  }
+);
+
+// ExtractedContent interface is defined in readability-extractor.ts and re-exported above
 
 // =============================================================================
 // CONSTANTS
@@ -389,7 +415,126 @@ function isContentUseful(content: string): boolean {
 // =============================================================================
 
 /**
+ * Remove hidden elements that shouldn't be extracted
+ * Some sites (like Stripe) have hidden divs with duplicate code content
+ */
+function removeHiddenElements(html: string): string {
+  // Remove elements with display: none
+  // These often contain duplicate content (e.g., Stripe's CodeEditor.finalCode div)
+  return html.replace(
+    /<(div|span|code)[^>]*style="[^"]*display:\s*none[^"]*"[^>]*>[\s\S]*?<\/\1>/gi,
+    ""
+  );
+}
+
+/**
+ * Convert HTML to Markdown using node-html-markdown
+ * Uses a two-pass approach to handle complex code blocks:
+ * 1. Extract code blocks and replace with placeholders
+ * 2. Convert remaining HTML to Markdown
+ * 3. Replace placeholders with Markdown code fences
+ */
+function htmlToMarkdown(html: string): string {
+  // First remove hidden elements
+  let processedHtml = removeHiddenElements(html);
+
+  // Extract code blocks and store them with placeholders
+  const codeBlocks: string[] = [];
+  const PLACEHOLDER_PREFIX = "___CODE_BLOCK_PLACEHOLDER_";
+
+  // Pattern to match Stripe-style code blocks
+  processedHtml = processedHtml.replace(
+    /<pre[^>]*class="[^"]*(?:CodeSyntax|code-block|hljs|highlight|prism)[^"]*"[^>]*>([\s\S]*?)<\/pre>/gi,
+    (match, content) => {
+      const code = extractCodeFromHtml(content);
+      if (code.trim().length > 0) {
+        const idx = codeBlocks.length;
+        codeBlocks.push(code);
+        return `<p>${PLACEHOLDER_PREFIX}${idx}___</p>`;
+      }
+      return "";
+    }
+  );
+
+  // Convert remaining HTML to Markdown
+  let markdown = nhm.translate(processedHtml);
+
+  // Replace placeholders with actual code fences
+  codeBlocks.forEach((code, idx) => {
+    const placeholder = `${PLACEHOLDER_PREFIX}${idx}___`;
+    // Use triple backticks for code fences
+    markdown = markdown.replace(placeholder, `\n\`\`\`\n${code}\n\`\`\`\n`);
+  });
+
+  return markdown;
+}
+
+/**
+ * Extract plain text code from HTML with syntax highlighting spans
+ */
+function extractCodeFromHtml(html: string): string {
+  let text = html;
+
+  // Remove script/style tags entirely
+  text = text.replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, "");
+
+  // Remove line number containers and loaders
+  text = text.replace(
+    /<div[^>]*class="[^"]*(?:LineNumbers|Loader|AsciiLoader)[^"]*"[^>]*>[\s\S]*?<\/div>/gi,
+    ""
+  );
+  text = text.replace(
+    /<span[^>]*class="[^"]*(?:Loader|AsciiLoader)[^"]*"[^>]*>[\s\S]*?<\/span>/gi,
+    ""
+  );
+
+  // Remove leading whitespace before first tag
+  text = text.replace(/^\s+/, "");
+
+  // Remove whitespace between block-level elements
+  text = text.replace(/<\/div>\s+</gi, "</div><");
+
+  // Convert <br> tags to newlines
+  text = text.replace(/<br\s*\/?>/gi, "\n");
+
+  // Preserve newlines between spans
+  text = text.replace(/<\/span>(\s*\n\s*)<span/gi, "</span>$1<span");
+
+  // Strip all remaining HTML tags
+  text = text.replace(/<[^>]+>/g, "");
+
+  // Decode HTML entities
+  text = text
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, " ");
+
+  // Dedent the code
+  const lines = text.split("\n");
+  const nonEmptyLines = lines.filter((l: string) => l.trim().length > 0);
+  const minIndent = nonEmptyLines.reduce((min: number, line: string) => {
+    const indent = line.match(/^(\s*)/)?.[1].length || 0;
+    return Math.min(min, indent);
+  }, Infinity);
+
+  return lines
+    .map((line: string) => {
+      if (line.trim().length === 0) return "";
+      return line.slice(minIndent === Infinity ? 0 : minIndent);
+    })
+    .map((line: string) => line.trimEnd())
+    .join("\n")
+    .replace(/^\n+/, "")
+    .replace(/\n+$/, "")
+    .replace(/\n{3,}/g, "\n\n");
+}
+
+/**
  * Call Firecrawl API with given options
+ * Now requests HTML format for better code block preservation
  */
 async function callFirecrawl(
   url: string,
@@ -411,12 +556,16 @@ async function callFirecrawl(
       },
       body: JSON.stringify({
         url,
-        formats: ["markdown"],
+        // Request HTML format - we'll convert to Markdown ourselves
+        // This preserves <pre><code> blocks better than Firecrawl's markdown
+        formats: ["html"],
         onlyMainContent: true,
         excludeTags: options.excludeTags || EXCLUDE_TAGS,
         includeTags: options.includeTags,
         removeBase64Images: true,
         blockAds: true,
+        // Wait for dynamic content to load (e.g., JS-rendered code blocks)
+        waitFor: 3000,
       }),
       signal: controller.signal,
     });
@@ -431,7 +580,15 @@ async function callFirecrawl(
       return null;
     }
 
-    return await response.json();
+    const data = await response.json();
+
+    // Debug logging to see what Firecrawl returns
+    console.log(
+      `[Extractor] Firecrawl response: success=${data.success}, hasHtml=${!!data
+        .data?.html}, htmlLength=${data.data?.html?.length || 0}`
+    );
+
+    return data;
   } catch (error) {
     clearTimeout(timeoutId);
     throw error;
@@ -439,7 +596,13 @@ async function callFirecrawl(
 }
 
 /**
- * Extract content from a URL using Firecrawl
+ * Extract content from a URL using the configured parser
+ *
+ * Parser selection via CONTENT_PARSER env var:
+ * - "firecrawl" (default): Cloud-based, handles JS, anti-bot bypass
+ * - "readability": Local, free, uses Mozilla's Reader View algorithm
+ *
+ * Falls back to Readability if Firecrawl API key is not configured.
  *
  * @param url - The URL to extract content from
  * @returns Extracted content with metadata, or null if extraction fails
@@ -447,11 +610,17 @@ async function callFirecrawl(
 export async function extractContent(
   url: string
 ): Promise<ExtractedContent | null> {
+  const parser = process.env.CONTENT_PARSER || "firecrawl";
   const apiKey = process.env.FIRECRAWL_API_KEY;
 
-  if (!apiKey) {
-    console.error("[Extractor] No FIRECRAWL_API_KEY configured");
-    return null;
+  // Use Readability if explicitly configured or if Firecrawl API key is missing
+  if (parser === "readability" || !apiKey) {
+    if (!apiKey && parser !== "readability") {
+      console.log(
+        "[Extractor] No FIRECRAWL_API_KEY configured, falling back to Readability"
+      );
+    }
+    return extractWithReadability(url);
   }
 
   console.log(`[Extractor] Starting extraction for: ${url}`);
@@ -462,8 +631,10 @@ export async function extractContent(
     let content = "";
     let wordCount = 0;
 
-    if (result?.success && result.data?.markdown) {
-      content = cleanContent(result.data.markdown);
+    if (result?.success && result.data?.html) {
+      // Convert HTML to Markdown - this preserves code blocks better
+      const markdown = htmlToMarkdown(result.data.html);
+      content = cleanContent(markdown);
       wordCount = countWords(content);
       console.log(
         `[Extractor] First attempt: ${wordCount} words, ${content.length} chars`
@@ -483,8 +654,9 @@ export async function extractContent(
           excludeTags: [], // Don't exclude when using includeTags
         });
 
-        if (selectorResult?.success && selectorResult.data?.markdown) {
-          const selectorContent = cleanContent(selectorResult.data.markdown);
+        if (selectorResult?.success && selectorResult.data?.html) {
+          const selectorMarkdown = htmlToMarkdown(selectorResult.data.html);
+          const selectorContent = cleanContent(selectorMarkdown);
           const selectorWordCount = countWords(selectorContent);
           console.log(
             `[Extractor] Selector ${selector}: ${selectorWordCount} words`
@@ -508,7 +680,7 @@ export async function extractContent(
       }
     }
 
-    if (!result?.success || !result.data?.markdown) {
+    if (!result?.success || !result.data?.html) {
       console.error("[Extractor] All extraction attempts failed");
       return null;
     }

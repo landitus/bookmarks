@@ -422,7 +422,7 @@ export async function refreshContent(id: string): Promise<void> {
             Authorization: `Bearer ${profile.api_key}`,
           },
           body: JSON.stringify({ itemId: id }),
-          signal: AbortSignal.timeout(10000), // 10s timeout for the trigger request
+          signal: AbortSignal.timeout(60000), // 60s timeout for the trigger request (includes route compilation in dev)
         });
       } catch (e) {
         console.error("Error triggering reprocess:", e);

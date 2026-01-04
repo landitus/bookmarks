@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Content Extraction HTML Format** - Firecrawl now requests HTML format and converts to Markdown locally
+  - Preserves `<pre><code>` blocks properly (previously lost during Firecrawl's Markdown conversion)
+  - Uses `node-html-markdown` for HTML-to-Markdown conversion with code block support
+  - Better rendering of technical articles with code examples
+  - Added `waitFor: 3000` option to wait for JS-rendered content (e.g., async-loaded code blocks)
+  - Added advanced code block extraction for complex code editors (e.g., Stripe's syntax-highlighted blocks)
+    - Uses two-pass approach: extract code blocks, convert HTML, then inject code fences
+    - Removes hidden duplicate content (`display: none` elements)
+    - Handles Prism.js, HLJS, and custom code editor markup
+    - Extracts text content from nested `<span class="token ...">` elements
+    - Preserves proper indentation and line breaks
+
+### Fixed
+
+- **Reprocess trigger timeout** - Increased timeout from 10s to 60s to account for route compilation in dev mode + Firecrawl API latency
+
+### Added
+
+- **Readability Fallback Extractor** - Local, free content extraction using Mozilla's Reader View algorithm
+  - Set `CONTENT_PARSER=readability` to use instead of Firecrawl
+  - Automatic fallback when `FIRECRAWL_API_KEY` is not configured
+  - Great for local development without API costs
+  - New file: `src/lib/services/readability-extractor.ts`
+
 - **Mobile Responsiveness** - Improved mobile layout with responsive padding and hidden elements
   - Reduced main content padding on mobile (`p-2` → `md:p-8`)
   - Hidden domain text on mobile (visible at `md` breakpoint)

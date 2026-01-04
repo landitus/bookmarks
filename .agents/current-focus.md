@@ -2,9 +2,29 @@
 
 **Last Updated:** January 4, 2026
 **Branch:** `main`
-**Status:** Realtime Processing Reliability ✅
+**Status:** Content Extraction Improvements ✅
 
 ## 🎉 Recently Completed
+
+### Advanced Code Block Extraction (Jan 4, 2026)
+
+Fixed code block extraction for sites with complex syntax highlighting (like Stripe's blog):
+
+- [x] **Two-pass extraction**: Extract code blocks first with placeholders, convert HTML, then inject clean code fences
+- [x] **Hidden element removal**: Remove `display: none` elements that contain duplicate code content
+- [x] **Syntax highlighting support**: Extract text from nested `<span class="token ...">` elements (Prism.js, HLJS, etc.)
+- [x] **`waitFor` option**: Added 3-second wait for JS-rendered content before extraction
+- [x] **Clean code fences**: Outputs proper triple-backtick fences without escaping issues
+
+### Content Extraction: HTML Format + Readability Fallback (Jan 4, 2026)
+
+Improved code block rendering and added free extraction fallback:
+
+- [x] **Firecrawl HTML format**: Changed from `markdown` to `html` format, then convert to Markdown locally using `node-html-markdown` - preserves `<pre><code>` blocks properly
+- [x] **Readability fallback extractor**: Created `readability-extractor.ts` using Mozilla's Reader View algorithm (free, local, no API key needed)
+- [x] **Parser selection**: Added `CONTENT_PARSER` env var to switch between `firecrawl` (default) and `readability`
+- [x] **Auto-fallback**: Falls back to Readability automatically if `FIRECRAWL_API_KEY` is not configured
+- [x] **Updated env.example**: Added documentation for `CONTENT_PARSER` and extraction options
 
 ### UX Polish (Jan 4, 2026)
 
@@ -86,14 +106,14 @@ Restructured the app around a triage-based workflow: **Capture → Consume → K
 
 ## 📁 Key Files Changed
 
-| File                                   | Change                                      |
-| -------------------------------------- | ------------------------------------------- |
-| `src/lib/api/helpers.ts`               | NEW: Generic API utilities (auth, CORS)     |
-| `src/lib/api/item-processing.ts`       | NEW: Item processing logic (extraction, AI) |
-| `src/app/api/items/route.ts`           | Refactored to use shared modules            |
-| `src/app/api/items/reprocess/route.ts` | Refactored to use shared modules            |
-| `src/components/items/items-view.tsx`  | Added polling fallback for processing items |
-| `src/lib/actions/items.ts`             | Reprocess trigger uses deployed base URL    |
+| File                                        | Change                                                |
+| ------------------------------------------- | ----------------------------------------------------- |
+| `src/lib/services/content-extractor.ts`     | HTML format + parser selection + Readability fallback |
+| `src/lib/services/readability-extractor.ts` | NEW: Mozilla Readability-based local extractor        |
+| `env.example`                               | Added CONTENT_PARSER docs                             |
+| `src/lib/api/helpers.ts`                    | Generic API utilities (auth, CORS)                    |
+| `src/lib/api/item-processing.ts`            | Item processing logic (extraction, AI)                |
+| `src/components/items/items-view.tsx`       | Polling fallback for processing items                 |
 
 ## 🧭 Data Model
 

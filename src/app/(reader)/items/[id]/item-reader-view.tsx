@@ -314,7 +314,7 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
             </div>
           ) : isArticle ? (
             // Article Reader View
-            <article className="max-w-[750px] mx-auto px-6 py-12">
+            <article className="max-w-[750px] mx-auto px-12 py-12">
               {/* Article Header */}
               <header className="mb-12">
                 <h1 className="text-[2.5rem] sm:text-[2.75rem] font-bold leading-[1.15] tracking-tight mb-5">

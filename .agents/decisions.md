@@ -208,6 +208,21 @@
   - Preserves article headings and structure
 - **Trade-off:** Requires API key and has usage limits, but quality improvement is worth it
 
+### Content Extraction: HTML Format + Readability Fallback (Jan 2026)
+
+- **Decision:** Request HTML format from Firecrawl and convert to Markdown locally; add Readability as fallback.
+- **Why:**
+  1. **Code blocks:** Firecrawl's Markdown conversion loses `<pre><code>` semantic elements; local conversion preserves them
+  2. **Cost savings:** Readability fallback enables free local development without Firecrawl API
+  3. **Flexibility:** Parser selection via `CONTENT_PARSER` env var allows A/B testing
+- **Implementation:**
+  - Firecrawl requests `formats: ["html"]` instead of `["markdown"]`
+  - `node-html-markdown` converts HTML to Markdown with proper code block handling
+  - `readability-extractor.ts` uses Mozilla Readability + JSDOM + fetch for local extraction
+  - `CONTENT_PARSER` env var: `"firecrawl"` (default) or `"readability"`
+  - Auto-fallback to Readability if `FIRECRAWL_API_KEY` is not set
+- **Trade-off:** Slightly more processing (HTML → Markdown), but better code block preservation
+
 ### AI Processing: OpenAI GPT-4o-mini (Nov 2025)
 
 - **Decision:** Use OpenAI GPT-4o-mini for content analysis (type detection, summaries, topic extraction).
