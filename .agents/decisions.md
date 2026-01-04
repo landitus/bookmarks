@@ -165,6 +165,21 @@
   - On change event, calls `router.refresh()` to re-fetch server data
 - **Trade-off:** Requires Supabase Realtime (included in free tier)
 
+### Realtime Reliability: Polling Fallback + Server Timeout (Jan 2026)
+
+- **Decision:** Add polling fallback and server-side timeout guard to ensure reliable processing updates.
+- **Why:**
+  1. **Reliability:** Supabase Realtime occasionally misses events, leaving UI stuck on "Processing"
+  2. **Simplicity:** Polling is a proven fallback that requires no new dependencies
+  3. **Bounded waiting:** Server-side timeout prevents jobs from staying "processing" forever
+- **Implementation:**
+  - `ItemsView` polls every 3 seconds when any item has `processing_status === 'pending' | 'processing'`
+  - Polling stops automatically when all items are `completed` or `failed`
+  - Background processing wrapped in `Promise.race()` with 45-second timeout
+  - Jobs exceeding timeout are marked `failed` with `processing_error` message
+  - Realtime remains the "fast path" for instant updates; polling is the reliable backup
+- **Trade-off:** Slightly more network traffic during processing, but guarantees UI updates
+
 ### Background Processing Architecture (Nov 2025)
 
 - **Decision:** Queue AI processing as background jobs instead of blocking the save request.

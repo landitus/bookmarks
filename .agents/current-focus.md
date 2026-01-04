@@ -1,10 +1,20 @@
 # Current Focus
 
-**Last Updated:** January 3, 2026
+**Last Updated:** January 4, 2026
 **Branch:** `main`
-**Status:** Content Extraction Improvements ✅
+**Status:** Realtime Processing Reliability ✅
 
 ## 🎉 Recently Completed
+
+### Realtime Processing Reliability (Jan 4, 2026)
+
+Fixed unreliable UI updates when background processing completes:
+
+- [x] Added polling fallback to `ItemsView` - polls every 3s when items are processing
+- [x] Added server-side timeout guard (45s) to prevent stuck "processing" states
+- [x] Jobs exceeding timeout are marked as `failed` with error message
+- [x] Polling stops automatically when all items complete/fail
+- [x] Applied timeout to both initial save and reprocess endpoints
 
 ### Content Extraction Improvements (Jan 3, 2026)
 
@@ -49,19 +59,11 @@ Restructured the app around a triage-based workflow: **Capture → Consume → K
 
 ## 📁 Key Files Changed
 
-| File                                                         | Change                                 |
-| ------------------------------------------------------------ | -------------------------------------- |
-| `supabase/migrations/20260103000000_inbox_library_model.sql` | New migration adding `is_kept` column  |
-| `src/lib/types.ts`                                           | Updated Item interface                 |
-| `src/lib/actions/items.ts`                                   | New triage actions                     |
-| `src/app/(protected)/inbox/page.tsx`                         | New Inbox page                         |
-| `src/app/(protected)/library/page.tsx`                       | New Library page with favorites filter |
-| `src/app/(protected)/archive/page.tsx`                       | New Archive page                       |
-| `src/components/layout/topbar/topbar-nav.tsx`                | Updated navigation                     |
-| `src/components/items/item-actions.tsx`                      | Context-aware actions with toast       |
-| `src/components/items/items-view.tsx`                        | Updated for new model                  |
-| `src/app/(reader)/items/[id]/item-reader-view.tsx`           | Triage buttons in header               |
-| `src/middleware.ts`                                          | Legacy route redirects                 |
+| File                                      | Change                                      |
+| ----------------------------------------- | ------------------------------------------- |
+| `src/components/items/items-view.tsx`     | Added polling fallback for processing items |
+| `src/app/api/items/route.ts`              | Added 45s timeout guard to processing       |
+| `src/app/api/items/reprocess/route.ts`    | Added 45s timeout guard to reprocessing     |
 
 ## 🧭 Data Model
 
