@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { after } from "next/server";
 import { NextRequest, NextResponse } from "next/server";
 import {
   extractContent,
@@ -148,9 +149,14 @@ export async function POST(request: NextRequest) {
     .update({ processing_status: "processing" })
     .eq("id", itemId);
 
-  // Process in background with timeout guard (fire-and-forget)
-  processItemWithTimeout(itemId, item.url, userId, log, supabase).catch((e) => {
-    log(`❌ Processing failed: ${e}`);
+  // Use after() to run processing after response is sent
+  // This keeps the serverless function alive until processing completes
+  after(async () => {
+    try {
+      await processItemWithTimeout(itemId, item.url, userId, log, supabase);
+    } catch (e) {
+      log(`❌ Processing failed: ${e}`);
+    }
   });
 
   return jsonResponse({ success: true, message: "Reprocessing started" });

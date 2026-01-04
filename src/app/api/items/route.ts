@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { after } from "next/server";
 import { NextRequest, NextResponse } from "next/server";
 
 // Metascraper setup
@@ -582,17 +583,22 @@ export async function POST(request: NextRequest) {
   log(`✅ Item created: ${shortId} (${item.title})`);
 
   // ==========================================================================
-  // BACKGROUND PROCESSING (fire-and-forget)
+  // BACKGROUND PROCESSING (using after() to keep function alive)
   // ==========================================================================
   if (needsProcessing && item) {
     log(`🚀 Triggering background processing for ${shortId}`);
-    // Don't await - let processing happen in background
-    processItemInBackground(item.id, url, userId).catch((e) => {
-      const errorMsg = e instanceof Error ? e.message : String(e);
-      log(
-        `❌ Unhandled error in background processing for ${shortId}: ${errorMsg}`
-      );
-      console.error(`[Background] Unhandled error for ${item.id}:`, e);
+    // Use after() to run processing after response is sent
+    // This keeps the serverless function alive until processing completes
+    after(async () => {
+      try {
+        await processItemInBackground(item.id, url, userId);
+      } catch (e) {
+        const errorMsg = e instanceof Error ? e.message : String(e);
+        log(
+          `❌ Unhandled error in background processing for ${shortId}: ${errorMsg}`
+        );
+        console.error(`[Background] Unhandled error for ${item.id}:`, e);
+      }
     });
   }
 
