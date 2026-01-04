@@ -180,179 +180,179 @@ async function doProcessing(
     .eq("id", itemId);
 
   let content: string | null = null;
-    let wordCount: number | null = null;
-    let readingTime: number | null = null;
-    let author: string | null = null;
-    let publishDate: string | null = null;
-    const originalType: ItemType = detectTypeFromUrl(url); // Keep original for failure detection
-    let type: ItemType = originalType;
-    let aiContentType: string | null = null;
-    let aiSummary: string | null = null;
-    let title: string | null = null;
-    let description: string | null = null;
+  let wordCount: number | null = null;
+  let readingTime: number | null = null;
+  let author: string | null = null;
+  let publishDate: string | null = null;
+  const originalType: ItemType = detectTypeFromUrl(url); // Keep original for failure detection
+  let type: ItemType = originalType;
+  let aiContentType: string | null = null;
+  let aiSummary: string | null = null;
+  let title: string | null = null;
+  let description: string | null = null;
 
-    // ==========================================================================
-    // STEP 1: Content extraction with Jina Reader (for articles)
-    // ==========================================================================
-    if (isLikelyArticle(url)) {
-      log(`URL is likely article, starting extraction...`);
-      try {
-        const extracted = await extractContent(url);
+  // ==========================================================================
+  // STEP 1: Content extraction with Jina Reader (for articles)
+  // ==========================================================================
+  if (isLikelyArticle(url)) {
+    log(`URL is likely article, starting extraction...`);
+    try {
+      const extracted = await extractContent(url);
+      log(
+        `Extraction result: ${
+          extracted ? `${extracted.content.length} chars` : "null"
+        }`
+      );
+
+      if (extracted) {
+        content = extracted.content;
+        wordCount = extracted.wordCount;
+        readingTime = extracted.readingTime;
+        author = extracted.author;
+        publishDate = extracted.publishDate?.toISOString() || null;
+
+        // Use extracted metadata if available (but NOT image - keep og:image from initial save)
+        if (extracted.title) title = extracted.title;
+        if (extracted.description) description = extracted.description;
+        // Don't overwrite image_url - the og:image from metascraper is more reliable
+
         log(
-          `Extraction result: ${
-            extracted ? `${extracted.content.length} chars` : "null"
-          }`
+          `Content extracted: ${
+            content?.length || 0
+          } chars, ${wordCount} words, ${readingTime} min read`
         );
-
-        if (extracted) {
-          content = extracted.content;
-          wordCount = extracted.wordCount;
-          readingTime = extracted.readingTime;
-          author = extracted.author;
-          publishDate = extracted.publishDate?.toISOString() || null;
-
-          // Use extracted metadata if available (but NOT image - keep og:image from initial save)
-          if (extracted.title) title = extracted.title;
-          if (extracted.description) description = extracted.description;
-          // Don't overwrite image_url - the og:image from metascraper is more reliable
-
-          log(
-            `Content extracted: ${
-              content?.length || 0
-            } chars, ${wordCount} words, ${readingTime} min read`
-          );
-        } else {
-          log(`No content extracted`);
-        }
-      } catch (e) {
-        const errorMsg = e instanceof Error ? e.message : String(e);
-        log(`Content extraction failed: ${errorMsg}`);
-        console.error(`[Background] Content extraction error details:`, e);
+      } else {
+        log(`No content extracted`);
       }
-    } else {
-      log(`URL is NOT likely article, skipping extraction`);
+    } catch (e) {
+      const errorMsg = e instanceof Error ? e.message : String(e);
+      log(`Content extraction failed: ${errorMsg}`);
+      console.error(`[Background] Content extraction error details:`, e);
     }
+  } else {
+    log(`URL is NOT likely article, skipping extraction`);
+  }
 
-    // ==========================================================================
-    // STEP 2: AI Processing (type detection, summary, topics)
-    // ==========================================================================
-    const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
-    const topics: string[] = [];
+  // ==========================================================================
+  // STEP 2: AI Processing (type detection, summary, topics)
+  // ==========================================================================
+  const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
+  const topics: string[] = [];
 
-    if (hasOpenAIKey) {
-      log(`AI processing started`);
-      try {
-        // Get current item data for AI processing
-        const { data: currentItem } = await supabase
-          .from("items")
-          .select("title, description")
-          .eq("id", itemId)
+  if (hasOpenAIKey) {
+    log(`AI processing started`);
+    try {
+      // Get current item data for AI processing
+      const { data: currentItem } = await supabase
+        .from("items")
+        .select("title, description")
+        .eq("id", itemId)
+        .single();
+
+      const itemTitle = title || currentItem?.title || url;
+      const itemDescription = description || currentItem?.description;
+
+      // Detect content type with AI
+      const typeResult = await detectContentType(
+        url,
+        itemTitle,
+        itemDescription,
+        content
+      );
+      aiContentType = typeResult.contentType;
+      type = mapToItemType(typeResult.contentType, url);
+      log(`Content type detected: ${aiContentType} → ${type}`);
+
+      // Generate summary and extract topics (only for content with substance)
+      if (content && content.length > 200) {
+        const [summary, extractedTopics] = await Promise.all([
+          generateSummary(itemTitle, content),
+          extractTopics(itemTitle, content),
+        ]);
+        aiSummary = summary;
+        topics.push(...extractedTopics);
+        log(`AI summary generated, ${topics.length} topics extracted`);
+      } else {
+        log(`Skipping summary/topics (insufficient content)`);
+      }
+    } catch (e) {
+      const errorMsg = e instanceof Error ? e.message : String(e);
+      log(`AI processing failed: ${errorMsg}`);
+      console.error(`[Background] AI processing error details:`, e);
+    }
+  } else {
+    log(`Skipping AI processing (no OPENAI_API_KEY)`);
+  }
+
+  // ==========================================================================
+  // STEP 3: Update item with processed data
+  // ==========================================================================
+  // Determine final processing status
+  // For articles: if no content was extracted, mark as "failed" (likely paywall)
+  // Use originalType (from URL detection) NOT the AI-reassigned type
+  // This ensures a Medium article that fails extraction is marked "failed"
+  // even if AI later classifies it as "website" based on limited metadata
+  const wasIntendedAsArticle = originalType === "article";
+  const hasContent = content && content.length > 100;
+  const processingStatus =
+    wasIntendedAsArticle && !hasContent ? "failed" : "completed";
+
+  const updateData: Record<string, unknown> = {
+    processing_status: processingStatus,
+    type,
+  };
+
+  // Only update fields that have values
+  if (content) updateData.content = content;
+  if (wordCount) updateData.word_count = wordCount;
+  if (readingTime) updateData.reading_time = readingTime;
+  if (author) updateData.author = author;
+  if (publishDate) updateData.publish_date = publishDate;
+  if (aiContentType) updateData.ai_content_type = aiContentType;
+  if (aiSummary) updateData.ai_summary = aiSummary;
+  if (title) updateData.title = title;
+  if (description) updateData.description = description;
+
+  await supabase.from("items").update(updateData).eq("id", itemId);
+  log(`Database updated with status: ${processingStatus}`);
+
+  // ==========================================================================
+  // STEP 4: Create topics (if any were extracted)
+  // ==========================================================================
+  if (topics.length > 0) {
+    log(`Creating ${topics.length} topics...`);
+    try {
+      for (const topicName of topics) {
+        const slug = topicName
+          .toLowerCase()
+          .replace(/\s+/g, "-")
+          .replace(/[^a-z0-9-]/g, "");
+
+        const { data: topic } = await supabase
+          .from("topics")
+          .upsert(
+            { user_id: userId, name: topicName, slug },
+            { onConflict: "user_id,slug", ignoreDuplicates: false }
+          )
+          .select("id")
           .single();
 
-        const itemTitle = title || currentItem?.title || url;
-        const itemDescription = description || currentItem?.description;
-
-        // Detect content type with AI
-        const typeResult = await detectContentType(
-          url,
-          itemTitle,
-          itemDescription,
-          content
-        );
-        aiContentType = typeResult.contentType;
-        type = mapToItemType(typeResult.contentType, url);
-        log(`Content type detected: ${aiContentType} → ${type}`);
-
-        // Generate summary and extract topics (only for content with substance)
-        if (content && content.length > 200) {
-          const [summary, extractedTopics] = await Promise.all([
-            generateSummary(itemTitle, content),
-            extractTopics(itemTitle, content),
-          ]);
-          aiSummary = summary;
-          topics.push(...extractedTopics);
-          log(`AI summary generated, ${topics.length} topics extracted`);
-        } else {
-          log(`Skipping summary/topics (insufficient content)`);
+        if (topic) {
+          await supabase
+            .from("item_topics")
+            .insert({ item_id: itemId, topic_id: topic.id })
+            .select();
         }
-      } catch (e) {
-        const errorMsg = e instanceof Error ? e.message : String(e);
-        log(`AI processing failed: ${errorMsg}`);
-        console.error(`[Background] AI processing error details:`, e);
       }
-    } else {
-      log(`Skipping AI processing (no OPENAI_API_KEY)`);
+      log(`Topics created successfully`);
+    } catch (e) {
+      const errorMsg = e instanceof Error ? e.message : String(e);
+      log(`Failed to create topics: ${errorMsg}`);
+      console.error(`[Background] Topic creation error details:`, e);
     }
+  }
 
-    // ==========================================================================
-    // STEP 3: Update item with processed data
-    // ==========================================================================
-    // Determine final processing status
-    // For articles: if no content was extracted, mark as "failed" (likely paywall)
-    // Use originalType (from URL detection) NOT the AI-reassigned type
-    // This ensures a Medium article that fails extraction is marked "failed"
-    // even if AI later classifies it as "website" based on limited metadata
-    const wasIntendedAsArticle = originalType === "article";
-    const hasContent = content && content.length > 100;
-    const processingStatus =
-      wasIntendedAsArticle && !hasContent ? "failed" : "completed";
-
-    const updateData: Record<string, unknown> = {
-      processing_status: processingStatus,
-      type,
-    };
-
-    // Only update fields that have values
-    if (content) updateData.content = content;
-    if (wordCount) updateData.word_count = wordCount;
-    if (readingTime) updateData.reading_time = readingTime;
-    if (author) updateData.author = author;
-    if (publishDate) updateData.publish_date = publishDate;
-    if (aiContentType) updateData.ai_content_type = aiContentType;
-    if (aiSummary) updateData.ai_summary = aiSummary;
-    if (title) updateData.title = title;
-    if (description) updateData.description = description;
-
-    await supabase.from("items").update(updateData).eq("id", itemId);
-    log(`Database updated with status: ${processingStatus}`);
-
-    // ==========================================================================
-    // STEP 4: Create topics (if any were extracted)
-    // ==========================================================================
-    if (topics.length > 0) {
-      log(`Creating ${topics.length} topics...`);
-      try {
-        for (const topicName of topics) {
-          const slug = topicName
-            .toLowerCase()
-            .replace(/\s+/g, "-")
-            .replace(/[^a-z0-9-]/g, "");
-
-          const { data: topic } = await supabase
-            .from("topics")
-            .upsert(
-              { user_id: userId, name: topicName, slug },
-              { onConflict: "user_id,slug", ignoreDuplicates: false }
-            )
-            .select("id")
-            .single();
-
-          if (topic) {
-            await supabase
-              .from("item_topics")
-              .insert({ item_id: itemId, topic_id: topic.id })
-              .select();
-          }
-        }
-        log(`Topics created successfully`);
-      } catch (e) {
-        const errorMsg = e instanceof Error ? e.message : String(e);
-        log(`Failed to create topics: ${errorMsg}`);
-        console.error(`[Background] Topic creation error details:`, e);
-      }
-    }
-
-    log(`✅ Processing completed successfully`);
+  log(`✅ Processing completed successfully`);
 }
 
 /**

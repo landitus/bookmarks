@@ -24,11 +24,11 @@ flowchart LR
 
 Add triage columns to track state and enable smart sorting:
 
-| Bucket  | Condition                                 | Sort By      |
-| ------- | ----------------------------------------- | ------------ |
-| Inbox   | `is_kept = false AND is_archived = false` | `created_at` |
-| Library | `is_kept = true AND is_archived = false`  | `kept_at`    |
-| Archive | `is_archived = true`                      | `archived_at`|
+| Bucket  | Condition                                 | Sort By       |
+| ------- | ----------------------------------------- | ------------- |
+| Inbox   | `is_kept = false AND is_archived = false` | `created_at`  |
+| Library | `is_kept = true AND is_archived = false`  | `kept_at`     |
+| Archive | `is_archived = true`                      | `archived_at` |
 
 **Migration:** `supabase/migrations/`
 
@@ -61,12 +61,12 @@ Icons: `Inbox` / `BookMarked` / `Archive` from lucide-react
 
 ## Route Structure
 
-| Route                     | Purpose                                |
-| ------------------------- | -------------------------------------- |
+| Route                     | Purpose                                 |
+| ------------------------- | --------------------------------------- |
 | `/inbox`                  | Default landing, shows un-triaged items |
-| `/library`                | Kept items collection                  |
-| `/library?favorites=true` | Favorites filter within Library        |
-| `/archive`                | Soft-deleted items with restore option |
+| `/library`                | Kept items collection                   |
+| `/library?favorites=true` | Favorites filter within Library         |
+| `/archive`                | Soft-deleted items with restore option  |
 
 **Files to create/modify:**
 
@@ -83,11 +83,11 @@ Icons: `Inbox` / `BookMarked` / `Archive` from lucide-react
 
 The reader view is accessible from **all three buckets**. Header actions adapt based on item state:
 
-| Source Bucket | Header Actions                             |
-| ------------- | ------------------------------------------ |
+| Source Bucket | Header Actions                                 |
+| ------------- | ---------------------------------------------- |
 | **Inbox**     | `[Keep]` (primary) `[Discard]` (ghost) `[...]` |
-| **Library**   | `[Favorite toggle]` `[Archive]` `[...]`    |
-| **Archive**   | `[Restore]` `[Delete]` `[...]`             |
+| **Library**   | `[Favorite toggle]` `[Archive]` `[...]`        |
+| **Archive**   | `[Restore]` `[Delete]` `[...]`                 |
 
 - **After any action:** Stay on item, show toast confirmation
 - Pass item state (`is_kept`, `is_archived`) to determine which actions to render
@@ -100,12 +100,12 @@ The reader view is accessible from **all three buckets**. Header actions adapt b
 
 **Update:** `src/lib/actions/items.ts`
 
-| Action            | Behavior                                                         |
-| ----------------- | ---------------------------------------------------------------- |
-| `keepItem(id)`    | Set `is_kept = true` (move to Library)                           |
-| `discardItem(id)` | Set `is_archived = true` (move to Archive)                       |
-| `restoreItem(id)` | Set `is_archived = false` (back to Inbox or Library based on `is_kept`) |
-| Remove `toggleLater` | No longer needed                                              |
+| Action               | Behavior                                                                |
+| -------------------- | ----------------------------------------------------------------------- |
+| `keepItem(id)`       | Set `is_kept = true` (move to Library)                                  |
+| `discardItem(id)`    | Set `is_archived = true` (move to Archive)                              |
+| `restoreItem(id)`    | Set `is_archived = false` (back to Inbox or Library based on `is_kept`) |
+| Remove `toggleLater` | No longer needed                                                        |
 
 ---
 
@@ -142,4 +142,3 @@ Actions should be context-aware:
 - [x] Add Keep/Discard buttons to reader view header with toast feedback
 - [x] Make ItemActions context-aware (inbox/library/archive modes)
 - [x] Remove deprecated code and is_later references
-
