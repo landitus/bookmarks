@@ -63,7 +63,7 @@ function ListItem({
   return (
     <div
       className={cn(
-        "group flex items-center justify-between gap-4 p-1 rounded-lg hover:bg-accent/50 transition-colors pl-4",
+        "group flex items-center justify-between gap-4 p-1 min-h-10 rounded-lg hover:bg-accent/50 transition-colors pl-4",
         isOpen && "bg-accent/50"
       )}
     >
