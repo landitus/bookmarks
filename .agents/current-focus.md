@@ -6,9 +6,16 @@
 
 ## 🎉 Recently Completed
 
-### Prod Reprocess Fix (Jan 4, 2026)
+### Serverless Background Processing Fix (Jan 4, 2026)
 
-- [x] Reprocess trigger now uses deployed base URL (SITE_URL → APP_URL → VERCEL_URL) instead of localhost to avoid `ECONNREFUSED` in production
+Fixed background processing getting killed before completion on Vercel serverless:
+
+- [x] Use Next.js `after()` in route handlers to keep function alive until processing completes
+- [x] Use `after()` in `refreshContent` server action to ensure reprocess API call completes
+- [x] Added `processing_error` column to items table to capture failure messages
+- [x] Reprocess trigger now uses deployed base URL (SITE_URL → APP_URL → VERCEL_URL) instead of localhost
+- [x] Added 5s timeout to metadata fetch in `createItem` server action
+- [x] Added 10s timeout to reprocess trigger fetch
 
 ### Realtime Processing Reliability (Jan 4, 2026)
 
