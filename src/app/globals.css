@@ -431,10 +431,10 @@
    READER TYPOGRAPHY THEMES
    ============================================================================= */
 
-/* Literary theme: Libre Baskerville + JetBrains Mono */
+/* Literary theme: Inter + IBM Plex Mono */
 .reader-pane[data-reader-theme="literary"] .prose-reader,
 .reader-pane[data-reader-theme="literary"] .reader-header {
-  font-family: var(--font-literary-text), Georgia, "Times New Roman", serif;
+  font-family: var(--font-literary-text), system-ui, sans-serif;
 }
 
 .reader-pane[data-reader-theme="literary"] .prose-reader code,
@@ -442,10 +442,10 @@
   font-family: var(--font-literary-code), "Courier New", monospace;
 }
 
-/* Modern theme: Plus Jakarta Sans + Fira Code */
+/* Modern theme: Literata + Fira Code */
 .reader-pane[data-reader-theme="modern"] .prose-reader,
 .reader-pane[data-reader-theme="modern"] .reader-header {
-  font-family: var(--font-modern-text), system-ui, sans-serif;
+  font-family: var(--font-modern-text), Georgia, serif;
 }
 
 .reader-pane[data-reader-theme="modern"] .prose-reader code,
@@ -453,7 +453,7 @@
   font-family: var(--font-modern-code), "Courier New", monospace;
 }
 
-/* Editorial theme: Newsreader + IBM Plex Mono */
+/* Editorial theme: Newsreader + Source Code Pro */
 .reader-pane[data-reader-theme="editorial"] .prose-reader,
 .reader-pane[data-reader-theme="editorial"] .reader-header {
   font-family: var(--font-editorial-text), Georgia, serif;

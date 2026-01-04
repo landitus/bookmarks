@@ -46,21 +46,21 @@ export const THEME_OPTIONS: Record<
 > = {
   literary: {
     name: "Literary",
-    description: "Classic, book-like",
-    textFont: "Libre Baskerville",
-    codeFont: "JetBrains Mono",
+    description: "Clean, minimal",
+    textFont: "Inter",
+    codeFont: "IBM Plex Mono",
   },
   modern: {
     name: "Modern",
-    description: "Clean, contemporary",
-    textFont: "Plus Jakarta Sans",
+    description: "Contemporary serif",
+    textFont: "Literata",
     codeFont: "Fira Code",
   },
   editorial: {
     name: "Editorial",
     description: "Warm, journalistic",
     textFont: "Newsreader",
-    codeFont: "IBM Plex Mono",
+    codeFont: "Source Code Pro",
   },
 };
 

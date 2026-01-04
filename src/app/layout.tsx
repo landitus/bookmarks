@@ -2,12 +2,12 @@ import type { Metadata, Viewport } from "next";
 import {
   Geist,
   Geist_Mono,
-  Libre_Baskerville,
-  Plus_Jakarta_Sans,
+  Inter,
+  Literata,
   Newsreader,
-  JetBrains_Mono,
   Fira_Code,
   IBM_Plex_Mono,
+  Source_Code_Pro,
 } from "next/font/google";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -27,25 +27,25 @@ const geistMono = Geist_Mono({
 // READER TYPOGRAPHY FONTS
 // =============================================================================
 
-// Literary theme: Classic serif for text, clean mono for code
-const libreBaskerville = Libre_Baskerville({
+// Literary theme: Clean sans for text, humanist mono for code
+const inter = Inter({
   variable: "--font-literary-text",
   subsets: ["latin"],
-  weight: ["400", "700"],
-  style: ["normal", "italic"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const ibmPlexMono = IBM_Plex_Mono({
   variable: "--font-literary-code",
   subsets: ["latin"],
   weight: ["400", "500", "700"],
 });
 
-// Modern theme: Clean sans for text, ligature-friendly mono for code
-const plusJakartaSans = Plus_Jakarta_Sans({
+// Modern theme: Contemporary serif for text, ligature-friendly mono for code
+const literata = Literata({
   variable: "--font-modern-text",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
 });
 
 const firaCode = Fira_Code({
@@ -54,7 +54,7 @@ const firaCode = Fira_Code({
   weight: ["400", "500", "700"],
 });
 
-// Editorial theme: Warm transitional serif for text, humanist mono for code
+// Editorial theme: Warm transitional serif for text, classic mono for code
 const newsreader = Newsreader({
   variable: "--font-editorial-text",
   subsets: ["latin"],
@@ -62,7 +62,7 @@ const newsreader = Newsreader({
   style: ["normal", "italic"],
 });
 
-const ibmPlexMono = IBM_Plex_Mono({
+const sourceCodePro = Source_Code_Pro({
   variable: "--font-editorial-code",
   subsets: ["latin"],
   weight: ["400", "500", "700"],
@@ -106,7 +106,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${libreBaskerville.variable} ${jetbrainsMono.variable} ${plusJakartaSans.variable} ${firaCode.variable} ${newsreader.variable} ${ibmPlexMono.variable} antialiased min-h-screen bg-muted/10`}
+        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${ibmPlexMono.variable} ${literata.variable} ${firaCode.variable} ${newsreader.variable} ${sourceCodePro.variable} antialiased min-h-screen bg-muted/10`}
       >
         <ThemeProvider>
           {children}

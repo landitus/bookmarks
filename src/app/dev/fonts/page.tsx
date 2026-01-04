@@ -96,6 +96,24 @@ We moved to an event-driven model using a combination of techniques:
 2. **Event sourcing** — Store changes as immutable events, not mutable state
 3. **CQRS** — Separate read and write paths for better scaling
 
+Here's a simplified version of our event handler:
+
+\`\`\`typescript
+async function handleEvent(event: UserEvent) {
+  // Persist event immediately
+  await eventStore.append(event);
+  
+  // Update read model asynchronously
+  await queue.publish('projections', {
+    eventId: event.id,
+    type: event.type,
+    payload: event.data
+  });
+  
+  return { success: true, eventId: event.id };
+}
+\`\`\`
+
 ### Results So Far
 
 After two months in production, the numbers speak for themselves. P99 latency dropped from 850ms to 45ms. Our error rate during peak traffic went from 2.3% down to 0.04%. Most importantly, our engineers are sleeping through the night again.
@@ -205,62 +223,117 @@ function PreviewPanel({ pairing, display, label }: PreviewPanelProps) {
           className="max-w-2xl mx-auto prose-reader"
           style={{ fontFamily: textFontFamily, color: colors.fg }}
         >
-          {SAMPLE_CONTENT.split("\n").map((line, i) => {
-            // Heading 2
-            if (line.startsWith("## ")) {
-              return (
-                <h2 key={i} className="text-2xl font-bold mt-8 mb-4 first:mt-0" style={{ color: colors.fg }}>
-                  {line.slice(3)}
-                </h2>
-              );
-            }
-            // Heading 3
-            if (line.startsWith("### ")) {
-              return (
-                <h3 key={i} className="text-xl font-semibold mt-6 mb-3" style={{ color: colors.fg }}>
-                  {line.slice(4)}
-                </h3>
-              );
-            }
-            // Code block
-            if (line.startsWith("```")) {
-              return null;
-            }
-            // Blockquote
-            if (line.startsWith("> ")) {
-              return (
-                <blockquote
-                  key={i}
-                  className="border-l-4 pl-4 italic my-4"
-                  style={{ borderColor: colors.fg + "40", opacity: 0.8, color: colors.fg }}
-                >
-                  {line.slice(2)}
-                </blockquote>
-              );
-            }
-            // List item
-            if (line.match(/^\d+\.\s/)) {
-              return (
-                <li key={i} className="ml-6 my-1" style={{ listStyleType: "decimal", color: colors.fg }}>
-                  {parseInlineFormatting(line.slice(line.indexOf(" ") + 1), codeFontFamily, colors)}
-                </li>
-              );
-            }
-            // Empty line
-            if (!line.trim()) {
-              return null;
-            }
-            // Regular paragraph
-            return (
-              <p key={i} className="my-4 leading-relaxed" style={{ color: colors.fg }}>
-                {parseInlineFormatting(line, codeFontFamily, colors)}
-              </p>
-            );
-          })}
+          {parseContent(SAMPLE_CONTENT, codeFontFamily, colors)}
         </div>
       </div>
     </div>
   );
+}
+
+// Parse content including code blocks
+function parseContent(
+  content: string,
+  codeFontFamily: string,
+  colors: { bg: string; fg: string; codeBg: string; codeFg: string; border: string }
+): React.ReactNode[] {
+  const result: React.ReactNode[] = [];
+  const lines = content.split("\n");
+  let i = 0;
+  let keyCounter = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Code block start
+    if (line.startsWith("```")) {
+      const codeLines: string[] = [];
+      i++; // Skip opening fence
+      while (i < lines.length && !lines[i].startsWith("```")) {
+        codeLines.push(lines[i]);
+        i++;
+      }
+      i++; // Skip closing fence
+
+      result.push(
+        <pre
+          key={keyCounter++}
+          className="rounded-lg p-4 my-4 overflow-x-auto text-sm"
+          style={{
+            backgroundColor: colors.codeBg,
+            color: colors.codeFg,
+            fontFamily: codeFontFamily,
+          }}
+        >
+          <code>{codeLines.join("\n")}</code>
+        </pre>
+      );
+      continue;
+    }
+
+    // Heading 2
+    if (line.startsWith("## ")) {
+      result.push(
+        <h2 key={keyCounter++} className="text-2xl font-bold mt-8 mb-4 first:mt-0" style={{ color: colors.fg }}>
+          {line.slice(3)}
+        </h2>
+      );
+      i++;
+      continue;
+    }
+
+    // Heading 3
+    if (line.startsWith("### ")) {
+      result.push(
+        <h3 key={keyCounter++} className="text-xl font-semibold mt-6 mb-3" style={{ color: colors.fg }}>
+          {line.slice(4)}
+        </h3>
+      );
+      i++;
+      continue;
+    }
+
+    // Blockquote
+    if (line.startsWith("> ")) {
+      result.push(
+        <blockquote
+          key={keyCounter++}
+          className="border-l-4 pl-4 italic my-4"
+          style={{ borderColor: colors.fg + "40", opacity: 0.8, color: colors.fg }}
+        >
+          {line.slice(2)}
+        </blockquote>
+      );
+      i++;
+      continue;
+    }
+
+    // List item
+    if (line.match(/^\d+\.\s/)) {
+      result.push(
+        <li key={keyCounter++} className="ml-6 my-1" style={{ listStyleType: "decimal", color: colors.fg }}>
+          {parseInlineFormatting(line.slice(line.indexOf(" ") + 1), codeFontFamily, colors)}
+        </li>
+      );
+      i++;
+      continue;
+    }
+
+    // Empty line
+    if (!line.trim()) {
+      i++;
+      continue;
+    }
+
+    // Regular paragraph
+    result.push(
+      <p key={keyCounter++} className="my-4 leading-relaxed" style={{ color: colors.fg }}>
+        {parseInlineFormatting(line, codeFontFamily, colors)}
+      </p>
+    );
+    i++;
+  }
+
+  return result;
 }
 
 // Parse inline formatting (**bold**, *italic*, `code`)
