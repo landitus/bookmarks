@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Polling Fallback for Processing Items** - ItemsView now polls every 3 seconds when any item is processing
+  - Provides reliable UI updates when Supabase Realtime misses events
+  - Polling automatically stops when all items are completed/failed
+  - Realtime subscription remains as the "fast path" for instant updates
+
+### Fixed
+
+- **Server-Side Processing Timeout** - Background jobs now have a 45-second timeout guard
+  - Prevents stuck "processing" states that never resolve
+  - Jobs that exceed timeout are automatically marked as "failed" with error message
+  - Applied to both initial save and reprocess endpoints
+
+### Changed
+
 - **Inbox/Library/Archive UX Model** - Complete redesign of app navigation around a triage-based workflow
   - New **Inbox** view for uncategorized/incoming items (replaces Everything)
   - New **Library** view for kept/saved items with favorites filter

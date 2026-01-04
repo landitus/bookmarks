@@ -108,9 +108,13 @@ function detectTypeFromUrl(url: string): ItemType {
   return "article";
 }
 
+// Processing timeout in milliseconds (45 seconds)
+const PROCESSING_TIMEOUT = 45000;
+
 /**
  * Background processing for content extraction and AI
  * Called after the response is sent to the client
+ * Wrapped with timeout guard to prevent stuck jobs
  */
 async function processItemInBackground(
   itemId: string,
@@ -129,14 +133,53 @@ async function processItemInBackground(
   log(`Starting processing`);
   log(`URL: ${url}`);
 
+  // Create timeout promise
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(
+      () => reject(new Error("Processing timeout after 45 seconds")),
+      PROCESSING_TIMEOUT
+    );
+  });
+
   try {
-    // Update status to processing
+    // Race between actual processing and timeout
+    await Promise.race([
+      doProcessing(itemId, url, userId, supabase, log),
+      timeoutPromise,
+    ]);
+  } catch (e) {
+    const errorMsg = e instanceof Error ? e.message : String(e);
+    log(`❌ Processing failed: ${errorMsg}`);
+    console.error(`[Background] Processing error details:`, e);
+
+    // Mark as failed with error message
     await supabase
       .from("items")
-      .update({ processing_status: "processing" })
+      .update({
+        processing_status: "failed",
+        processing_error: errorMsg,
+      })
       .eq("id", itemId);
+  }
+}
 
-    let content: string | null = null;
+/**
+ * Core processing logic - extracted for timeout wrapper
+ */
+async function doProcessing(
+  itemId: string,
+  url: string,
+  userId: string,
+  supabase: ReturnType<typeof createServiceClient>,
+  log: (msg: string) => void
+) {
+  // Update status to processing
+  await supabase
+    .from("items")
+    .update({ processing_status: "processing" })
+    .eq("id", itemId);
+
+  let content: string | null = null;
     let wordCount: number | null = null;
     let readingTime: number | null = null;
     let author: string | null = null;
@@ -310,17 +353,6 @@ async function processItemInBackground(
     }
 
     log(`✅ Processing completed successfully`);
-  } catch (e) {
-    const errorMsg = e instanceof Error ? e.message : String(e);
-    log(`❌ Processing failed: ${errorMsg}`);
-    console.error(`[Background] Processing error details:`, e);
-
-    // Mark as failed
-    await supabase
-      .from("items")
-      .update({ processing_status: "failed" })
-      .eq("id", itemId);
-  }
 }
 
 /**

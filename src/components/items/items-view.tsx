@@ -244,6 +244,25 @@ export function ItemsView({
   }, [router]);
 
   // ---------------------------------------------------------------------------
+  // POLLING FALLBACK - When items are processing, poll every 3s as backup
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    const hasProcessingItems = items.some(
+      (i) =>
+        i.processing_status === "pending" ||
+        i.processing_status === "processing"
+    );
+
+    if (!hasProcessingItems) return;
+
+    const interval = setInterval(() => {
+      router.refresh();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [items, router]);
+
+  // ---------------------------------------------------------------------------
   // HELPER FUNCTIONS
   // ---------------------------------------------------------------------------
 
@@ -431,7 +450,9 @@ export function ItemsView({
                 className="gap-2"
                 asChild
               >
-                <Link href={favoritesOnly ? "/library" : "/library?favorites=true"}>
+                <Link
+                  href={favoritesOnly ? "/library" : "/library?favorites=true"}
+                >
                   <Star
                     className={cn(
                       "h-4 w-4",
@@ -493,7 +514,9 @@ export function ItemsView({
                       item={item}
                       context={context}
                       isOpen={openItemId === item.id}
-                      onOpenChange={(open) => setOpenItemId(open ? item.id : null)}
+                      onOpenChange={(open) =>
+                        setOpenItemId(open ? item.id : null)
+                      }
                       getDomain={getDomain}
                       getFaviconUrl={getFaviconUrl}
                     />
