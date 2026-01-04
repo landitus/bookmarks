@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Reprocess trigger timeout** - Increased timeout from 10s to 60s to account for route compilation in dev mode + Firecrawl API latency
+- **Stray backticks in markdown** - Cleaned up extra backticks from wrapper `<code>` elements that appeared around code blocks
 
 ### Added
 

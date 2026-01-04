@@ -466,6 +466,13 @@ function htmlToMarkdown(html: string): string {
     markdown = markdown.replace(placeholder, `\n\`\`\`\n${code}\n\`\`\`\n`);
   });
 
+  // Clean up stray backticks on their own lines (from wrapper <code> elements)
+  // Pattern: line with just ` or `` before/after code blocks
+  markdown = markdown.replace(/^\s*`{1,2}\s*$/gm, "");
+
+  // Clean up multiple consecutive blank lines
+  markdown = markdown.replace(/\n{3,}/g, "\n\n");
+
   return markdown;
 }
 
