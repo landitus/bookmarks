@@ -234,15 +234,19 @@ export function ItemActions({
             <Copy className="h-4 w-4" />
             Copy link
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onSelect={handleRefreshContent}
-            disabled={isPending || isRefreshing}
-          >
-            <RefreshCw
-              className={cn("h-4 w-4", isRefreshing && "animate-spin")}
-            />
-            {isRefreshing ? "Refreshing..." : "Refresh content"}
-          </DropdownMenuItem>
+
+          {/* Refresh content - only shown in reader view (when showTriageButtons is true) */}
+          {showTriageButtons && (
+            <DropdownMenuItem
+              onSelect={handleRefreshContent}
+              disabled={isPending || isRefreshing}
+            >
+              <RefreshCw
+                className={cn("h-4 w-4", isRefreshing && "animate-spin")}
+              />
+              {isRefreshing ? "Refreshing..." : "Refresh content"}
+            </DropdownMenuItem>
+          )}
 
           {/* INBOX CONTEXT */}
           {context === "inbox" && (
@@ -250,7 +254,7 @@ export function ItemActions({
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={handleKeep} disabled={isPending}>
                 <Check className="h-4 w-4" />
-                Keep to Library
+                Keep
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={handleDiscard} disabled={isPending}>
                 <Archive className="h-4 w-4" />

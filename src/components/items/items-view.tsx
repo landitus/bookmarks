@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Item } from "@/lib/types";
 import { ItemCard } from "@/components/items/item-card";
-import { LayoutGrid, List, Star, Loader2 } from "lucide-react";
+import { LayoutGrid, List, Star, Loader2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { ItemActions, ItemContext } from "@/components/items/item-actions";
@@ -57,11 +57,8 @@ function ListItem({
   getDomain,
   getFaviconUrl,
 }: ListItemProps) {
-  // Determine link destination
-  // Articles always go to reader view (even while processing), other types go to external URL
-  const isArticle = item.type === "article";
-  const href = isArticle ? `/items/${item.id}` : item.url;
-  const isExternal = !isArticle;
+  // Preview link always goes to reader view
+  const previewHref = `/items/${item.id}`;
 
   return (
     <div
@@ -83,14 +80,14 @@ function ListItem({
 
         <HoverCard openDelay={300} closeDelay={100}>
           <HoverCardTrigger asChild>
-            <Link
-              href={href}
-              target={isExternal ? "_blank" : undefined}
-              rel={isExternal ? "noopener noreferrer" : undefined}
+            <a
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
               className="font-medium truncate hover:underline"
             >
               {item.title}
-            </Link>
+            </a>
           </HoverCardTrigger>
           <HoverCardContent
             side="bottom"
@@ -166,16 +163,31 @@ function ListItem({
         )}
       </div>
 
-      {/* Right side: Actions dropdown */}
-      <ItemActions
-        itemId={item.id}
-        url={item.url}
-        isKept={item.is_kept}
-        isFavorite={item.is_favorite}
-        isArchived={item.is_archived}
-        context={context}
-        onOpenChange={onOpenChange}
-      />
+      {/* Right side: Preview button + Actions dropdown */}
+      <div
+        className={cn(
+          "shrink-0 flex items-center gap-1 transition-opacity",
+          "opacity-0 group-hover:opacity-100",
+          isOpen && "opacity-100"
+        )}
+      >
+        <Button variant="ghost" size="sm" className="h-8 gap-1.5" asChild>
+          <Link href={previewHref}>
+            <Eye className="h-4 w-4" />
+            <span className="hidden sm:inline">Preview</span>
+          </Link>
+        </Button>
+        <ItemActions
+          itemId={item.id}
+          url={item.url}
+          isKept={item.is_kept}
+          isFavorite={item.is_favorite}
+          isArchived={item.is_archived}
+          context={context}
+          onOpenChange={onOpenChange}
+          alwaysVisible
+        />
+      </div>
     </div>
   );
 }

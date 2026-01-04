@@ -6,6 +6,13 @@
 
 ## 🎉 Recently Completed
 
+### UX Polish (Jan 4, 2026)
+
+- [x] Title clicks now open external URL in new tab (instead of reader view for articles)
+- [x] Added "Preview" button next to actions menu to open reader/preview view
+- [x] Removed "Refresh content" action from list view dropdown (keep it only in reader view)
+- [x] Renamed "Keep to Library" to just "Keep" for simpler UX
+
 ### API Code DRY Refactor (Jan 4, 2026)
 
 Extracted shared utilities from items API routes:
