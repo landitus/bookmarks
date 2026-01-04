@@ -97,7 +97,6 @@ export function ItemActions({
   const handleKeep = () => {
     startTransition(async () => {
       await keepItem(itemId);
-      toast.success("Added to Library");
       setOpen(false);
     });
   };
@@ -105,7 +104,6 @@ export function ItemActions({
   const handleDiscard = () => {
     startTransition(async () => {
       await discardItem(itemId);
-      toast.success("Moved to Archive");
       setOpen(false);
     });
   };
@@ -113,17 +111,13 @@ export function ItemActions({
   const handleRestore = () => {
     startTransition(async () => {
       await restoreItem(itemId);
-      toast.success("Restored");
       setOpen(false);
     });
   };
 
   const handleToggleFavorite = () => {
     startTransition(async () => {
-      const result = await toggleFavorite(itemId);
-      toast.success(
-        result.is_favorite ? "Added to Favorites" : "Removed from Favorites"
-      );
+      await toggleFavorite(itemId);
       setOpen(false);
     });
   };

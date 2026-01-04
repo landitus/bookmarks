@@ -40,7 +40,6 @@ export function AddItemInput({
       startTransition(async () => {
         const result = await createItem(formData);
         if (result.success) {
-          toast.success("Bookmark added successfully");
           setValue("");
           onSearch?.(""); // Clear search query in parent
           formRef.current?.reset();

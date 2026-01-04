@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Serverless background processing** - Use Next.js `after()` to keep function alive until background processing completes, preventing orphaned jobs that get killed when the response is sent
 - **Server action reliability** - Use `after()` in `refreshContent` server action to ensure reprocess API call completes; add 5s timeout to metadata fetch in `createItem`
 - **DRY refactor** - Extracted shared utilities (`items-shared.ts`) for API routes: auth, CORS, type detection, and core processing logic
+- **Snappier UX** - Removed 5 redundant success toasts where visual feedback is already obvious (keep, discard, restore, favorite, add bookmark)
 
 ### Changed
 
