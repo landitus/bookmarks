@@ -28,6 +28,11 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { User } from "@supabase/supabase-js";
+import {
+  ReaderSettingsProvider,
+  useReaderSettings,
+} from "@/components/reader";
+import { ReaderSettingsPopover } from "@/components/reader";
 
 // =============================================================================
 // MODULE-LEVEL STATE (persists across remounts)
@@ -136,6 +141,9 @@ function ReaderActions({
         isRefreshing={isRefreshing}
       />
 
+      {/* Reader Settings */}
+      <ReaderSettingsPopover />
+
       {/* Toggle Sidebar */}
       <Button
         variant="ghost"
@@ -151,10 +159,47 @@ function ReaderActions({
 }
 
 // =============================================================================
+// READER PANE WRAPPER
+// Applies theme and display mode data attributes
+// =============================================================================
+
+interface ReaderPaneProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+function ReaderPane({ children, className }: ReaderPaneProps) {
+  const { settings, isLoaded } = useReaderSettings();
+
+  // Don't apply attributes until settings are loaded to prevent flash
+  if (!isLoaded) {
+    return <div className={cn("reader-pane", className)}>{children}</div>;
+  }
+
+  return (
+    <div
+      className={cn("reader-pane", className)}
+      data-reader-theme={settings.theme}
+      data-reader-display={settings.display}
+    >
+      {children}
+    </div>
+  );
+}
+
+// =============================================================================
 // MAIN COMPONENT
 // =============================================================================
 
 export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
+  return (
+    <ReaderSettingsProvider>
+      <ItemReaderViewContent item={item} topics={topics} user={user} />
+    </ReaderSettingsProvider>
+  );
+}
+
+function ItemReaderViewContent({ item, topics, user }: ItemReaderViewProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isPending, startTransition] = useTransition();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -313,73 +358,75 @@ export function ItemReaderView({ item, topics, user }: ItemReaderViewProps) {
               </div>
             </div>
           ) : isArticle ? (
-            // Article Reader View
-            <article className="max-w-[750px] mx-auto px-12 py-12">
-              {/* Article Header */}
-              <header className="mb-12">
-                <h1 className="text-[2.5rem] sm:text-[2.75rem] font-bold leading-[1.15] tracking-tight mb-5">
-                  {item.title}
-                </h1>
+            // Article Reader View - Wrapped in ReaderPane for theme/display styling
+            <ReaderPane className="min-h-[calc(100vh-3.5rem)]">
+              <article className="max-w-[750px] mx-auto px-12 py-12">
+                {/* Article Header */}
+                <header className="reader-header mb-12">
+                  <h1 className="text-[2.5rem] sm:text-[2.75rem] font-bold leading-[1.15] tracking-tight mb-5">
+                    {item.title}
+                  </h1>
 
-                {item.description && (
-                  <p className="text-xl text-muted-foreground leading-relaxed mb-8">
-                    {item.description}
-                  </p>
-                )}
-
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground border-t border-b py-4 border-border/50">
-                  {item.author && (
-                    <div className="flex items-center gap-1.5">
-                      <UserIcon className="h-4 w-4" />
-                      <span className="font-medium">{item.author}</span>
-                    </div>
+                  {item.description && (
+                    <p className="text-xl leading-relaxed mb-8 opacity-70">
+                      {item.description}
+                    </p>
                   )}
 
-                  {item.publish_date && (
-                    <div className="flex items-center gap-1.5">
-                      <Calendar className="h-4 w-4" />
-                      <span>{formatDate(item.publish_date)}</span>
-                    </div>
-                  )}
+                  <div className="reader-meta flex flex-wrap items-center gap-x-5 gap-y-2 text-sm border-t border-b py-4">
+                    {item.author && (
+                      <div className="flex items-center gap-1.5">
+                        <UserIcon className="h-4 w-4" />
+                        <span className="font-medium">{item.author}</span>
+                      </div>
+                    )}
 
-                  {item.reading_time && (
-                    <div className="flex items-center gap-1.5">
-                      <BookOpen className="h-4 w-4" />
-                      <span>{item.reading_time} min read</span>
-                    </div>
-                  )}
+                    {item.publish_date && (
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="h-4 w-4" />
+                        <span>{formatDate(item.publish_date)}</span>
+                      </div>
+                    )}
+
+                    {item.reading_time && (
+                      <div className="flex items-center gap-1.5">
+                        <BookOpen className="h-4 w-4" />
+                        <span>{item.reading_time} min read</span>
+                      </div>
+                    )}
+                  </div>
+                </header>
+
+                {/* Article Content */}
+                <div className="prose-reader">
+                  <Markdown
+                    rehypePlugins={[rehypeRaw]}
+                    components={{
+                      // Custom image component with error handling and lazy loading
+                      img: ({ src, alt, ...props }) => {
+                        if (!src) return null;
+                        return (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={src}
+                            alt={alt || ""}
+                            loading="lazy"
+                            onError={(e) => {
+                              // Hide broken images
+                              e.currentTarget.style.display = "none";
+                            }}
+                            className="rounded-lg max-w-full h-auto my-6"
+                            {...props}
+                          />
+                        );
+                      },
+                    }}
+                  >
+                    {item.content}
+                  </Markdown>
                 </div>
-              </header>
-
-              {/* Article Content */}
-              <div className="prose-reader">
-                <Markdown
-                  rehypePlugins={[rehypeRaw]}
-                  components={{
-                    // Custom image component with error handling and lazy loading
-                    img: ({ src, alt, ...props }) => {
-                      if (!src) return null;
-                      return (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={src}
-                          alt={alt || ""}
-                          loading="lazy"
-                          onError={(e) => {
-                            // Hide broken images
-                            e.currentTarget.style.display = "none";
-                          }}
-                          className="rounded-lg max-w-full h-auto my-6"
-                          {...props}
-                        />
-                      );
-                    },
-                  }}
-                >
-                  {item.content}
-                </Markdown>
-              </div>
-            </article>
+              </article>
+            </ReaderPane>
           ) : item.processing_status === "failed" ? (
             // Failed extraction view (likely paywall)
             <div className="max-w-2xl mx-auto px-6 py-12">

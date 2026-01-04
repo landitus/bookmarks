@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Reader Settings Panel** - Customizable reader typography and display modes
+  - Settings popover accessible via gear icon in reader header
+  - 3 display modes: Light, Amber (e-reader style), Dark (reader-only, header stays on system theme)
+  - 3 paired typography themes with distinct font pairings:
+    - **Literary**: Libre Baskerville + JetBrains Mono (classic, book-like)
+    - **Modern**: Plus Jakarta Sans + Fira Code (clean, contemporary)
+    - **Editorial**: Newsreader + IBM Plex Mono (warm, journalistic)
+  - Settings persist in localStorage
+  - Smooth transitions when switching themes
+  - Code blocks styled appropriately for each display mode
+  - Article header (title/subtitle) uses selected typography theme font
+
+- **Font Playground** (`/dev/fonts`) - Development tool for experimenting with font pairings
+  - Live preview with realistic article content (headings, paragraphs, lists, blockquotes)
+  - Side-by-side comparison of two font pairings
+  - Select dropdowns with curated font lists:
+    - 20 body fonts (10 serif + 10 sans-serif) optimized for long-form reading
+    - 10 monospace fonts for code
+  - Display mode toggle (light/amber/dark) with colors matching reader page
+  - "Copy config" button for chosen font configuration
+
 ### Changed
 
 - **Content Extraction HTML Format** - Firecrawl now requests HTML format and converts to Markdown locally
