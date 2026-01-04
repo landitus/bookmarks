@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Mobile Responsiveness** - Improved mobile layout with responsive padding and hidden elements
+  - Reduced main content padding on mobile (`p-2` → `md:p-8`)
+  - Hidden domain text on mobile (visible at `md` breakpoint)
+  - Hidden processing badge and reading time on mobile (visible at `sm` breakpoint)
+  - Hidden list item actions on mobile (visible at `sm` breakpoint)
 - **List View Link Behavior** - Clicking title now always opens external URL in new tab; added "Preview" button to open reader view
 - **List View Actions** - Removed "Refresh content" from list view dropdown menus (only available in reader view)
 - **Renamed "Keep to Library"** - Simplified to just "Keep" for cleaner UX

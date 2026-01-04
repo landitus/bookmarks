@@ -134,14 +134,14 @@ function ListItem({
           </HoverCardContent>
         </HoverCard>
 
-        <span className="text-sm text-muted-foreground shrink-0">
+        <span className="hidden md:inline text-sm text-muted-foreground shrink-0">
           {getDomain(item.url)}
         </span>
 
         {/* Processing indicator */}
         {(item.processing_status === "pending" ||
           item.processing_status === "processing") && (
-          <span className="flex items-center gap-1 text-xs text-muted-foreground shrink-0 bg-muted px-1.5 py-0.5 rounded">
+          <span className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground shrink-0 bg-muted px-1.5 py-0.5 rounded">
             <Loader2 className="h-3 w-3 animate-spin" />
             <span className="hidden sm:inline">Processing</span>
           </span>
@@ -152,7 +152,7 @@ function ListItem({
           item.reading_time &&
           item.processing_status !== "pending" &&
           item.processing_status !== "processing" && (
-            <span className="text-xs text-muted-foreground shrink-0 bg-muted px-1.5 py-0.5 rounded">
+            <span className="hidden sm:inline text-xs text-muted-foreground shrink-0 bg-muted px-1.5 py-0.5 rounded">
               {item.reading_time} min
             </span>
           )}
@@ -167,7 +167,7 @@ function ListItem({
       <div
         className={cn(
           "shrink-0 flex items-center gap-1 transition-opacity",
-          "opacity-0 group-hover:opacity-100",
+          "opacity-0 group-hover:opacity-100 hidden sm:flex",
           isOpen && "opacity-100"
         )}
       >
@@ -448,7 +448,7 @@ export function ItemsView({
     <div className="max-w-5xl mx-auto space-y-8">
       <div className="space-y-6">
         {/* TOOLBAR: Search input + Filters + View toggle */}
-        <div className="flex items-center justify-between gap-4 mb-8">
+        <div className="flex items-center justify-between gap-4 mb-8 px-2 md:px-0">
           <div className="flex-1">
             <AddItemInput onSearch={setSearchQuery} />
           </div>

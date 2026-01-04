@@ -15,8 +15,7 @@ export function TopbarLayout({ user, children }: TopbarLayoutProps) {
   return (
     <>
       <TopbarNav user={user} />
-      <main className="p-8">{children}</main>
+      <main className="p-2 md:p-8">{children}</main>
     </>
   );
 }
-
