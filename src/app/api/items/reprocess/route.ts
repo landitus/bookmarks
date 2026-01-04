@@ -7,8 +7,8 @@ import {
   jsonResponse,
   createServiceClient,
   authenticateRequest,
-  processItemInBackground,
-} from "@/lib/api/items-shared";
+} from "@/lib/api/helpers";
+import { processItemInBackground } from "@/lib/api/item-processing";
 
 /**
  * POST /api/items/reprocess - Reprocess an item's content extraction

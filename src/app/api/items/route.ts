@@ -14,9 +14,11 @@ import {
   jsonResponse,
   createServiceClient,
   authenticateRequest,
+} from "@/lib/api/helpers";
+import {
   detectTypeFromUrl,
   processItemInBackground,
-} from "@/lib/api/items-shared";
+} from "@/lib/api/item-processing";
 import { isLikelyArticle } from "@/lib/services/content-extractor";
 
 const scraper = metascraper([

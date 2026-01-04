@@ -1,10 +1,8 @@
 /**
- * Shared utilities for items API routes
- * Used by /api/items and /api/items/reprocess
+ * Item processing utilities
+ * Content extraction, AI processing, and database updates for items
  */
 
-import { createClient } from "@supabase/supabase-js";
-import { NextRequest, NextResponse } from "next/server";
 import {
   extractContent,
   isLikelyArticle,
@@ -15,6 +13,7 @@ import {
   extractTopics,
   mapToItemType,
 } from "@/lib/services/ai-processor";
+import { createServiceClient, ServiceClient } from "./helpers";
 
 // =============================================================================
 // TYPES
@@ -28,16 +27,29 @@ export type ItemType =
   | "product"
   | "website";
 
+export interface ProcessingOptions {
+  /** Whether to update title/description from extracted content */
+  updateMetadata?: boolean;
+}
+
+export interface ProcessingResult {
+  content: string | null;
+  wordCount: number | null;
+  readingTime: number | null;
+  author: string | null;
+  publishDate: string | null;
+  type: ItemType;
+  aiContentType: string | null;
+  aiSummary: string | null;
+  title: string | null;
+  description: string | null;
+  topics: string[];
+  processingStatus: "completed" | "failed";
+}
+
 // =============================================================================
 // CONSTANTS
 // =============================================================================
-
-// CORS headers for API responses
-export const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
 
 // Processing timeout in milliseconds (45 seconds)
 export const PROCESSING_TIMEOUT = 45000;
@@ -45,58 +57,6 @@ export const PROCESSING_TIMEOUT = 45000;
 // =============================================================================
 // HELPERS
 // =============================================================================
-
-/**
- * Create JSON response with CORS headers
- */
-export function jsonResponse(data: unknown, status: number = 200) {
-  return NextResponse.json(data, { status, headers: corsHeaders });
-}
-
-/**
- * Create a Supabase client with service role for API access
- */
-export function createServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
-
-export type ServiceClient = ReturnType<typeof createServiceClient>;
-
-/**
- * Authenticate request via Bearer token (api_key from profiles)
- */
-export async function authenticateRequest(
-  request: NextRequest
-): Promise<{ userId: string } | { error: string; status: number }> {
-  const authHeader = request.headers.get("authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return { error: "Missing or invalid Authorization header", status: 401 };
-  }
-
-  const apiKey = authHeader.slice(7); // Remove "Bearer " prefix
-
-  if (!apiKey) {
-    return { error: "API key is required", status: 401 };
-  }
-
-  const supabase = createServiceClient();
-
-  const { data: profile, error } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("api_key", apiKey)
-    .single();
-
-  if (error || !profile) {
-    return { error: "Invalid API key", status: 401 };
-  }
-
-  return { userId: profile.id };
-}
 
 /**
  * Quick URL-based type detection (no network calls)
@@ -121,26 +81,6 @@ export function detectTypeFromUrl(url: string): ItemType {
 // =============================================================================
 // CORE PROCESSING
 // =============================================================================
-
-export interface ProcessingOptions {
-  /** Whether to update title/description from extracted content */
-  updateMetadata?: boolean;
-}
-
-export interface ProcessingResult {
-  content: string | null;
-  wordCount: number | null;
-  readingTime: number | null;
-  author: string | null;
-  publishDate: string | null;
-  type: ItemType;
-  aiContentType: string | null;
-  aiSummary: string | null;
-  title: string | null;
-  description: string | null;
-  topics: string[];
-  processingStatus: "completed" | "failed";
-}
 
 /**
  * Core processing logic for content extraction and AI
@@ -419,4 +359,3 @@ export async function processItemInBackground(
       .eq("id", itemId);
   }
 }
-
