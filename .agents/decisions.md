@@ -223,6 +223,22 @@
   - Auto-fallback to Readability if `FIRECRAWL_API_KEY` is not set
 - **Trade-off:** Slightly more processing (HTML → Markdown), but better code block preservation
 
+### Code Block Extraction: Two-Pass Approach (Jan 2026)
+
+- **Decision:** Use a two-pass approach for HTML→Markdown conversion to preserve complex code blocks.
+- **Why:**
+  1. **Syntax highlighting:** Sites like Stripe wrap code in nested `<span class="token ...">` elements that confuse standard converters
+  2. **Hidden duplicates:** Some sites include hidden `display: none` elements with duplicate code content
+  3. **Backtick escaping:** `node-html-markdown` escapes backticks in code, creating quadruple-backtick artifacts
+- **Implementation:**
+  1. **Pass 1:** Extract code blocks from `<pre>` elements, store clean text, replace with placeholders
+  2. **Convert:** Run `node-html-markdown` on HTML with placeholders (no complex code to confuse it)
+  3. **Pass 2:** Replace placeholders with properly fenced code blocks (triple backticks)
+  - `removeHiddenElements()`: Strip `display: none` elements before processing
+  - `extractCodeFromHtml()`: Parse nested spans, remove line numbers, dedent code
+  - `waitFor: 3000` in Firecrawl request for JS-rendered code blocks
+- **Trade-off:** More complex extraction logic, but handles real-world code blocks correctly
+
 ### AI Processing: OpenAI GPT-4o-mini (Nov 2025)
 
 - **Decision:** Use OpenAI GPT-4o-mini for content analysis (type detection, summaries, topic extraction).
