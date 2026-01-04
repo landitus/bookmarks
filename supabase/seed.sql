@@ -106,22 +106,25 @@ It''s obviously true that the returns for performance are superlinear in busines
 (
   '20000000-0000-0000-0000-000000000002',
   '00000000-0000-0000-0000-000000000001',
-  'https://vercel.com/blog/introducing-next-js-15',
-  'Introducing Next.js 15',
-  'Next.js 15 is officially stable and ready for production. This release builds on the updates from both RC1 and RC2.',
-  'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800',
+  'https://nextjs.org/blog/next-15',
+  'Next.js 15',
+  'Next.js 15 is officially stable and ready for production with React 19 support, Turbopack Dev, and new caching defaults.',
+  'https://assets.vercel.com/image/upload/v1729607938/nextjs/og-next-15.png',
   'article',
   true, false, false,
-  '# Introducing Next.js 15
+  '# Next.js 15
 
 Next.js 15 is officially stable and ready for production. This release builds on the updates from both RC1 and RC2.
 
 ## What''s New
 
-- **Async Request APIs**: Moving towards a simpler model for rendering
+- **@next/codemod CLI**: Easily upgrade your Next.js and React versions
+- **Async Request APIs**: Moving towards a simpler rendering and caching model
 - **Caching Semantics**: fetch requests are no longer cached by default
-- **React 19 Support**: Full support for React 19 and the React Compiler
-- **Turbopack**: Now stable for development',
+- **React 19 Support**: Full support for React 19, React Compiler (Experimental), and hydration error improvements
+- **Turbopack Dev**: Performance and stability improvements, now stable for development
+- **Static Indicator**: New visual indicator shows static routes during development
+- **unstable_after API**: Execute code after a response finishes streaming',
   890,
   4,
   'Vercel Team',
@@ -141,28 +144,28 @@ INSERT INTO items (
 (
   '20000000-0000-0000-0000-000000000003',
   '00000000-0000-0000-0000-000000000001',
-  'https://stripe.com/blog/engineering-fallacies',
-  'Common Engineering Fallacies',
-  'Lessons learned from building payments infrastructure at scale.',
+  'https://stripe.com/blog/api-versioning',
+  'APIs as infrastructure: future-proofing Stripe with versioning',
+  'How Stripe maintains API compatibility while continuously improving their platform.',
   'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800',
   'article',
   false, false, false,
-  '# Common Engineering Fallacies
+  '# APIs as infrastructure: future-proofing Stripe with versioning
 
-Building payments infrastructure has taught us many lessons about what works and what doesn''t at scale.
+Stripe handles billions of API calls, and breaking changes would disrupt millions of businesses. Here''s how we approach API versioning to maintain stability while continuously evolving.
 
-## The Fallacy of Perfect Information
+## The Challenge
 
-Engineers often assume they have complete knowledge of the system. In reality, distributed systems are full of surprises.
+When you''re building an API that powers critical business operations, you can''t just push breaking changes. Yet you also can''t freeze development forever.
 
-## The Fallacy of Infinite Resources
+## Our Approach
 
-Just because cloud services offer "unlimited" scaling doesn''t mean your architecture will handle it gracefully.',
+We use explicit API versioning with a date-based scheme. Each API version is immutable—once released, it never changes. New features and fixes go into new versions.',
   2100,
   10,
-  'Stripe Engineering',
-  '2024-09-15T00:00:00Z',
-  'Stripe shares hard-won lessons from building payments infrastructure at scale, covering common fallacies engineers make about distributed systems and resource management.',
+  'Brandur Leach',
+  '2017-08-15T00:00:00Z',
+  'Stripe explains their approach to API versioning, balancing the need for stability with continuous improvement. A must-read for anyone building APIs at scale.',
   'technical-article',
   'completed',
   now() - interval '1 day'
@@ -170,22 +173,24 @@ Just because cloud services offer "unlimited" scaling doesn''t mean your archite
 (
   '20000000-0000-0000-0000-000000000004',
   '00000000-0000-0000-0000-000000000001',
-  'https://www.newyorker.com/culture/the-weekend-essay/the-art-of-getting-lost',
-  'The Art of Getting Lost',
-  'In praise of wandering without a destination.',
+  'https://www.paulgraham.com/hwh.html',
+  'How to Work Hard',
+  'It might not seem there''s much to learn about how to work hard. Anyone who''s been to school knows what it entails.',
   'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800',
   'article',
   true, false, false,
-  '# The Art of Getting Lost
+  '# How to Work Hard
 
-There is something deeply human about wanting to know where we are going. GPS has eliminated the possibility of getting lost, but has it also eliminated something essential?
+It might not seem there''s much to learn about how to work hard. Anyone who''s been to school knows what it entails, even if they chose not to do it. There are three components: quantity, quality, and direction.
 
-When we wander without a destination, we open ourselves to serendipity. The best discoveries often come when we''re not looking for anything in particular.',
+Some people work longer hours than others. Some work on more mentally demanding problems. And some direct their work towards more important goals.
+
+You won''t get very far if you only work on one of these dimensions. The most impressive people work on all three.',
   1800,
   9,
-  'Rebecca Solnit',
-  '2024-08-22T00:00:00Z',
-  'A meditation on the value of wandering without purpose in an age of GPS and constant navigation. Getting lost can lead to unexpected discoveries and deeper human experiences.',
+  'Paul Graham',
+  '2021-06-01T00:00:00Z',
+  'Paul Graham breaks down hard work into three components: quantity, quality, and direction. To achieve great things, you need all three working together.',
   'longform-essay',
   'completed',
   now() - interval '1 day 3 hours'
@@ -200,24 +205,28 @@ INSERT INTO items (
 (
   '20000000-0000-0000-0000-000000000005',
   '00000000-0000-0000-0000-000000000001',
-  'https://danluu.com/simple-hierarchical/',
-  'Simple Hierarchical Data Structures',
-  'Why simple solutions often beat complex ones in practice.',
+  'https://danluu.com/sounds-easy/',
+  'Normalization of deviance',
+  'How the gradual acceptance of small deviations from proper practice can lead to catastrophic failures.',
   'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=800',
   'article',
   false, false, false,
-  '# Simple Hierarchical Data Structures
+  '# Normalization of deviance
 
-In my experience, simple data structures almost always beat complex ones. The performance gains from complex structures rarely outweigh the cost of additional bugs and maintenance burden.
+In 1996, Diane Vaughan published a book analyzing the Challenger shuttle disaster. She coined the phrase "normalization of deviance" to describe a cultural phenomenon where the gradual acceptance of risk leads to catastrophe.
 
-## The B-tree Trap
+## How It Works
 
-Many engineers reach for B-trees when a simple sorted array would suffice. The constant factors matter more than asymptotic complexity for small datasets.',
+People become accustomed to small violations. Each violation that doesn''t result in disaster reinforces the belief that the risk isn''t real. Over time, what was once unacceptable becomes routine.
+
+## In Software
+
+I''ve seen this pattern repeatedly in tech companies. Tests start failing occasionally. Monitoring alerts fire and get ignored. Technical debt accumulates. Each step seems small, but the cumulative effect can be devastating.',
   3200,
   16,
   'Dan Luu',
-  '2024-07-10T00:00:00Z',
-  'Dan Luu argues that simple data structures usually outperform complex ones in practice, as the overhead of complex implementations often exceeds their theoretical benefits.',
+  '2019-04-15T00:00:00Z',
+  'Dan Luu explores how gradual acceptance of small deviations from proper practice can lead to catastrophic failures, with examples from the Challenger disaster and software engineering.',
   'technical-article',
   'completed',
   now() - interval '5 days'
@@ -225,22 +234,26 @@ Many engineers reach for B-trees when a simple sorted array would suffice. The c
 (
   '20000000-0000-0000-0000-000000000006',
   '00000000-0000-0000-0000-000000000001',
-  'https://arstechnica.com/science/2024/10/how-the-brain-creates-memories/',
-  'How the Brain Creates Memories',
-  'New research reveals the molecular mechanisms behind long-term memory formation.',
+  'https://waitbutwhy.com/2015/01/artificial-intelligence-revolution-1.html',
+  'The AI Revolution: The Road to Superintelligence',
+  'An exploration of artificial intelligence and where it might be taking us.',
   'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=800',
   'article',
   true, false, false,
-  '# How the Brain Creates Memories
+  '# The AI Revolution: The Road to Superintelligence
 
-Scientists have long known that memories are stored in the connections between neurons, but the precise mechanisms have remained elusive.
+We are on the edge of change comparable to the rise of human life on Earth. — Vernor Vinge
 
-New research using advanced imaging techniques has revealed that memory formation involves a cascade of molecular events that permanently alter synaptic connections.',
+What does it mean for the future to be near? And just how soon is it coming?
+
+## The Far Future Is Coming Faster Than You Think
+
+Imagine taking a time machine back to 1750 and grabbing someone from that era. You bring them to 2015 and show them cars, planes, phones, the internet. They would die of shock—the future would be too overwhelming to process.',
   1650,
   8,
-  'John Timmer',
-  '2024-10-01T00:00:00Z',
-  'New neuroscience research reveals the molecular mechanisms behind long-term memory formation, showing how synaptic connections are permanently altered during learning.',
+  'Tim Urban',
+  '2015-01-22T00:00:00Z',
+  'Tim Urban of Wait But Why explores the path from narrow AI to artificial general intelligence to superintelligence, and what it might mean for humanity.',
   'science-article',
   'completed',
   now() - interval '6 days'
@@ -280,20 +293,26 @@ Before any work begins, senior people "shape" the work—defining the boundaries
 (
   '20000000-0000-0000-0000-000000000008',
   '00000000-0000-0000-0000-000000000001',
-  'https://www.wired.com/story/the-metaverse-is-dead/',
-  'The Metaverse Is Dead. Long Live Spatial Computing',
-  'How the industry pivoted from virtual worlds to mixed reality.',
+  'https://www.joelonsoftware.com/2000/04/06/things-you-should-never-do-part-i/',
+  'Things You Should Never Do, Part I',
+  'Netscape 6.0 is finally going into its first public beta. There never was a version 5.0. The last major release was version 4.0 in 1997.',
   'https://images.unsplash.com/photo-1617802690992-15d93263d3a9?w=800',
   'article',
   false, false, true,
-  '# The Metaverse Is Dead. Long Live Spatial Computing
+  '# Things You Should Never Do, Part I
 
-The metaverse hype has faded, replaced by a more practical vision: spatial computing. Instead of virtual worlds, the future might be about enhancing the real world with digital layers.',
+Netscape 6.0 is finally going into its first public beta. There never was a version 5.0. The last major release, version 4.0, was released almost three years ago.
+
+They decided to rewrite the code from scratch. This is the single worst strategic mistake that any software company can make.
+
+## The Old Mantra Build One to Throw Away Is Wrong
+
+Programmers always want to throw away old code and start over. The reason is that they think the old code is a mess. They''re probably wrong.',
   1100,
   5,
-  'Lauren Goode',
-  '2024-06-15T00:00:00Z',
-  'The metaverse hype has given way to spatial computing, a more practical approach that enhances reality with digital layers rather than replacing it entirely.',
+  'Joel Spolsky',
+  '2000-04-06T00:00:00Z',
+  'Joel Spolsky argues that rewriting software from scratch is almost always a strategic mistake, using Netscape''s browser rewrite as a cautionary tale.',
   'tech-analysis',
   'completed',
   now() - interval '30 days'
@@ -310,10 +329,10 @@ INSERT INTO items (
 (
   '20000000-0000-0000-0000-000000000010',
   '00000000-0000-0000-0000-000000000001',
-  'https://www.youtube.com/watch?v=kYfNvmF0Bqw',
+  'https://www.youtube.com/watch?v=6avJHaC3C2U',
   'The Art of Code - Dylan Beattie',
   'A talk about the joy and creativity in programming, featuring musical code and esoteric languages.',
-  'https://img.youtube.com/vi/kYfNvmF0Bqw/maxresdefault.jpg',
+  'https://img.youtube.com/vi/6avJHaC3C2U/maxresdefault.jpg',
   'video',
   true, false, false,
   '{"duration": "3632", "channel": "NDC Conferences", "platform": "youtube"}',
@@ -325,10 +344,10 @@ INSERT INTO items (
 (
   '20000000-0000-0000-0000-000000000011',
   '00000000-0000-0000-0000-000000000001',
-  'https://www.youtube.com/watch?v=8pTEmbeENF4',
+  'https://www.youtube.com/watch?v=mVVNJKv9esE',
   'The Wet Codebase - Dan Abramov',
   'Beyond DRY: When duplication is actually the right choice.',
-  'https://img.youtube.com/vi/8pTEmbeENF4/maxresdefault.jpg',
+  'https://img.youtube.com/vi/mVVNJKv9esE/maxresdefault.jpg',
   'video',
   true, false, false,
   '{"duration": "1893", "channel": "Deconstruct", "platform": "youtube"}',
@@ -340,13 +359,13 @@ INSERT INTO items (
 (
   '20000000-0000-0000-0000-000000000012',
   '00000000-0000-0000-0000-000000000001',
-  'https://vimeo.com/97419176',
+  'https://www.youtube.com/watch?v=PUv66718DII',
   'Inventing on Principle - Bret Victor',
   'A legendary talk on creative tools and immediate feedback.',
-  'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=800',
+  'https://img.youtube.com/vi/PUv66718DII/maxresdefault.jpg',
   'video',
   true, true, false,
-  '{"duration": "3240", "channel": "Bret Victor", "platform": "vimeo"}',
+  '{"duration": "3240", "channel": "CUSEC", "platform": "youtube"}',
   'Bret Victor demonstrates revolutionary ideas about creative tools, showing how immediate feedback and direct manipulation can transform how we create software and art.',
   'conference-talk',
   'completed',
@@ -423,7 +442,7 @@ INSERT INTO items (
 );
 
 -- ============================================================================
--- ITEMS - Threads (Twitter/X threads, Reddit discussions)
+-- ITEMS - Threads (Twitter/X threads, Hacker News discussions)
 -- ============================================================================
 
 INSERT INTO items (
@@ -434,7 +453,7 @@ INSERT INTO items (
 (
   '20000000-0000-0000-0000-000000000030',
   '00000000-0000-0000-0000-000000000001',
-  'https://twitter.com/naval/status/1002103360646823936',
+  'https://x.com/naval/status/1002103360646823936',
   'Naval Ravikant: How to Get Rich Without Getting Lucky',
   'A legendary thread on wealth creation and leverage.',
   'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800',
@@ -455,22 +474,24 @@ INSERT INTO items (
 (
   '20000000-0000-0000-0000-000000000031',
   '00000000-0000-0000-0000-000000000001',
-  'https://www.reddit.com/r/programming/comments/abc123/i_spent_6_months_building_a_side_project',
-  'I spent 6 months building a side project - lessons learned',
-  'A developer shares their journey building and launching a product.',
+  'https://news.ycombinator.com/item?id=35154527',
+  'Ask HN: What are some things you''ve mass-adopted from HN?',
+  'Hacker News community shares tools and practices they adopted from the community.',
   'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800',
   'thread',
   true, false, false,
-  'After 6 months of building my side project in the evenings, here''s what I learned:
+  'Top answers from the community:
 
-1. Start with distribution, not the product
-2. Talk to users before writing code
-3. Simple > Perfect
-4. Ship weekly to maintain momentum',
+- Using a password manager (1Password, Bitwarden)
+- Switching to mechanical keyboards
+- Learning Vim keybindings
+- Reading Paul Graham essays
+- Using SQLite for more things
+- Terminal multiplexers like tmux',
   1200,
   6,
-  'A developer reflects on building a side project over 6 months, emphasizing the importance of distribution, user feedback, and shipping frequently.',
-  'reddit-discussion',
+  'Hacker News users share the tools, practices, and technologies they''ve adopted from the community, from password managers to mechanical keyboards.',
+  'hn-discussion',
   'completed',
   now() - interval '7 days'
 );
@@ -486,14 +507,14 @@ INSERT INTO items (
 (
   '20000000-0000-0000-0000-000000000040',
   '00000000-0000-0000-0000-000000000001',
-  'https://unsplash.com/photos/5E5N49RWtbA',
+  'https://unsplash.com/photos/XMFZqrGyV-Q',
   'Minimal Workspace Setup',
-  'A clean, minimal desk setup with natural light.',
-  'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=800',
+  'A clean, minimal desk setup with natural light by Jeff Sheldon.',
+  'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800',
   'image',
   true, false, false,
-  '{"photographer": "Unsplash", "dimensions": "4000x2667"}',
-  'A minimalist workspace featuring natural wood, plants, and plenty of natural light. Perfect inspiration for home office design.',
+  '{"photographer": "Jeff Sheldon", "dimensions": "5472x3648"}',
+  'A minimalist workspace featuring a MacBook, clean desk, and natural light. Perfect inspiration for a focused home office design.',
   'photography',
   'completed',
   now() - interval '12 hours'
@@ -501,14 +522,14 @@ INSERT INTO items (
 (
   '20000000-0000-0000-0000-000000000041',
   '00000000-0000-0000-0000-000000000001',
-  'https://dribbble.com/shots/12345678-Mobile-App-Design',
-  'Mobile App Design - Finance Dashboard',
-  'Beautiful mobile app design for a finance tracking app.',
+  'https://layers.to/layers/clsxd8s0d0001l80fzkfzjv5m',
+  'Layers Design System Components',
+  'A curated collection of design system components and patterns.',
   'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800',
   'image',
   true, false, false,
-  '{"designer": "Dribbble User", "dimensions": "1600x1200"}',
-  'A sleek finance dashboard design featuring dark mode, gradient accents, and clear data visualization for mobile devices.',
+  '{"source": "Layers.to", "type": "design-system"}',
+  'A comprehensive collection of design system components including buttons, forms, cards, and navigation patterns for modern web applications.',
   'design-inspiration',
   'completed',
   now() - interval '5 days'
@@ -516,15 +537,15 @@ INSERT INTO items (
 (
   '20000000-0000-0000-0000-000000000042',
   '00000000-0000-0000-0000-000000000001',
-  'https://www.artstation.com/artwork/nature-landscape',
-  'Digital Art - Mountain Sunrise',
-  'Stunning digital painting of a mountain landscape at sunrise.',
+  'https://unsplash.com/photos/Oalh2MojUuk',
+  'Mountain Landscape at Sunrise',
+  'Stunning photograph of mountain peaks bathed in golden sunrise light.',
   'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
   'image',
   false, false, false,
-  '{"artist": "ArtStation Artist", "medium": "digital"}',
-  'A breathtaking digital painting depicting mountain peaks at sunrise, with dramatic lighting and atmospheric depth.',
-  'digital-art',
+  '{"photographer": "Samuel Ferrara", "location": "Switzerland"}',
+  'A breathtaking photograph of Swiss Alps at sunrise, with dramatic lighting casting golden hues across snow-capped peaks.',
+  'photography',
   'completed',
   now() - interval '20 days'
 );
@@ -605,9 +626,9 @@ INSERT INTO items (
 (
   '20000000-0000-0000-0000-000000000060',
   '00000000-0000-0000-0000-000000000001',
-  'https://www.theatlantic.com/technology/archive/2024/ai-future/',
-  'The Future of AI is Here',
-  'An in-depth look at where artificial intelligence is heading.',
+  'https://www.anthropic.com/research/building-effective-agents',
+  'Building effective agents',
+  'An exploration of successful patterns for building effective AI agents.',
   'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800',
   'article',
   true, false, false,
@@ -617,10 +638,10 @@ INSERT INTO items (
 (
   '20000000-0000-0000-0000-000000000061',
   '00000000-0000-0000-0000-000000000001',
-  'https://www.youtube.com/watch?v=processing123',
-  'Tech Conference Keynote 2024',
-  'Latest announcements from the annual tech conference.',
-  'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800',
+  'https://www.youtube.com/watch?v=zjkBMFhNj_g',
+  'WWDC 2024 Keynote — June 10 | Apple',
+  'Apple''s Worldwide Developers Conference 2024 keynote presentation.',
+  'https://img.youtube.com/vi/zjkBMFhNj_g/maxresdefault.jpg',
   'video',
   false, false, false,
   'completed', -- Videos don't need content extraction
