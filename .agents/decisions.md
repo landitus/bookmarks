@@ -234,3 +234,16 @@
   - Used in both `(protected)` and `(reader)` layouts
   - Includes logo, user menu, and theme switcher
 - **Trade-off:** None, pure win for code organization
+
+### API Utilities Split (Jan 2026)
+
+- **Decision:** Split shared API code into two modules: `helpers.ts` (generic) and `item-processing.ts` (domain-specific).
+- **Why:**
+  1. **Reusability:** Generic helpers (auth, CORS, JSON response) can be used by any API route
+  2. **Separation of concerns:** Processing logic is clearly separate from HTTP utilities
+  3. **Maintainability:** Smaller, focused files are easier to understand and modify
+- **Implementation:**
+  - `src/lib/api/helpers.ts`: `corsHeaders`, `jsonResponse()`, `createServiceClient()`, `authenticateRequest()`
+  - `src/lib/api/item-processing.ts`: `processItemInBackground()`, `processItemContent()`, `saveProcessingResults()`, `detectTypeFromUrl()`
+  - Route handlers import from both modules as needed
+- **Trade-off:** Two imports instead of one, but clearer code organization

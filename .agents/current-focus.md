@@ -6,6 +6,15 @@
 
 ## 🎉 Recently Completed
 
+### API Code DRY Refactor (Jan 4, 2026)
+
+Extracted shared utilities from items API routes:
+
+- [x] Created `src/lib/api/helpers.ts` - generic API utilities (auth, CORS, JSON response)
+- [x] Created `src/lib/api/item-processing.ts` - content extraction and AI processing logic
+- [x] Route handlers now import from shared modules
+- [x] `route.ts` reduced from 617 → 291 lines, `reprocess/route.ts` from 346 → 84 lines
+
 ### Serverless Background Processing Fix (Jan 4, 2026)
 
 Fixed background processing getting killed before completion on Vercel serverless:
@@ -72,9 +81,11 @@ Restructured the app around a triage-based workflow: **Capture → Consume → K
 
 | File                                   | Change                                      |
 | -------------------------------------- | ------------------------------------------- |
+| `src/lib/api/helpers.ts`               | NEW: Generic API utilities (auth, CORS)     |
+| `src/lib/api/item-processing.ts`       | NEW: Item processing logic (extraction, AI) |
+| `src/app/api/items/route.ts`           | Refactored to use shared modules            |
+| `src/app/api/items/reprocess/route.ts` | Refactored to use shared modules            |
 | `src/components/items/items-view.tsx`  | Added polling fallback for processing items |
-| `src/app/api/items/route.ts`           | Added 45s timeout guard to processing       |
-| `src/app/api/items/reprocess/route.ts` | Added 45s timeout guard to reprocessing     |
 | `src/lib/actions/items.ts`             | Reprocess trigger uses deployed base URL    |
 
 ## 🧭 Data Model
