@@ -171,8 +171,6 @@ async function processItem(
     let type: ItemType = originalType;
     let aiContentType: string | null = null;
     let aiSummary: string | null = null;
-    let title: string | null = null;
-    let description: string | null = null;
 
     // Content extraction
     if (isLikelyArticle(url)) {
@@ -185,8 +183,8 @@ async function processItem(
           readingTime = extracted.readingTime;
           author = extracted.author;
           publishDate = extracted.publishDate?.toISOString() || null;
-          if (extracted.title) title = extracted.title;
-          if (extracted.description) description = extracted.description;
+          // Note: We intentionally don't update title/description during reprocess
+          // to preserve user's original saved title
           log(`Content extracted: ${content?.length || 0} chars`);
         } else {
           log(`No content extracted`);
@@ -203,14 +201,15 @@ async function processItem(
     if (hasOpenAIKey) {
       log(`AI processing...`);
       try {
+        // Get current item's title/description for AI processing
         const { data: currentItem } = await supabase
           .from("items")
           .select("title, description")
           .eq("id", itemId)
           .single();
 
-        const itemTitle = title || currentItem?.title || url;
-        const itemDescription = description || currentItem?.description;
+        const itemTitle = currentItem?.title || url;
+        const itemDescription = currentItem?.description;
 
         const typeResult = await detectContentType(
           url,
@@ -255,8 +254,8 @@ async function processItem(
     if (publishDate) updateData.publish_date = publishDate;
     if (aiContentType) updateData.ai_content_type = aiContentType;
     if (aiSummary) updateData.ai_summary = aiSummary;
-    if (title) updateData.title = title;
-    if (description) updateData.description = description;
+    // Note: title and description are intentionally NOT updated during reprocess
+    // to preserve the user's original saved title
 
     await supabase.from("items").update(updateData).eq("id", itemId);
     log(`✅ Reprocess completed with status: ${processingStatus}`);
