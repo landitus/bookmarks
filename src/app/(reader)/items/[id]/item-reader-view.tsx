@@ -28,10 +28,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { User } from "@supabase/supabase-js";
-import {
-  ReaderSettingsProvider,
-  useReaderSettings,
-} from "@/components/reader";
+import { ReaderSettingsProvider, useReaderSettings } from "@/components/reader";
 import { ReaderSettingsPopover } from "@/components/reader";
 
 // =============================================================================
@@ -310,12 +307,12 @@ function ItemReaderViewContent({ item, topics, user }: ItemReaderViewProps) {
       />
 
       {/* Main Content */}
-      <div className="flex">
+      <div className="flex relative">
         {/* Reader Pane */}
         <main
           className={cn(
-            "flex-1 transition-all duration-300",
-            sidebarOpen ? "sm:mr-80" : "mr-0"
+            "flex-1 min-w-0 transition-all duration-300 w-full",
+            sidebarOpen && "sm:mr-80"
           )}
         >
           {isRefreshing ? (
@@ -360,7 +357,7 @@ function ItemReaderViewContent({ item, topics, user }: ItemReaderViewProps) {
           ) : isArticle ? (
             // Article Reader View - Wrapped in ReaderPane for theme/display styling
             <ReaderPane className="min-h-[calc(100vh-3.5rem)]">
-              <article className="max-w-[750px] mx-auto px-12 py-12">
+              <article className="max-w-[750px] mx-auto px-4 sm:px-6 lg:px-12 py-12 sm:py-20">
                 {/* Article Header */}
                 <header className="reader-header mb-12">
                   <h1 className="text-[2.5rem] sm:text-[2.75rem] font-bold leading-[1.15] tracking-tight mb-5">
