@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Jobs that exceed timeout are automatically marked as "failed" with error message
   - Applied to both initial save and reprocess endpoints
 - **Reprocess base URL in production** - Refresh content now calls `/api/items/reprocess` using the deployed site URL (falls back through `NEXT_PUBLIC_SITE_URL` → `NEXT_PUBLIC_APP_URL` → `VERCEL_URL`), avoiding localhost calls that caused `ECONNREFUSED` in production
+- **Missing processing_error column** - Added `processing_error` column to items table so timeout/failure errors are captured instead of silently failing and leaving items stuck in "processing" state
 
 ### Changed
 
