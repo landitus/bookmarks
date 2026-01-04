@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { Item, ItemType } from "@/lib/types";
 
 // Metascraper setup
@@ -158,13 +159,19 @@ export async function createItem(
     return { success: false, message: "This bookmark already exists" };
   }
 
-  // Scrape metadata
+  // Scrape metadata with timeout
   let title = url;
   let description = null;
   let image_url = null;
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; Portable/1.0; +https://portable.app)",
+      },
+      signal: AbortSignal.timeout(5000), // 5 second timeout for fast response
+    });
     const html = await response.text();
     const metadata = await scraper({ html, url });
 
@@ -173,6 +180,7 @@ export async function createItem(
     if (metadata.image) image_url = metadata.image;
   } catch (e) {
     console.error("Failed to scrape metadata:", e);
+    // Continue with URL as title - still save the item
   }
 
   // Infer type roughly from extension or domain
@@ -394,7 +402,7 @@ export async function refreshContent(id: string): Promise<void> {
     .single();
 
   if (profile?.api_key) {
-    // Trigger processing via internal fetch (non-blocking)
+    // Trigger processing via after() to ensure fetch completes
     const vercelUrl = process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
       : null;
@@ -403,15 +411,22 @@ export async function refreshContent(id: string): Promise<void> {
       process.env.NEXT_PUBLIC_APP_URL ||
       vercelUrl ||
       "http://localhost:3000";
-    fetch(`${baseUrl}/api/items/reprocess`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${profile.api_key}`,
-      },
-      body: JSON.stringify({ itemId: id }),
-    }).catch((e) => {
-      console.error("Error triggering reprocess:", e);
+
+    // Use after() to ensure the fetch completes even after server action returns
+    after(async () => {
+      try {
+        await fetch(`${baseUrl}/api/items/reprocess`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${profile.api_key}`,
+          },
+          body: JSON.stringify({ itemId: id }),
+          signal: AbortSignal.timeout(10000), // 10s timeout for the trigger request
+        });
+      } catch (e) {
+        console.error("Error triggering reprocess:", e);
+      }
     });
   }
 

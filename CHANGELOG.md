@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Reprocess base URL in production** - Refresh content now calls `/api/items/reprocess` using the deployed site URL (falls back through `NEXT_PUBLIC_SITE_URL` → `NEXT_PUBLIC_APP_URL` → `VERCEL_URL`), avoiding localhost calls that caused `ECONNREFUSED` in production
 - **Missing processing_error column** - Added `processing_error` column to items table so timeout/failure errors are captured instead of silently failing and leaving items stuck in "processing" state
 - **Serverless background processing** - Use Next.js `after()` to keep function alive until background processing completes, preventing orphaned jobs that get killed when the response is sent
+- **Server action reliability** - Use `after()` in `refreshContent` server action to ensure reprocess API call completes; add 5s timeout to metadata fetch in `createItem`
 
 ### Changed
 
