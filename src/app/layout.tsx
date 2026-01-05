@@ -1,44 +1,49 @@
 import type { Metadata, Viewport } from "next";
 import {
-  Geist,
-  Geist_Mono,
   Inter,
   Literata,
-  Newsreader,
   Fira_Code,
   IBM_Plex_Mono,
-  Source_Code_Pro,
 } from "next/font/google";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
-const geistSans = Geist({
+// =============================================================================
+// APP BASE FONTS
+// =============================================================================
+
+// Inter for app UI and Modern reader theme
+const inter = Inter({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-// =============================================================================
-// READER TYPOGRAPHY FONTS
-// =============================================================================
-
-// Literary theme: Clean sans for text, humanist mono for code
-const inter = Inter({
+// Also expose Inter for reader Modern theme
+const interReader = Inter({
   variable: "--font-literary-text",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
 
+// App mono font (also used for Modern reader theme code)
 const ibmPlexMono = IBM_Plex_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+});
+
+// Also expose for reader Modern theme
+const ibmPlexMonoReader = IBM_Plex_Mono({
   variable: "--font-literary-code",
   subsets: ["latin"],
   weight: ["400", "500", "700"],
 });
+
+// =============================================================================
+// READER TYPOGRAPHY FONTS
+// =============================================================================
 
 // Modern theme: Contemporary serif for text, ligature-friendly mono for code
 const literata = Literata({
@@ -54,15 +59,14 @@ const firaCode = Fira_Code({
   weight: ["400", "500", "700"],
 });
 
-// Editorial theme: Warm transitional serif for text, classic mono for code
-const newsreader = Newsreader({
+// Terminal theme: Monospace throughout for code editor experience
+const ibmPlexMonoTerminal = IBM_Plex_Mono({
   variable: "--font-editorial-text",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
+  weight: ["400", "500", "700"],
 });
 
-const sourceCodePro = Source_Code_Pro({
+const ibmPlexMonoTerminalCode = IBM_Plex_Mono({
   variable: "--font-editorial-code",
   subsets: ["latin"],
   weight: ["400", "500", "700"],
@@ -106,7 +110,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${ibmPlexMono.variable} ${literata.variable} ${firaCode.variable} ${newsreader.variable} ${sourceCodePro.variable} antialiased min-h-screen bg-muted/10`}
+        className={`${inter.variable} ${interReader.variable} ${ibmPlexMono.variable} ${ibmPlexMonoReader.variable} ${literata.variable} ${firaCode.variable} ${ibmPlexMonoTerminal.variable} ${ibmPlexMonoTerminalCode.variable} antialiased min-h-screen bg-muted/10`}
       >
         <ThemeProvider>
           {children}

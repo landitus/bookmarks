@@ -2,7 +2,6 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +12,6 @@ import {
 import { Input } from "@/components/ui/input";
 import {
   logout,
-  updateTheme,
   getApiKey,
   regenerateApiKey,
 } from "@/lib/actions/auth";
@@ -21,18 +19,13 @@ import {
   LogOut,
   Settings,
   User,
-  Sun,
-  Moon,
-  Monitor,
   Key,
   Copy,
   RefreshCw,
   Check,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
-import type { Theme } from "@/lib/types";
 import { toast } from "sonner";
 
 interface UserMenuProps {
@@ -47,18 +40,10 @@ interface UserMenuProps {
 
 export function UserMenu({ user }: UserMenuProps) {
   const [open, setOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [showApiKey, setShowApiKey] = useState(false);
   const [copied, setCopied] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
-
-  // Prevent hydration mismatch by only showing theme selection after mount
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Load API key when dropdown opens and API key section is shown
   useEffect(() => {
@@ -112,11 +97,6 @@ export function UserMenu({ user }: UserMenuProps) {
     } finally {
       setRegenerating(false);
     }
-  };
-
-  const handleThemeChange = async (newTheme: Theme) => {
-    setTheme(newTheme);
-    await updateTheme(newTheme);
   };
 
   // Helper to format name like "Fernando Carrettoni"
@@ -185,37 +165,6 @@ export function UserMenu({ user }: UserMenuProps) {
               </p>
             </div>
           </div>
-        </div>
-
-        <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800 mx-2" />
-
-        <div className="px-2 py-2">
-          <ButtonGroup orientation="horizontal" className="w-full">
-            <Button
-              variant={mounted && theme === "light" ? "default" : "outline"}
-              size="sm"
-              className="flex-1"
-              onClick={() => handleThemeChange("light")}
-            >
-              <Sun className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={mounted && theme === "dark" ? "default" : "outline"}
-              size="sm"
-              className="flex-1"
-              onClick={() => handleThemeChange("dark")}
-            >
-              <Moon className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={mounted && theme === "system" ? "default" : "outline"}
-              size="sm"
-              className="flex-1"
-              onClick={() => handleThemeChange("system")}
-            >
-              <Monitor className="h-4 w-4" />
-            </Button>
-          </ButtonGroup>
         </div>
 
         <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800 mx-2" />

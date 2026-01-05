@@ -55,39 +55,33 @@ interface ThemeOptionProps {
   onClick: () => void;
 }
 
+// Map theme to CSS font variable for preview
+const FONT_FAMILY_MAP: Record<ReaderTheme, string> = {
+  literary: "var(--font-literary-text), system-ui, sans-serif",
+  modern: "var(--font-modern-text), Georgia, serif",
+  editorial: "var(--font-editorial-text), Georgia, serif",
+};
+
 function ThemeOption({ theme, isSelected, onClick }: ThemeOptionProps) {
   const option = THEME_OPTIONS[theme];
-
-  // Map theme to CSS font variable for preview
-  const fontFamilyMap: Record<ReaderTheme, string> = {
-    literary: "var(--font-literary-text), Georgia, serif",
-    modern: "var(--font-modern-text), system-ui, sans-serif",
-    editorial: "var(--font-editorial-text), Georgia, serif",
-  };
 
   return (
     <button
       onClick={onClick}
       className={cn(
-        "flex flex-col items-start gap-1 p-3 rounded-lg border-2 transition-all text-left w-full",
+        "flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-all flex-1",
         isSelected
           ? "border-primary bg-primary/5"
           : "border-border hover:border-primary/50 hover:bg-muted/50"
       )}
     >
       <span
-        className="text-sm font-medium leading-tight"
-        style={{ fontFamily: fontFamilyMap[theme] }}
+        className="text-xl font-medium leading-none"
+        style={{ fontFamily: FONT_FAMILY_MAP[theme] }}
       >
-        {option.name}
+        Abc
       </span>
-      <span className="text-xs text-muted-foreground">{option.description}</span>
-      <span
-        className="text-[10px] text-muted-foreground/70 mt-0.5"
-        style={{ fontFamily: fontFamilyMap[theme] }}
-      >
-        Aa Bb Cc 123
-      </span>
+      <span className="text-xs font-medium">{option.name}</span>
     </button>
   );
 }
@@ -180,7 +174,7 @@ export function ReaderSettingsPopover() {
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Typography
             </label>
-            <div className="space-y-2">
+            <div className="flex gap-2">
               {(Object.keys(THEME_OPTIONS) as ReaderTheme[]).map((theme) => (
                 <ThemeOption
                   key={theme}

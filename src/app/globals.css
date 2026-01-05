@@ -453,10 +453,11 @@
   font-family: var(--font-modern-code), "Courier New", monospace;
 }
 
-/* Editorial theme: Newsreader + Source Code Pro */
+/* Terminal theme: IBM Plex Mono (monospace throughout) */
 .reader-pane[data-reader-theme="editorial"] .prose-reader,
 .reader-pane[data-reader-theme="editorial"] .reader-header {
-  font-family: var(--font-editorial-text), Georgia, serif;
+  font-family: var(--font-editorial-text), "Courier New", monospace;
+  font-size: 1rem;
 }
 
 .reader-pane[data-reader-theme="editorial"] .prose-reader code,

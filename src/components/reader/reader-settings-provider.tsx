@@ -45,22 +45,22 @@ export const THEME_OPTIONS: Record<
   { name: string; description: string; textFont: string; codeFont: string }
 > = {
   literary: {
-    name: "Literary",
+    name: "Modern",
     description: "Clean, minimal",
     textFont: "Inter",
     codeFont: "IBM Plex Mono",
   },
   modern: {
-    name: "Modern",
-    description: "Contemporary serif",
+    name: "Editorial",
+    description: "Classic serif",
     textFont: "Literata",
     codeFont: "Fira Code",
   },
   editorial: {
-    name: "Editorial",
-    description: "Warm, journalistic",
-    textFont: "Newsreader",
-    codeFont: "Source Code Pro",
+    name: "Terminal",
+    description: "Code editor style",
+    textFont: "IBM Plex Mono",
+    codeFont: "IBM Plex Mono",
   },
 };
 
