@@ -39,49 +39,52 @@ export async function GET(request: NextRequest) {
       return jsonResponse({ exists: false, error: auth.error }, auth.status);
     }
 
-  const { userId } = auth;
-  const { searchParams } = new URL(request.url);
-  const url = searchParams.get("url");
+    const { userId } = auth;
+    const { searchParams } = new URL(request.url);
+    const url = searchParams.get("url");
 
-  if (!url) {
-    return jsonResponse(
-      { exists: false, error: "URL parameter is required" },
-      400
-    );
-  }
+    if (!url) {
+      return jsonResponse(
+        { exists: false, error: "URL parameter is required" },
+        400
+      );
+    }
 
-  try {
-    new URL(url);
-  } catch {
-    return jsonResponse({ exists: false, error: "Invalid URL format" }, 400);
-  }
+    try {
+      new URL(url);
+    } catch {
+      return jsonResponse({ exists: false, error: "Invalid URL format" }, 400);
+    }
 
-  const supabase = createServiceClient();
+    const supabase = createServiceClient();
 
-  const { data: existingItem, error } = await supabase
-    .from("items")
-    .select("id, url, title, created_at")
-    .eq("url", url)
-    .eq("user_id", userId)
-    .maybeSingle();
+    const { data: existingItem, error } = await supabase
+      .from("items")
+      .select("id, url, title, created_at")
+      .eq("url", url)
+      .eq("user_id", userId)
+      .maybeSingle();
 
-  if (error) {
-    console.error("Error checking for existing item:", error);
-    return jsonResponse(
-      { exists: false, error: "Failed to check bookmark" },
-      500
-    );
-  }
+    if (error) {
+      console.error("Error checking for existing item:", error);
+      return jsonResponse(
+        { exists: false, error: "Failed to check bookmark" },
+        500
+      );
+    }
 
-  if (existingItem) {
-    return jsonResponse({ exists: true, item: existingItem }, 200);
-  }
+    if (existingItem) {
+      return jsonResponse({ exists: true, item: existingItem }, 200);
+    }
 
-  return jsonResponse({ exists: false }, 200);
+    return jsonResponse({ exists: false }, 200);
   } catch (e) {
     const errorMsg = e instanceof Error ? e.message : String(e);
     console.error("[API] GET /api/items error:", errorMsg, e);
-    return jsonResponse({ exists: false, error: `Server error: ${errorMsg}` }, 500);
+    return jsonResponse(
+      { exists: false, error: `Server error: ${errorMsg}` },
+      500
+    );
   }
 }
 
