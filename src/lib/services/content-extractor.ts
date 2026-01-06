@@ -12,13 +12,17 @@
  */
 
 import { NodeHtmlMarkdown } from "node-html-markdown";
-import {
-  extractWithReadability,
-  type ExtractedContent,
-} from "./readability-extractor";
+// Type-only import (doesn't cause jsdom to load at module init)
+import type { ExtractedContent } from "./readability-extractor";
 
 // Re-export ExtractedContent type for consumers
 export type { ExtractedContent };
+
+// Dynamic import for readability extractor to avoid jsdom loading in serverless
+async function getReadabilityExtractor() {
+  const { extractWithReadability } = await import("./readability-extractor");
+  return extractWithReadability;
+}
 
 // =============================================================================
 // TYPES
@@ -655,6 +659,7 @@ export async function extractContent(
         "[Extractor] No FIRECRAWL_API_KEY configured, falling back to Readability"
       );
     }
+    const extractWithReadability = await getReadabilityExtractor();
     return extractWithReadability(url);
   }
 
