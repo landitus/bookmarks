@@ -46,6 +46,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Extension "Could not connect to server" error** - Fixed API returning 500 errors on Vercel serverless
+  - Root cause: Heavy dependencies (`jsdom`, `metascraper`) crashing during module initialization
+  - Changed to dynamic imports for `metascraper` and `readability-extractor` to avoid loading at module init
+  - Added explicit environment variable checks with clear error messages
+  - Added try-catch wrapper in API route handlers for better error visibility
 - **Reprocess trigger timeout** - Increased timeout from 10s to 60s to account for route compilation in dev mode + Firecrawl API latency
 - **Stray backticks in markdown** - Cleaned up extra backticks from wrapper `<code>` elements that appeared around code blocks
 - **Broken image URLs in content** - Fixed regex pattern for removing image gallery counters that was incorrectly matching and corrupting URLs containing digit sequences like `65/6`
