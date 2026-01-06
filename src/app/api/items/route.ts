@@ -1,13 +1,6 @@
 import { after } from "next/server";
 import { NextRequest, NextResponse } from "next/server";
 
-// Metascraper setup
-import metascraper from "metascraper";
-import metascraperDescription from "metascraper-description";
-import metascraperImage from "metascraper-image";
-import metascraperTitle from "metascraper-title";
-import metascraperUrl from "metascraper-url";
-
 // Shared utilities
 import {
   corsHeaders,
@@ -21,12 +14,33 @@ import {
 } from "@/lib/api/item-processing";
 import { isLikelyArticle } from "@/lib/services/content-extractor";
 
-const scraper = metascraper([
-  metascraperDescription(),
-  metascraperImage(),
-  metascraperTitle(),
-  metascraperUrl(),
-]);
+// Lazy-load metascraper to avoid module initialization issues in serverless
+let scraper: Awaited<ReturnType<typeof import("metascraper")>> | null = null;
+
+async function getScraper() {
+  if (!scraper) {
+    const [
+      metascraper,
+      metascraperDescription,
+      metascraperImage,
+      metascraperTitle,
+      metascraperUrl,
+    ] = await Promise.all([
+      import("metascraper").then((m) => m.default),
+      import("metascraper-description").then((m) => m.default),
+      import("metascraper-image").then((m) => m.default),
+      import("metascraper-title").then((m) => m.default),
+      import("metascraper-url").then((m) => m.default),
+    ]);
+    scraper = metascraper([
+      metascraperDescription(),
+      metascraperImage(),
+      metascraperTitle(),
+      metascraperUrl(),
+    ]);
+  }
+  return scraper;
+}
 
 /**
  * GET /api/items?url=<encoded_url> - Check if a bookmark exists
@@ -196,7 +210,8 @@ export async function POST(request: NextRequest) {
         signal: AbortSignal.timeout(5000), // 5 second timeout for fast response
       });
       const html = await response.text();
-      const metadata = await scraper({ html, url });
+      const metaScraper = await getScraper();
+      const metadata = await metaScraper({ html, url });
 
       if (metadata.title) title = metadata.title;
       if (metadata.description) description = metadata.description;
