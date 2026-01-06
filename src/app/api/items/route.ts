@@ -32,11 +32,12 @@ const scraper = metascraper([
  * GET /api/items?url=<encoded_url> - Check if a bookmark exists
  */
 export async function GET(request: NextRequest) {
-  const auth = await authenticateRequest(request);
+  try {
+    const auth = await authenticateRequest(request);
 
-  if ("error" in auth) {
-    return jsonResponse({ exists: false, error: auth.error }, auth.status);
-  }
+    if ("error" in auth) {
+      return jsonResponse({ exists: false, error: auth.error }, auth.status);
+    }
 
   const { userId } = auth;
   const { searchParams } = new URL(request.url);
@@ -77,6 +78,11 @@ export async function GET(request: NextRequest) {
   }
 
   return jsonResponse({ exists: false }, 200);
+  } catch (e) {
+    const errorMsg = e instanceof Error ? e.message : String(e);
+    console.error("[API] GET /api/items error:", errorMsg, e);
+    return jsonResponse({ exists: false, error: `Server error: ${errorMsg}` }, 500);
+  }
 }
 
 /**
