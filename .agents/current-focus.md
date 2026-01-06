@@ -1,10 +1,20 @@
 # Current Focus
 
-**Last Updated:** January 4, 2026
+**Last Updated:** January 6, 2026
 **Branch:** `main`
-**Status:** Content Extraction Improvements ✅
+**Status:** API Serverless Compatibility Fix ✅
 
 ## 🎉 Recently Completed
+
+### API Serverless Module Crash Fix (Jan 6, 2026)
+
+Fixed extension showing "Could not connect to server" due to 500 errors on production:
+
+- [x] **Root cause**: Heavy dependencies (`jsdom`, `metascraper`) crashing during module initialization in Vercel serverless
+- [x] **Lazy-load metascraper**: Changed from static import to dynamic `import()` in route handler
+- [x] **Lazy-load readability-extractor**: Changed to dynamic import to avoid loading `jsdom` at module init
+- [x] **Better error handling**: Added try-catch wrapper and explicit env var checks in `createServiceClient()`
+- [x] **Type-only imports**: Use `import type` for types to avoid triggering module loading
 
 ### Content Extraction Robustness (Jan 4, 2026)
 
@@ -103,20 +113,22 @@ Restructured the app around a triage-based workflow: **Capture → Consume → K
 
 ## 🚀 Next Steps
 
-- [ ] Apply migration to production database
-- [ ] Test full flow end-to-end
-- [ ] Update extension if needed
+- [x] ~~Apply migration to production database~~ (done)
+- [x] ~~Test full flow end-to-end~~ (done)
+- [x] ~~Update extension if needed~~ (API fix resolved extension issues)
+- [ ] Monitor production for any remaining issues
+- [ ] Consider reader settings feature (see `.agents/docs/plans/2026-01-05-reader-settings.md`)
 
 ## 📁 Key Files Changed
 
-| File                                        | Change                                                |
-| ------------------------------------------- | ----------------------------------------------------- |
-| `src/lib/services/content-extractor.ts`     | HTML format + parser selection + Readability fallback |
-| `src/lib/services/readability-extractor.ts` | NEW: Mozilla Readability-based local extractor        |
-| `env.example`                               | Added CONTENT_PARSER docs                             |
-| `src/lib/api/helpers.ts`                    | Generic API utilities (auth, CORS)                    |
-| `src/lib/api/item-processing.ts`            | Item processing logic (extraction, AI)                |
-| `src/components/items/items-view.tsx`       | Polling fallback for processing items                 |
+| File                                        | Change                                                       |
+| ------------------------------------------- | ------------------------------------------------------------ |
+| `src/app/api/items/route.ts`                | Lazy-load metascraper, try-catch error handling              |
+| `src/lib/services/content-extractor.ts`     | Dynamic import for readability-extractor (avoids jsdom init) |
+| `src/lib/api/helpers.ts`                    | Explicit env var checks in createServiceClient()             |
+| `src/lib/services/readability-extractor.ts` | Mozilla Readability-based local extractor                    |
+| `src/lib/api/item-processing.ts`            | Item processing logic (extraction, AI)                       |
+| `src/components/items/items-view.tsx`       | Polling fallback for processing items                        |
 
 ## 🧭 Data Model
 
