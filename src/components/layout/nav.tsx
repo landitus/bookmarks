@@ -4,7 +4,7 @@ import { Header } from "@/components/layout/header";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Archive, BookMarked, ChevronsUpDown, Inbox } from "lucide-react";
+import { Archive, BookMarked, Check, ChevronsUpDown, Inbox } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,7 +41,7 @@ function NavigationCenter() {
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className="hidden md:flex items-center gap-1">
+      <nav className="hidden md:flex items-center gap-0.5">
         {navItems.map((item) => {
           const isActive = pathname.startsWith(item.href);
           const Icon = item.icon;
@@ -50,7 +50,7 @@ function NavigationCenter() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors",
+                "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
                 isActive
                   ? "bg-accent text-accent-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
@@ -68,6 +68,7 @@ function NavigationCenter() {
         <DropdownMenu open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <DropdownMenuTrigger asChild>
             <Button
+              size="sm"
               variant="ghost"
               className={cn(
                 "gap-1",
@@ -94,6 +95,7 @@ function NavigationCenter() {
                   >
                     <Icon className="h-4 w-4" />
                     {item.label}
+                    {isActive && <Check className="h-4 w-4 ml-auto" />}
                   </Link>
                 </DropdownMenuItem>
               );
