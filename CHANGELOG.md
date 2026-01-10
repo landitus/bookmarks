@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Profile Avatar Support** - User avatar in header now displays profile photo from database
+  - Fetches avatar_url from profiles table (takes precedence over OAuth metadata)
+  - Works for both OAuth users and users who upload a profile photo
+
 - **Edit Bookmark Dialog** - Edit bookmark title, URL, and description via dialog
   - Click the pencil icon on any bookmark in the list view to edit
   - Updates are saved immediately with optimistic UI feedback

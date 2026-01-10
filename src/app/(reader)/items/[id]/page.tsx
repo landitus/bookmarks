@@ -21,18 +21,35 @@ async function getItemAndUser(
     redirect("/login");
   }
 
-  const { data: item, error } = await supabase
-    .from("items")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
+  // Fetch item and profile in parallel
+  const [itemResult, profileResult] = await Promise.all([
+    supabase
+      .from("items")
+      .select("*")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .single(),
+    supabase
+      .from("profiles")
+      .select("avatar_url")
+      .eq("id", user.id)
+      .single(),
+  ]);
 
-  if (error || !item) {
+  if (itemResult.error || !itemResult.data) {
     return { item: null, user };
   }
 
-  return { item: item as Item, user };
+  // Merge profile avatar_url into user metadata (profile takes precedence)
+  const userWithAvatar = {
+    ...user,
+    user_metadata: {
+      ...user.user_metadata,
+      avatar_url: profileResult.data?.avatar_url || user.user_metadata?.avatar_url,
+    },
+  };
+
+  return { item: itemResult.data as Item, user: userWithAvatar };
 }
 
 interface Topic {
