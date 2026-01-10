@@ -124,7 +124,7 @@ export function AddItemInput({
           ) : !value ? (
             <KbdGroup>
               <Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
-              <span className="text-muted-foreground">+</span>
+              <span className="hidden text-muted-foreground">+</span>
               <Kbd>F</Kbd>
             </KbdGroup>
           ) : null}
