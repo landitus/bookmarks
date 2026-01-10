@@ -116,11 +116,11 @@ export function AddItemInput({
         {/* Show keyboard shortcut hint when empty, or Enter hint when URL is entered */}
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
           {isUrlValue && !isPending ? (
-            <Kbd className="text-[10px]">Enter</Kbd>
+            <Kbd className="text-[14px]">↵</Kbd>
           ) : !value ? (
             <span className="flex items-center gap-0.5">
-              <Kbd className="text-[11px]">{isMac ? "⌘" : "Ctrl"}</Kbd>
-              <Kbd className="text-[11px]">F</Kbd>
+              <Kbd className="text-[14px]">{isMac ? "⌘" : "Ctrl"}</Kbd>
+              <Kbd className="text-[12px]">F</Kbd>
             </span>
           ) : null}
         </div>
