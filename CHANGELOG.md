@@ -11,7 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Apps & Integrations Page** (`/apps`) - Central hub for saving links from any device
   - iOS Shortcut setup instructions with step-by-step guide for Share Sheet integration
-  - Android PWA installation guide for native share sheet support
+  - iOS Home Screen installation guide for native app-like experience
+  - Android PWA installation guide with native share sheet support
   - Browser extension information
   - QR code for API key to easily scan from phone when setting up mobile shortcuts
   - Quick-copy API key button

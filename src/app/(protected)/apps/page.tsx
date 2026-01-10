@@ -301,6 +301,70 @@ export default function AppsPage() {
         </div>
       </section>
 
+      {/* iOS Home Screen Section */}
+      <section className="rounded-lg border bg-card overflow-hidden">
+        <div className="p-6 border-b">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800">
+              <AppleIcon className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
+            </div>
+            <div>
+              <h2 className="font-medium">Add to iOS Home Screen</h2>
+              <p className="text-sm text-muted-foreground">
+                Install Portable as an app on your iPhone or iPad
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Add Portable to your home screen for a native app-like experience
+            with full-screen mode and quick access.
+          </p>
+
+          <ol className="space-y-3">
+            <li className="flex gap-3">
+              <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                1
+              </span>
+              <p className="text-sm">
+                Open Portable in Safari on your iPhone or iPad
+              </p>
+            </li>
+            <li className="flex gap-3">
+              <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                2
+              </span>
+              <p className="text-sm">
+                Tap the Share button (square with arrow pointing up)
+              </p>
+            </li>
+            <li className="flex gap-3">
+              <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                3
+              </span>
+              <p className="text-sm">
+                Scroll down and tap &quot;Add to Home Screen&quot;
+              </p>
+            </li>
+            <li className="flex gap-3">
+              <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                4
+              </span>
+              <p className="text-sm">
+                Tap &quot;Add&quot; to install Portable on your home screen
+              </p>
+            </li>
+          </ol>
+
+          <p className="text-xs text-muted-foreground pt-2 border-t">
+            Note: iOS does not support share sheet integration for web apps.
+            Use the iOS Shortcut above to save links from other apps.
+          </p>
+        </div>
+      </section>
+
       {/* Android PWA Section */}
       <section className="rounded-lg border bg-card overflow-hidden">
         <div className="p-6 border-b">
@@ -309,9 +373,9 @@ export default function AppsPage() {
               <AndroidIcon className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
             </div>
             <div>
-              <h2 className="font-medium">Android Share Sheet</h2>
+              <h2 className="font-medium">Android App</h2>
               <p className="text-sm text-muted-foreground">
-                Install as PWA for native share sheet support
+                Install as PWA with native share sheet support
               </p>
             </div>
           </div>
@@ -319,8 +383,8 @@ export default function AppsPage() {
 
         <div className="p-6 space-y-4">
           <p className="text-sm text-muted-foreground">
-            On Android, you can install Portable as a Progressive Web App (PWA)
-            to get native share sheet integration.
+            On Android, install Portable as a Progressive Web App to get both
+            home screen access and native share sheet integration.
           </p>
 
           <ol className="space-y-3">
@@ -345,7 +409,7 @@ export default function AppsPage() {
                 3
               </span>
               <p className="text-sm">
-                Portable will now appear in your share sheet as &quot;Portable&quot;
+                Portable will appear on your home screen and in the share sheet
               </p>
             </li>
           </ol>
