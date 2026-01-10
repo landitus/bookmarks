@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Kbd } from "@/components/ui/kbd";
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { createItem } from "@/lib/actions/items";
 import { Plus, Search, Loader2 } from "lucide-react";
 import { useRef, useState, useTransition, useEffect } from "react";
@@ -116,12 +116,17 @@ export function AddItemInput({
         {/* Show keyboard shortcut hint when empty, or Enter hint when URL is entered */}
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
           {isUrlValue && !isPending ? (
-            <Kbd className="text-[14px]">↵</Kbd>
+            <div className="flex items-center gap-1.5">
+              <p className="text-xs text-muted-foreground">Press</p>{" "}
+              <Kbd className="text-[12px]">⏎</Kbd>
+              <p className="text-xs text-muted-foreground">to save</p>
+            </div>
           ) : !value ? (
-            <span className="flex items-center gap-0.5">
-              <Kbd className="text-[14px]">{isMac ? "⌘" : "Ctrl"}</Kbd>
-              <Kbd className="text-[12px]">F</Kbd>
-            </span>
+            <KbdGroup>
+              <Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
+              <span className="text-muted-foreground">+</span>
+              <Kbd>F</Kbd>
+            </KbdGroup>
           ) : null}
         </div>
       </form>
