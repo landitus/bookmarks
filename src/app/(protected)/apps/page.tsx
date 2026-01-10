@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getApiKey } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Copy,
   Check,
@@ -41,7 +42,6 @@ function AndroidIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-
 
 export default function AppsPage() {
   const [apiKey, setApiKey] = useState<string | null>(null);
@@ -145,312 +145,312 @@ export default function AppsPage() {
         )}
       </section>
 
-      {/* iOS Shortcut Section */}
-      <section className="rounded-lg border bg-card overflow-hidden">
-        <div className="p-6 border-b">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800">
-              <AppleIcon className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
-            </div>
-            <div>
-              <h2 className="font-medium">iOS Share Sheet</h2>
-              <p className="text-sm text-muted-foreground">
-                Save links from any iOS app using Shortcuts
+      {/* Platform Tabs */}
+      <Tabs defaultValue="ios" className="w-full">
+        <TabsList className="w-full">
+          <TabsTrigger value="ios" className="flex-1 gap-2">
+            <AppleIcon className="h-4 w-4" />
+            iOS
+          </TabsTrigger>
+          <TabsTrigger value="android" className="flex-1 gap-2">
+            <AndroidIcon className="h-4 w-4" />
+            Android
+          </TabsTrigger>
+          <TabsTrigger value="desktop" className="flex-1 gap-2">
+            <Chrome className="h-4 w-4" />
+            Desktop
+          </TabsTrigger>
+        </TabsList>
+
+        {/* iOS Tab */}
+        <TabsContent value="ios" className="space-y-6 mt-6">
+          {/* iOS Share Sheet */}
+          <section className="rounded-lg border bg-card overflow-hidden">
+            <div className="p-6 border-b">
+              <h2 className="font-medium">Share Sheet via Shortcuts</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Save links from any iOS app using the Shortcuts app
               </p>
             </div>
-          </div>
-        </div>
 
-        <div className="p-6 space-y-6">
-          <p className="text-sm text-muted-foreground">
-            Create an iOS Shortcut to save links directly from the Share Sheet
-            in Safari, Twitter, YouTube, and any other app.
-          </p>
-
-          {/* Step by step instructions */}
-          <div className="space-y-4">
-            <h3 className="font-medium text-sm uppercase tracking-wide text-muted-foreground">
-              Setup Instructions
-            </h3>
-
-            <ol className="space-y-4">
-              <li className="flex gap-3">
-                <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                  1
-                </span>
-                <div>
-                  <p className="font-medium">Open the Shortcuts app</p>
-                  <p className="text-sm text-muted-foreground">
-                    Tap the + button to create a new shortcut
-                  </p>
-                </div>
-              </li>
-
-              <li className="flex gap-3">
-                <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                  2
-                </span>
-                <div>
-                  <p className="font-medium">Add &quot;Get URLs from Input&quot;</p>
-                  <p className="text-sm text-muted-foreground">
-                    Search for this action and add it first
-                  </p>
-                </div>
-              </li>
-
-              <li className="flex gap-3">
-                <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                  3
-                </span>
-                <div>
-                  <p className="font-medium">
-                    Add &quot;Get Contents of URL&quot; action
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Configure it as follows:
-                  </p>
-                  <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
-                    <li className="flex items-center gap-2">
-                      <ChevronRight className="h-3 w-3" />
-                      <span>
-                        URL:{" "}
-                        <code className="bg-muted px-1 rounded text-xs">
-                          {apiUrl}
-                        </code>
-                      </span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <ChevronRight className="h-3 w-3" />
-                      <span>
-                        Method: <strong>POST</strong>
-                      </span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <ChevronRight className="h-3 w-3" />
-                      <span>
-                        Headers: Add <code className="bg-muted px-1 rounded text-xs">Authorization</code> with value{" "}
-                        <code className="bg-muted px-1 rounded text-xs">
-                          Bearer {apiKey ? apiKey.slice(0, 8) + "..." : "YOUR_API_KEY"}
-                        </code>
-                      </span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <ChevronRight className="h-3 w-3" />
-                      <span>
-                        Request Body: JSON with{" "}
-                        <code className="bg-muted px-1 rounded text-xs">
-                          {`{"url": "URLs from Input"}`}
-                        </code>
-                      </span>
-                    </li>
-                  </ul>
-                </div>
-              </li>
-
-              <li className="flex gap-3">
-                <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                  4
-                </span>
-                <div>
-                  <p className="font-medium">Add &quot;Show Notification&quot;</p>
-                  <p className="text-sm text-muted-foreground">
-                    Set title to &quot;Saved to Portable&quot; for confirmation
-                  </p>
-                </div>
-              </li>
-
-              <li className="flex gap-3">
-                <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                  5
-                </span>
-                <div>
-                  <p className="font-medium">Enable Share Sheet</p>
-                  <p className="text-sm text-muted-foreground">
-                    Tap the shortcut name at top → Details → enable &quot;Show in
-                    Share Sheet&quot; and select &quot;URLs&quot; as input type
-                  </p>
-                </div>
-              </li>
-
-              <li className="flex gap-3">
-                <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                  6
-                </span>
-                <div>
-                  <p className="font-medium">Name it &quot;Save to Portable&quot;</p>
-                  <p className="text-sm text-muted-foreground">
-                    This name will appear in your Share Sheet
-                  </p>
-                </div>
-              </li>
-            </ol>
-          </div>
-
-          <div className="pt-4 border-t">
-            <Button variant="outline" asChild>
-              <a
-                href="https://support.apple.com/guide/shortcuts/welcome/ios"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Shortcuts User Guide
-              </a>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* iOS Home Screen Section */}
-      <section className="rounded-lg border bg-card overflow-hidden">
-        <div className="p-6 border-b">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800">
-              <AppleIcon className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
-            </div>
-            <div>
-              <h2 className="font-medium">Add to iOS Home Screen</h2>
+            <div className="p-6 space-y-6">
               <p className="text-sm text-muted-foreground">
+                Create an iOS Shortcut to save links directly from the Share Sheet
+                in Safari, Twitter, YouTube, and any other app.
+              </p>
+
+              {/* Step by step instructions */}
+              <div className="space-y-4">
+                <h3 className="font-medium text-sm uppercase tracking-wide text-muted-foreground">
+                  Setup Instructions
+                </h3>
+
+                <ol className="space-y-4">
+                  <li className="flex gap-3">
+                    <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                      1
+                    </span>
+                    <div>
+                      <p className="font-medium">Open the Shortcuts app</p>
+                      <p className="text-sm text-muted-foreground">
+                        Tap the + button to create a new shortcut
+                      </p>
+                    </div>
+                  </li>
+
+                  <li className="flex gap-3">
+                    <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                      2
+                    </span>
+                    <div>
+                      <p className="font-medium">Add &quot;Get URLs from Input&quot;</p>
+                      <p className="text-sm text-muted-foreground">
+                        Search for this action and add it first
+                      </p>
+                    </div>
+                  </li>
+
+                  <li className="flex gap-3">
+                    <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                      3
+                    </span>
+                    <div>
+                      <p className="font-medium">
+                        Add &quot;Get Contents of URL&quot; action
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Configure it as follows:
+                      </p>
+                      <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                        <li className="flex items-center gap-2">
+                          <ChevronRight className="h-3 w-3" />
+                          <span>
+                            URL:{" "}
+                            <code className="bg-muted px-1 rounded text-xs">
+                              {apiUrl}
+                            </code>
+                          </span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <ChevronRight className="h-3 w-3" />
+                          <span>
+                            Method: <strong>POST</strong>
+                          </span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <ChevronRight className="h-3 w-3" />
+                          <span>
+                            Headers: Add <code className="bg-muted px-1 rounded text-xs">Authorization</code> with value{" "}
+                            <code className="bg-muted px-1 rounded text-xs">
+                              Bearer {apiKey ? apiKey.slice(0, 8) + "..." : "YOUR_API_KEY"}
+                            </code>
+                          </span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <ChevronRight className="h-3 w-3" />
+                          <span>
+                            Request Body: JSON with{" "}
+                            <code className="bg-muted px-1 rounded text-xs">
+                              {`{"url": "URLs from Input"}`}
+                            </code>
+                          </span>
+                        </li>
+                      </ul>
+                    </div>
+                  </li>
+
+                  <li className="flex gap-3">
+                    <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                      4
+                    </span>
+                    <div>
+                      <p className="font-medium">Add &quot;Show Notification&quot;</p>
+                      <p className="text-sm text-muted-foreground">
+                        Set title to &quot;Saved to Portable&quot; for confirmation
+                      </p>
+                    </div>
+                  </li>
+
+                  <li className="flex gap-3">
+                    <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                      5
+                    </span>
+                    <div>
+                      <p className="font-medium">Enable Share Sheet</p>
+                      <p className="text-sm text-muted-foreground">
+                        Tap the shortcut name at top → Details → enable &quot;Show in
+                        Share Sheet&quot; and select &quot;URLs&quot; as input type
+                      </p>
+                    </div>
+                  </li>
+
+                  <li className="flex gap-3">
+                    <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                      6
+                    </span>
+                    <div>
+                      <p className="font-medium">Name it &quot;Save to Portable&quot;</p>
+                      <p className="text-sm text-muted-foreground">
+                        This name will appear in your Share Sheet
+                      </p>
+                    </div>
+                  </li>
+                </ol>
+              </div>
+
+              <div className="pt-4 border-t">
+                <Button variant="outline" asChild>
+                  <a
+                    href="https://support.apple.com/guide/shortcuts/welcome/ios"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Shortcuts User Guide
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </section>
+
+          {/* iOS Home Screen */}
+          <section className="rounded-lg border bg-card overflow-hidden">
+            <div className="p-6 border-b">
+              <h2 className="font-medium">Add to Home Screen</h2>
+              <p className="text-sm text-muted-foreground mt-1">
                 Install Portable as an app on your iPhone or iPad
               </p>
             </div>
-          </div>
-        </div>
 
-        <div className="p-6 space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Add Portable to your home screen for a native app-like experience
-            with full-screen mode and quick access.
-          </p>
-
-          <ol className="space-y-3">
-            <li className="flex gap-3">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                1
-              </span>
-              <p className="text-sm">
-                Open Portable in Safari on your iPhone or iPad
-              </p>
-            </li>
-            <li className="flex gap-3">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                2
-              </span>
-              <p className="text-sm">
-                Tap the Share button (square with arrow pointing up)
-              </p>
-            </li>
-            <li className="flex gap-3">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                3
-              </span>
-              <p className="text-sm">
-                Scroll down and tap &quot;Add to Home Screen&quot;
-              </p>
-            </li>
-            <li className="flex gap-3">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                4
-              </span>
-              <p className="text-sm">
-                Tap &quot;Add&quot; to install Portable on your home screen
-              </p>
-            </li>
-          </ol>
-
-          <p className="text-xs text-muted-foreground pt-2 border-t">
-            Note: iOS does not support share sheet integration for web apps.
-            Use the iOS Shortcut above to save links from other apps.
-          </p>
-        </div>
-      </section>
-
-      {/* Android PWA Section */}
-      <section className="rounded-lg border bg-card overflow-hidden">
-        <div className="p-6 border-b">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800">
-              <AndroidIcon className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
-            </div>
-            <div>
-              <h2 className="font-medium">Android App</h2>
+            <div className="p-6 space-y-4">
               <p className="text-sm text-muted-foreground">
-                Install as PWA with native share sheet support
+                Add Portable to your home screen for a native app-like experience
+                with full-screen mode and quick access.
+              </p>
+
+              <ol className="space-y-3">
+                <li className="flex gap-3">
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                    1
+                  </span>
+                  <p className="text-sm">
+                    Open Portable in Safari on your iPhone or iPad
+                  </p>
+                </li>
+                <li className="flex gap-3">
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                    2
+                  </span>
+                  <p className="text-sm">
+                    Tap the Share button (square with arrow pointing up)
+                  </p>
+                </li>
+                <li className="flex gap-3">
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                    3
+                  </span>
+                  <p className="text-sm">
+                    Scroll down and tap &quot;Add to Home Screen&quot;
+                  </p>
+                </li>
+                <li className="flex gap-3">
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                    4
+                  </span>
+                  <p className="text-sm">
+                    Tap &quot;Add&quot; to install Portable on your home screen
+                  </p>
+                </li>
+              </ol>
+            </div>
+          </section>
+        </TabsContent>
+
+        {/* Android Tab */}
+        <TabsContent value="android" className="mt-6">
+          <section className="rounded-lg border bg-card overflow-hidden">
+            <div className="p-6 border-b">
+              <h2 className="font-medium">Install as App</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Get home screen access and native share sheet support
               </p>
             </div>
-          </div>
-        </div>
 
-        <div className="p-6 space-y-4">
-          <p className="text-sm text-muted-foreground">
-            On Android, install Portable as a Progressive Web App to get both
-            home screen access and native share sheet integration.
-          </p>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                On Android, install Portable as a Progressive Web App to get both
+                home screen access and native share sheet integration.
+              </p>
 
-          <ol className="space-y-3">
-            <li className="flex gap-3">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                1
-              </span>
-              <p className="text-sm">
-                Open Portable in Chrome on your Android device
-              </p>
-            </li>
-            <li className="flex gap-3">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                2
-              </span>
-              <p className="text-sm">
-                Tap the menu (⋮) → &quot;Add to Home screen&quot; or &quot;Install app&quot;
-              </p>
-            </li>
-            <li className="flex gap-3">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                3
-              </span>
-              <p className="text-sm">
-                Portable will appear on your home screen and in the share sheet
-              </p>
-            </li>
-          </ol>
-        </div>
-      </section>
+              <ol className="space-y-3">
+                <li className="flex gap-3">
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                    1
+                  </span>
+                  <p className="text-sm">
+                    Open Portable in Chrome on your Android device
+                  </p>
+                </li>
+                <li className="flex gap-3">
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                    2
+                  </span>
+                  <p className="text-sm">
+                    Tap the menu (⋮) → &quot;Add to Home screen&quot; or &quot;Install app&quot;
+                  </p>
+                </li>
+                <li className="flex gap-3">
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                    3
+                  </span>
+                  <p className="text-sm">
+                    Portable will appear on your home screen and in the share sheet
+                  </p>
+                </li>
+              </ol>
 
-      {/* Browser Extension Section */}
-      <section className="rounded-lg border bg-card overflow-hidden">
-        <div className="p-6 border-b">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800">
-              <Chrome className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
+              <div className="pt-4 border-t">
+                <p className="text-sm text-muted-foreground">
+                  Unlike iOS, Android supports native share sheet integration for
+                  installed web apps. Once installed, you can share links directly
+                  to Portable from any app.
+                </p>
+              </div>
             </div>
-            <div>
+          </section>
+        </TabsContent>
+
+        {/* Desktop Tab */}
+        <TabsContent value="desktop" className="mt-6">
+          <section className="rounded-lg border bg-card overflow-hidden">
+            <div className="p-6 border-b">
               <h2 className="font-medium">Browser Extension</h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mt-1">
                 One-click saving from Chrome, Firefox, Edge
               </p>
             </div>
-          </div>
-        </div>
 
-        <div className="p-6 space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Save the current page with a single click. The extension uses your
-            API key to authenticate.
-          </p>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Save the current page with a single click. The extension uses your
+                API key to authenticate.
+              </p>
 
-          <div className="flex gap-3">
-            <Button variant="outline" disabled>
-              Coming to Chrome Web Store
-            </Button>
-          </div>
+              <div className="flex gap-3">
+                <Button variant="outline" disabled>
+                  Coming to Chrome Web Store
+                </Button>
+              </div>
 
-          <p className="text-xs text-muted-foreground">
-            For now, you can load the extension manually from the{" "}
-            <code className="bg-muted px-1 rounded">/extension</code> folder in
-            developer mode.
-          </p>
-        </div>
-      </section>
+              <p className="text-xs text-muted-foreground">
+                For now, you can load the extension manually from the{" "}
+                <code className="bg-muted px-1 rounded">/extension</code> folder in
+                developer mode.
+              </p>
+            </div>
+          </section>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
