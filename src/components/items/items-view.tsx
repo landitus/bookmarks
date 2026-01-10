@@ -207,7 +207,7 @@ function ListItem({ item, context, getDomain, getFaviconUrl }: ListItemProps) {
         </span>
 
         {/* Actions - hidden at rest, visible on hover */}
-        <div className="hidden group-hover:flex items-center gap-0.5">
+        <div className="hidden group-hover:flex items-center gap-0.5 mr-1.25">
           {/* Edit (placeholder) */}
           <Button
             variant="ghost"
@@ -260,7 +260,7 @@ function ListItem({ item, context, getDomain, getFaviconUrl }: ListItemProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-destructive hover:text-destructive"
+            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/7"
             onClick={handleDelete}
             title="Delete"
           >
