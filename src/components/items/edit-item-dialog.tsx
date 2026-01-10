@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import { Item } from "@/lib/types";
 import { updateItem } from "@/lib/actions/items";
 import {
@@ -57,6 +57,18 @@ function EditItemForm({ item, onSuccess }: EditItemFormProps) {
   const [title, setTitle] = useState(item.title || "");
   const [url, setUrl] = useState(item.url || "");
   const [description, setDescription] = useState(item.description || "");
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  // Focus title input with cursor at end (better UX than selecting all)
+  useEffect(() => {
+    const input = titleInputRef.current;
+    if (input) {
+      input.focus();
+      // Move cursor to end of text
+      const length = input.value.length;
+      input.setSelectionRange(length, length);
+    }
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,6 +94,7 @@ function EditItemForm({ item, onSuccess }: EditItemFormProps) {
       <div className="space-y-2">
         <Label htmlFor="title">Title</Label>
         <Input
+          ref={titleInputRef}
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
