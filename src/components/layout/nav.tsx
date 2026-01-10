@@ -4,7 +4,13 @@ import { Header } from "@/components/layout/header";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Archive, BookMarked, Check, ChevronsUpDown, Inbox } from "lucide-react";
+import {
+  Archive,
+  BookMarked,
+  Check,
+  ChevronsUpDown,
+  Inbox,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,

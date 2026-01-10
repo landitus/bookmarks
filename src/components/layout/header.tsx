@@ -55,7 +55,7 @@ export function Header({
         className
       )}
     >
-      <Container className="relative flex h-14 items-center">
+      <Container className="relative flex h-14 items-center md:pl-5">
         {/* Left: Logo - Always the same */}
         <div className="flex items-center">
           <Link
