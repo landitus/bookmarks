@@ -5,9 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Kbd } from "@/components/ui/kbd";
 import { createItem } from "@/lib/actions/items";
 import { Plus, Search, Loader2 } from "lucide-react";
-import { useRef, useState, useTransition } from "react";
+import { useRef, useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+
+// Detect if user is on Mac for keyboard shortcut display
+const isMac = typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
 
 interface AddItemInputProps {
   onSearch?: (query: string) => void;
@@ -19,9 +22,23 @@ export function AddItemInput({
   placeholder = "Search or add URL...",
 }: AddItemInputProps) {
   const formRef = useRef<HTMLFormElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState("");
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+
+  // Keyboard shortcut: Cmd/Ctrl + F to focus search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Regex to check if string is a valid URL
   const isUrl = (string: string) => {
@@ -82,10 +99,11 @@ export function AddItemInput({
           )}
         </div>
         <Input
+          ref={inputRef}
           type="text"
           name="url"
           placeholder={placeholder}
-          className="pl-9 pr-20 w-full"
+          className="pl-9 pr-14 w-full"
           value={value}
           onChange={(e) => {
             setValue(e.target.value);
@@ -93,11 +111,14 @@ export function AddItemInput({
           }}
           autoComplete="off"
         />
-        {isUrlValue && !isPending && (
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
+        {/* Show keyboard shortcut hint when empty, or Enter hint when URL is entered */}
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
+          {isUrlValue && !isPending ? (
             <Kbd className="text-[10px]">Enter</Kbd>
-          </div>
-        )}
+          ) : !value ? (
+            <Kbd className="text-[10px]">{isMac ? "⌘F" : "Ctrl+F"}</Kbd>
+          ) : null}
+        </div>
       </form>
     </div>
   );
