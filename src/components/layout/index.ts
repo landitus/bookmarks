@@ -1,20 +1,5 @@
-import { LAYOUT_MODE } from "@/lib/config";
-import { SidebarLayout } from "./sidebar";
-import { TopbarLayout } from "./topbar";
-
-export { AppHeader } from "./app-header";
-
-export type LayoutProps = {
-  user: {
-    email?: string;
-    user_metadata?: {
-      full_name?: string;
-      avatar_url?: string;
-    };
-  };
-  children: React.ReactNode;
-};
-
-export const ActiveLayout =
-  LAYOUT_MODE === "sidebar" ? SidebarLayout : TopbarLayout;
-
+export { MainLayout } from "./main-layout";
+export { Header } from "./header";
+export { Nav } from "./nav";
+export { Container } from "./container";
+export { UserMenu } from "./user-menu";

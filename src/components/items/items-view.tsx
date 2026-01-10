@@ -2,10 +2,8 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { Item } from "@/lib/types";
-import { ItemCard } from "@/components/items/item-card";
-import { LayoutGrid, List, Star, Loader2, Eye } from "lucide-react";
+import { Star, Loader2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
 import { ItemActions, ItemContext } from "@/components/items/item-actions";
 import Link from "next/link";
 import Image from "next/image";
@@ -34,8 +32,6 @@ interface ItemsViewProps {
   favoritesOnly?: boolean;
 }
 
-type ViewType = "gallery" | "list"; // Toggle between card grid and list
-
 // =============================================================================
 // LIST ITEM COMPONENT
 // =============================================================================
@@ -63,12 +59,12 @@ function ListItem({
   return (
     <div
       className={cn(
-        "group flex items-center justify-between gap-4 p-1 min-h-10 rounded-lg hover:bg-accent/50 transition-colors pl-4",
+        "group flex items-center justify-between gap-4 p-1 min-h-11 rounded-xl hover:bg-accent/50 transition-colors pl-4",
         isOpen && "bg-accent/50"
       )}
     >
       {/* Left side: Favicon + Title + Domain + Badges */}
-      <div className="flex items-center gap-3 min-w-0 flex-1">
+      <div className="flex items-center gap-2 min-w-0 flex-1">
         <Image
           src={getFaviconUrl(item.url)}
           alt=""
@@ -84,7 +80,7 @@ function ListItem({
               href={item.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium truncate hover:underline"
+              className="font-medium text-sm truncate"
             >
               {item.title}
             </a>
@@ -108,7 +104,7 @@ function ListItem({
             )}
             {/* Content */}
             <div className="p-3 space-y-2">
-              <h4 className="font-semibold text-sm leading-tight line-clamp-2">
+              <h4 className="font-semibold leading-tight line-clamp-2">
                 {item.title}
               </h4>
               {item.description && (
@@ -145,21 +141,6 @@ function ListItem({
             <Loader2 className="h-3 w-3 animate-spin" />
             <span className="hidden sm:inline">Processing</span>
           </span>
-        )}
-
-        {/* Reading time for articles (only show when processing complete) */}
-        {item.type === "article" &&
-          item.reading_time &&
-          item.processing_status !== "pending" &&
-          item.processing_status !== "processing" && (
-            <span className="hidden sm:inline text-xs text-muted-foreground shrink-0 bg-muted px-1.5 py-0.5 rounded">
-              {item.reading_time} min
-            </span>
-          )}
-
-        {/* Favorite badge (only in Library context) */}
-        {item.is_favorite && context === "library" && (
-          <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400 shrink-0" />
         )}
       </div>
 
@@ -206,7 +187,6 @@ export function ItemsView({
   // ---------------------------------------------------------------------------
   // STATE
   // ---------------------------------------------------------------------------
-  const [view, setView] = useState<ViewType>("list"); // Current view mode
   const [searchQuery, setSearchQuery] = useState(""); // Search filter text
   const [openItemId, setOpenItemId] = useState<string | null>(null); // Track which item's menu is open
   const router = useRouter();
@@ -445,17 +425,17 @@ export function ItemsView({
   // ===========================================================================
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
+    <div className="space-y-8">
       <div className="space-y-6">
-        {/* TOOLBAR: Search input + Filters + View toggle */}
-        <div className="flex items-center justify-between gap-4 mb-8 px-2 md:px-0">
+        {/* TOOLBAR: Search input + Filters */}
+        <div className="flex items-center justify-between gap-4 mb-8">
           <div className="flex-1">
             <AddItemInput onSearch={setSearchQuery} />
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Favorites filter (Library only) */}
-            {showFavoritesFilter && (
+          {/* Favorites filter (Library only) */}
+          {showFavoritesFilter && (
+            <div className="flex items-center gap-4">
               <Button
                 variant={favoritesOnly ? "secondary" : "ghost"}
                 size="sm"
@@ -474,43 +454,17 @@ export function ItemsView({
                   <span className="hidden sm:inline">Favorites</span>
                 </Link>
               </Button>
-            )}
-
-            <ButtonGroup>
-              <Button
-                variant={view === "list" ? "secondary" : "outline"}
-                size="icon"
-                onClick={() => setView("list")}
-                title="List view"
-              >
-                <List className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={view === "gallery" ? "secondary" : "outline"}
-                size="icon"
-                onClick={() => setView("gallery")}
-                title="Gallery view"
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-            </ButtonGroup>
-          </div>
+            </div>
+          )}
         </div>
 
-        {/* CONTENT: Empty state, Gallery view, or List view */}
+        {/* CONTENT: Empty state or List view */}
         {items.length === 0 ? (
           emptyState || (
             <div className="flex flex-col items-center justify-center h-[50vh] border-2 border-dashed rounded-lg text-muted-foreground">
               <p>No items found.</p>
             </div>
           )
-        ) : view === "gallery" ? (
-          // GALLERY VIEW
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {items.map((item) => (
-              <ItemCard key={item.id} item={item} context={context} />
-            ))}
-          </div>
         ) : context === "inbox" ? (
           // LIST VIEW - GROUPED BY DATE (for Inbox)
           <div className="space-y-8">

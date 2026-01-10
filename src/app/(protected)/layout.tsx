@@ -1,4 +1,4 @@
-import { ActiveLayout } from "@/components/layout";
+import { MainLayout } from "@/components/layout";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function ProtectedLayout({
@@ -12,5 +12,5 @@ export default async function ProtectedLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  return <ActiveLayout user={user!}>{children}</ActiveLayout>;
+  return <MainLayout user={user!}>{children}</MainLayout>;
 }

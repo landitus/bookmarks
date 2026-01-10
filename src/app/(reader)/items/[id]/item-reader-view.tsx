@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ItemActions } from "@/components/items/item-actions";
-import { AppHeader } from "@/components/layout/app-header";
+import { Header } from "@/components/layout/header";
 import Image from "next/image";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
@@ -291,7 +291,7 @@ function ItemReaderViewContent({ item, topics, user }: ItemReaderViewProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Shared Header */}
-      <AppHeader
+      <Header
         user={user}
         // center={<SourceDomainCenter url={item.url} />}
         actions={

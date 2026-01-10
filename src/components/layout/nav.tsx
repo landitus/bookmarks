@@ -1,6 +1,6 @@
 "use client";
 
-import { AppHeader } from "@/components/layout/app-header";
+import { Header } from "@/components/layout/header";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
-interface TopbarNavProps {
+interface NavProps {
   user: {
     email?: string;
     user_metadata?: {
@@ -105,11 +105,6 @@ function NavigationCenter() {
   );
 }
 
-export function TopbarNav({ user }: TopbarNavProps) {
-  return (
-    <AppHeader
-      user={user}
-      center={<NavigationCenter />}
-    />
-  );
+export function Nav({ user }: NavProps) {
+  return <Header user={user} center={<NavigationCenter />} />;
 }

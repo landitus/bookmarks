@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Layout Structure Cleanup** - Simplified layout component architecture
+  - Created shared `Container` component for consistent max-width and padding
+  - Flattened nested folder structure: `topbar/topbar-layout.tsx` → `main-layout.tsx`, etc.
+  - Renamed components: `AppHeader` → `Header`, `TopbarNav` → `Nav`
+  - Layout now owns container constraints; content components are simpler
+
+### Removed
+
+- **Grid/Gallery View** - Removed unused grid view toggle from items list; list view is now the only view mode
+- **Sidebar Layout** - Deleted unused sidebar layout files (was dead code, never enabled)
+- **Layout Switcher** - Removed `LAYOUT_MODE` config and layout switching logic
+
 ### Added
 
 - **Reader Settings Panel** - Customizable reader typography and display modes

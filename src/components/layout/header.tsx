@@ -1,6 +1,7 @@
 "use client";
 
 import { UserMenu } from "@/components/layout/user-menu";
+import { Container } from "@/components/layout/container";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
@@ -9,7 +10,7 @@ import type { ReactNode } from "react";
 // TYPES
 // =============================================================================
 
-interface AppHeaderProps {
+interface HeaderProps {
   user: {
     email?: string;
     user_metadata?: {
@@ -39,13 +40,13 @@ interface AppHeaderProps {
  * │  [P] Portable  │      [center]           │  [actions]  👤   │
  * └─────────────────────────────────────────────────────────────┘
  */
-export function AppHeader({
+export function Header({
   user,
   center,
   actions,
   bordered = false,
   className,
-}: AppHeaderProps) {
+}: HeaderProps) {
   return (
     <header
       className={cn(
@@ -54,7 +55,7 @@ export function AppHeader({
         className
       )}
     >
-      <div className="relative flex h-14 items-center px-4 md:px-4">
+      <Container className="relative flex h-14 items-center">
         {/* Left: Logo - Always the same */}
         <div className="flex items-center">
           <Link
@@ -64,7 +65,7 @@ export function AppHeader({
             <div className="h-6 w-6 bg-primary rounded-md flex items-center justify-center">
               <span className="text-white text-sm font-bold">P</span>
             </div>
-            <span className="hidden sm:inline">Portable</span>
+            <span className="hidden">Portable</span>
           </Link>
         </div>
 
@@ -78,7 +79,7 @@ export function AppHeader({
           {actions}
           <UserMenu user={user} />
         </div>
-      </div>
+      </Container>
     </header>
   );
 }

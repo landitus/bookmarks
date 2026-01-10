@@ -52,7 +52,7 @@ export function AddItemInput({
   };
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full ">
       <form
         ref={formRef}
         action={handleSubmit}
