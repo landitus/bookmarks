@@ -1,10 +1,18 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useTransition } from "react";
 import { Item } from "@/lib/types";
-import { Star, Loader2, Eye } from "lucide-react";
+import {
+  Star,
+  Loader2,
+  Copy,
+  Pencil,
+  ExternalLink,
+  BookmarkCheck,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ItemActions, ItemContext } from "@/components/items/item-actions";
+import { ItemContext } from "@/components/items/item-actions";
 import Link from "next/link";
 import Image from "next/image";
 import { AddItemInput } from "./add-item-input";
@@ -16,6 +24,8 @@ import {
 } from "@/components/ui/hover-card";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { keepItem, deleteItem } from "@/lib/actions/items";
+import { toast } from "sonner";
 
 // =============================================================================
 // TYPES
@@ -33,34 +43,74 @@ interface ItemsViewProps {
 }
 
 // =============================================================================
+// HELPERS
+// =============================================================================
+
+/**
+ * Format date as short string like "Jan 20" for current year, or "Jan 20, 2024" for previous years
+ */
+function formatShortDate(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const isCurrentYear = date.getFullYear() === now.getFullYear();
+
+  if (isCurrentYear) {
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  } else {
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+}
+
+// =============================================================================
 // LIST ITEM COMPONENT
 // =============================================================================
 
 interface ListItemProps {
   item: Item;
   context: ItemContext;
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
   getDomain: (url: string) => string;
   getFaviconUrl: (url: string) => string;
 }
 
-function ListItem({
-  item,
-  context,
-  isOpen,
-  onOpenChange,
-  getDomain,
-  getFaviconUrl,
-}: ListItemProps) {
-  // Preview link always goes to reader view
-  const previewHref = `/items/${item.id}`;
+function ListItem({ item, context, getDomain, getFaviconUrl }: ListItemProps) {
+  const [isPending, startTransition] = useTransition();
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(item.url);
+      toast.success("Link copied");
+    } catch (err) {
+      console.error("Failed to copy link:", err);
+      toast.error("Failed to copy link");
+    }
+  };
+
+  const handleKeep = () => {
+    startTransition(async () => {
+      await keepItem(item.id);
+      toast.success("Kept to Library");
+    });
+  };
+
+  const handleDelete = () => {
+    startTransition(async () => {
+      await deleteItem(item.id);
+      toast.success("Deleted");
+    });
+  };
 
   return (
     <div
       className={cn(
         "group flex items-center justify-between gap-4 p-1 min-h-11 rounded-xl hover:bg-accent/50 transition-colors pl-4",
-        isOpen && "bg-accent/50"
+        isPending && "opacity-50 pointer-events-none"
       )}
     >
       {/* Left side: Favicon + Title + Domain + Badges */}
@@ -144,30 +194,79 @@ function ListItem({
         )}
       </div>
 
-      {/* Right side: Preview button + Actions dropdown */}
-      <div
-        className={cn(
-          "shrink-0 flex items-center gap-1 transition-opacity",
-          "opacity-0 group-hover:opacity-100 hidden sm:flex",
-          isOpen && "opacity-100"
-        )}
-      >
-        <Button variant="ghost" size="sm" className="h-8 gap-1.5" asChild>
-          <Link href={previewHref}>
-            <Eye className="h-4 w-4" />
-            <span className="hidden sm:inline">Preview</span>
-          </Link>
-        </Button>
-        <ItemActions
-          itemId={item.id}
-          url={item.url}
-          isKept={item.is_kept}
-          isFavorite={item.is_favorite}
-          isArchived={item.is_archived}
-          context={context}
-          onOpenChange={onOpenChange}
-          alwaysVisible
-        />
+      {/* Right side: Date at rest, actions on hover */}
+      <div className="shrink-0 flex items-center gap-0.5">
+        {/* Date - visible at rest, hidden on hover */}
+        <span
+          className={cn(
+            "text-sm text-muted-foreground pr-2",
+            "group-hover:opacity-0 group-hover:hidden"
+          )}
+        >
+          {formatShortDate(item.created_at)}
+        </span>
+
+        {/* Actions - hidden at rest, visible on hover */}
+        <div className="hidden group-hover:flex items-center gap-0.5">
+          {/* Edit (placeholder) */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            title="Edit"
+            disabled
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+
+          {/* Copy link */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={handleCopyLink}
+            title="Copy link"
+          >
+            <Copy className="h-4 w-4" />
+          </Button>
+
+          {/* Open link */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            asChild
+            title="Open link"
+          >
+            <a href={item.url} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          </Button>
+
+          {/* Keep (only for inbox items) */}
+          {context === "inbox" && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={handleKeep}
+              title="Keep to Library"
+            >
+              <BookmarkCheck className="h-4 w-4" />
+            </Button>
+          )}
+
+          {/* Delete */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-destructive hover:text-destructive"
+            onClick={handleDelete}
+            title="Delete"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -188,7 +287,6 @@ export function ItemsView({
   // STATE
   // ---------------------------------------------------------------------------
   const [searchQuery, setSearchQuery] = useState(""); // Search filter text
-  const [openItemId, setOpenItemId] = useState<string | null>(null); // Track which item's menu is open
   const router = useRouter();
 
   // ---------------------------------------------------------------------------
@@ -479,10 +577,6 @@ export function ItemsView({
                       key={item.id}
                       item={item}
                       context={context}
-                      isOpen={openItemId === item.id}
-                      onOpenChange={(open) =>
-                        setOpenItemId(open ? item.id : null)
-                      }
                       getDomain={getDomain}
                       getFaviconUrl={getFaviconUrl}
                     />
@@ -499,8 +593,6 @@ export function ItemsView({
                 key={item.id}
                 item={item}
                 context={context}
-                isOpen={openItemId === item.id}
-                onOpenChange={(open) => setOpenItemId(open ? item.id : null)}
                 getDomain={getDomain}
                 getFaviconUrl={getFaviconUrl}
               />
