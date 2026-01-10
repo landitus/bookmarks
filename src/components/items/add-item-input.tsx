@@ -10,7 +10,9 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 // Detect if user is on Mac for keyboard shortcut display
-const isMac = typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+const isMac =
+  typeof navigator !== "undefined" &&
+  /Mac|iPod|iPhone|iPad/.test(navigator.platform);
 
 interface AddItemInputProps {
   onSearch?: (query: string) => void;
@@ -116,7 +118,10 @@ export function AddItemInput({
           {isUrlValue && !isPending ? (
             <Kbd className="text-[10px]">Enter</Kbd>
           ) : !value ? (
-            <Kbd className="text-[10px]">{isMac ? "⌘F" : "Ctrl+F"}</Kbd>
+            <span className="flex items-center gap-0.5">
+              <Kbd className="text-[11px]">{isMac ? "⌘" : "Ctrl"}</Kbd>
+              <Kbd className="text-[11px]">F</Kbd>
+            </span>
           ) : null}
         </div>
       </form>
