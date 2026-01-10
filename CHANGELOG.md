@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Theme Switcher** - Toggle between Light, Dark, and System themes from the profile dropdown
+  - Persists preference to user profile in database
+  - Syncs with next-themes for immediate visual feedback
+
 - **Profile Avatar Support** - User avatar in header now displays profile photo from database
   - Fetches avatar_url from profiles table (takes precedence over OAuth metadata)
   - Works for both OAuth users and users who upload a profile photo

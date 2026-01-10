@@ -14,6 +14,7 @@ import {
   logout,
   getApiKey,
   regenerateApiKey,
+  updateTheme,
 } from "@/lib/actions/auth";
 import {
   LogOut,
@@ -23,10 +24,15 @@ import {
   Copy,
   RefreshCw,
   Check,
+  Sun,
+  Moon,
+  Monitor,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import type { Theme } from "@/lib/types";
 
 interface UserMenuProps {
   user: {
@@ -38,12 +44,19 @@ interface UserMenuProps {
   };
 }
 
+const themeOptions: { value: Theme; label: string; icon: typeof Sun }[] = [
+  { value: "light", label: "Light", icon: Sun },
+  { value: "dark", label: "Dark", icon: Moon },
+  { value: "system", label: "System", icon: Monitor },
+];
+
 export function UserMenu({ user }: UserMenuProps) {
   const [open, setOpen] = useState(false);
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [showApiKey, setShowApiKey] = useState(false);
   const [copied, setCopied] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   // Load API key when dropdown opens and API key section is shown
   useEffect(() => {
@@ -51,6 +64,15 @@ export function UserMenu({ user }: UserMenuProps) {
       getApiKey().then(setApiKey);
     }
   }, [open, showApiKey, apiKey]);
+
+  const handleThemeChange = async (newTheme: Theme) => {
+    setTheme(newTheme);
+    try {
+      await updateTheme(newTheme);
+    } catch {
+      toast.error("Failed to save theme preference");
+    }
+  };
 
   const handleCopyApiKey = () => {
     if (!apiKey) return;
@@ -187,6 +209,34 @@ export function UserMenu({ user }: UserMenuProps) {
             <Key />
             API Key
           </DropdownMenuItem>
+        </div>
+
+        <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800 mx-2" />
+
+        {/* Theme Switcher */}
+        <div className="px-3 py-2">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">Theme</p>
+          <div className="flex items-center gap-1">
+            {themeOptions.map((option) => {
+              const Icon = option.icon;
+              const isActive = theme === option.value;
+              return (
+                <button
+                  key={option.value}
+                  onClick={() => handleThemeChange(option.value)}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-colors",
+                    isActive
+                      ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                      : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                  )}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {showApiKey && (
