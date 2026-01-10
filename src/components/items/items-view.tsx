@@ -16,6 +16,7 @@ import { ItemContext } from "@/components/items/item-actions";
 import Link from "next/link";
 import Image from "next/image";
 import { AddItemInput } from "./add-item-input";
+import { EditItemDialog } from "./edit-item-dialog";
 import { cn } from "@/lib/utils";
 import {
   HoverCard,
@@ -77,9 +78,10 @@ interface ListItemProps {
   context: ItemContext;
   getDomain: (url: string) => string;
   getFaviconUrl: (url: string) => string;
+  onEdit: (item: Item) => void;
 }
 
-function ListItem({ item, context, getDomain, getFaviconUrl }: ListItemProps) {
+function ListItem({ item, context, getDomain, getFaviconUrl, onEdit }: ListItemProps) {
   const [isPending, startTransition] = useTransition();
 
   const handleCopyLink = async () => {
@@ -208,13 +210,13 @@ function ListItem({ item, context, getDomain, getFaviconUrl }: ListItemProps) {
 
         {/* Actions - hidden at rest, visible on hover */}
         <div className="hidden group-hover:flex items-center gap-0.5 mr-1.25">
-          {/* Edit (placeholder) */}
+          {/* Edit */}
           <Button
             variant="ghost"
             size="icon"
             className="h-8 w-8"
             title="Edit"
-            disabled
+            onClick={() => onEdit(item)}
           >
             <Pencil className="h-4 w-4" />
           </Button>
@@ -287,6 +289,7 @@ export function ItemsView({
   // STATE
   // ---------------------------------------------------------------------------
   const [searchQuery, setSearchQuery] = useState(""); // Search filter text
+  const [editingItem, setEditingItem] = useState<Item | null>(null); // Item being edited
   const router = useRouter();
 
   // ---------------------------------------------------------------------------
@@ -579,6 +582,7 @@ export function ItemsView({
                       context={context}
                       getDomain={getDomain}
                       getFaviconUrl={getFaviconUrl}
+                      onEdit={setEditingItem}
                     />
                   ))}
                 </div>
@@ -595,10 +599,20 @@ export function ItemsView({
                 context={context}
                 getDomain={getDomain}
                 getFaviconUrl={getFaviconUrl}
+                onEdit={setEditingItem}
               />
             ))}
           </div>
         )}
+
+        {/* Edit Item Dialog */}
+        <EditItemDialog
+          item={editingItem}
+          open={editingItem !== null}
+          onOpenChange={(open) => {
+            if (!open) setEditingItem(null);
+          }}
+        />
       </div>
     </div>
   );

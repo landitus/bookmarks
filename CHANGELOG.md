@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Edit Bookmark Dialog** - Edit bookmark title, URL, and description via dialog
+  - Click the pencil icon on any bookmark in the list view to edit
+  - Updates are saved immediately with optimistic UI feedback
+
 - **Reader Settings Panel** - Customizable reader typography and display modes
   - Settings popover accessible via gear icon in reader header
   - 3 display modes: Light, Amber (e-reader style), Dark (reader-only, header stays on system theme)

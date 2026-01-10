@@ -357,6 +357,26 @@ export async function deleteItem(id: string): Promise<void> {
 }
 
 /**
+ * Update an item's title, URL, or description
+ */
+export async function updateItem(
+  id: string,
+  data: { title?: string; url?: string; description?: string | null }
+): Promise<{ success: boolean; message?: string }> {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("items").update(data).eq("id", id);
+
+  if (error) {
+    console.error("Error updating item:", error);
+    return { success: false, message: error.message };
+  }
+
+  revalidateAllPaths();
+  return { success: true };
+}
+
+/**
  * Refresh an item's content extraction
  * Resets processing fields and sets status to "pending" to trigger reprocessing
  */
