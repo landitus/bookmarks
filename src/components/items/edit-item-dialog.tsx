@@ -116,7 +116,7 @@ function EditItemForm({ item, onSuccess }: EditItemFormProps) {
         />
       </div>
       <DialogFooter>
-        <Button type="submit" disabled={isPending}>
+        <Button size="sm" type="submit" disabled={isPending}>
           {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
           Save
         </Button>

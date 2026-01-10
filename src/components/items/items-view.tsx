@@ -81,7 +81,13 @@ interface ListItemProps {
   onEdit: (item: Item) => void;
 }
 
-function ListItem({ item, context, getDomain, getFaviconUrl, onEdit }: ListItemProps) {
+function ListItem({
+  item,
+  context,
+  getDomain,
+  getFaviconUrl,
+  onEdit,
+}: ListItemProps) {
   const [isPending, startTransition] = useTransition();
 
   const handleCopyLink = async () => {
