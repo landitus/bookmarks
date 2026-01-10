@@ -31,7 +31,7 @@ export default function SharePage() {
       if (!urlToSave) {
         setStatus("error");
         setMessage("No URL found in shared content");
-        setTimeout(() => router.push("/everything"), 2000);
+        setTimeout(() => router.push("/inbox"), 2000);
         return;
       }
 
@@ -47,16 +47,16 @@ export default function SharePage() {
         if (result.success) {
           setStatus("success");
           setMessage("Saved!");
-          setTimeout(() => router.push("/everything"), 1000);
+          setTimeout(() => router.push("/inbox"), 1000);
         } else {
           setStatus("error");
           setMessage(result.message || "Failed to save");
-          setTimeout(() => router.push("/everything"), 2000);
+          setTimeout(() => router.push("/inbox"), 2000);
         }
       } catch {
         setStatus("error");
         setMessage("Something went wrong");
-        setTimeout(() => router.push("/everything"), 2000);
+        setTimeout(() => router.push("/inbox"), 2000);
       }
     }
 

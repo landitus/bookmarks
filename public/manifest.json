@@ -2,7 +2,7 @@
   "name": "Portable",
   "short_name": "Portable",
   "description": "A little pocket for the internet things you love",
-  "start_url": "/everything",
+  "start_url": "/inbox",
   "scope": "/",
   "display": "standalone",
   "background_color": "#FFFBF7",
@@ -35,18 +35,18 @@
   "shortcuts": [
     {
       "name": "Add Link",
-      "url": "/everything?action=add",
+      "url": "/inbox?action=add",
       "description": "Add a new bookmark"
     },
     {
-      "name": "Later",
-      "url": "/later",
-      "description": "View items to read/watch later"
+      "name": "Library",
+      "url": "/library",
+      "description": "View your saved items"
     },
     {
-      "name": "Favorites",
-      "url": "/favorites",
-      "description": "View favorite items"
+      "name": "Archive",
+      "url": "/archive",
+      "description": "View archived items"
     }
   ]
 }

@@ -27,7 +27,9 @@ import {
   Sun,
   Moon,
   Monitor,
+  Smartphone,
 } from "lucide-react";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
@@ -199,6 +201,12 @@ export function UserMenu({ user }: UserMenuProps) {
           <DropdownMenuItem>
             <Settings />
             Settings
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/apps">
+              <Smartphone />
+              Apps & Integrations
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={(e) => {

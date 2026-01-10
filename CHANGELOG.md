@@ -7,7 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Apps & Integrations Page** (`/apps`) - Central hub for saving links from any device
+  - iOS Shortcut setup instructions with step-by-step guide for Share Sheet integration
+  - Android PWA installation guide for native share sheet support
+  - Browser extension information
+  - QR code for API key to easily scan from phone when setting up mobile shortcuts
+  - Quick-copy API key button
+
 ### Changed
+
+- **PWA Manifest Update** - Fixed stale routes in manifest.json
+  - Updated `start_url` from `/everything` to `/inbox`
+  - Updated shortcuts to use new routes (`/inbox`, `/library`, `/archive`)
+  - Share page now redirects to `/inbox` after saving
+
+- **User Menu Enhancement** - Added "Apps & Integrations" link for quick access to mobile setup
 
 - **Layout Structure Cleanup** - Simplified layout component architecture
   - Created shared `Container` component for consistent max-width and padding
