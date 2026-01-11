@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Auto-save bookmarked tweets from X/Twitter (on by default) when the extension is installed
+- Extension setting to disable/enable X bookmark auto-save
+
 ## [0.0.1] - 2025-11-30
 
 ### Added

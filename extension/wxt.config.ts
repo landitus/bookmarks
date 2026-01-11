@@ -7,6 +7,7 @@ export default defineConfig({
     description: "Save links to your Portable pocket",
     version: "0.0.1",
     permissions: ["activeTab", "storage"],
+    host_permissions: ["https://x.com/*", "https://twitter.com/*"],
     icons: {
       "16": "icon-16.png",
       "48": "icon-48.png",

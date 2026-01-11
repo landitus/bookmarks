@@ -19,6 +19,7 @@ const STORAGE_KEYS = {
   API_KEY_PROD: "portable_api_key_prod",
   SERVER_URL_LOCAL: "portable_server_url_local",
   SERVER_URL_PROD: "portable_server_url_prod",
+  AUTO_SAVE_X_BOOKMARKS: "portable_auto_save_x_bookmarks",
 };
 
 // Get elements
@@ -42,6 +43,9 @@ const serverUrlInput = document.getElementById(
 const saveSettingsBtn = document.getElementById("save-settings")!;
 const openSettingsBtn = document.getElementById("open-settings")!;
 const envIndicator = document.getElementById("env-indicator")!;
+const autoSaveXBookmarksCheckbox = document.getElementById(
+  "auto-save-x-bookmarks"
+) as HTMLInputElement;
 
 const pageTitleEl = document.getElementById("page-title")!;
 const pageUrlEl = document.getElementById("page-url")!;
@@ -169,6 +173,7 @@ async function getSettings() {
     STORAGE_KEYS.API_KEY_PROD,
     STORAGE_KEYS.SERVER_URL_LOCAL,
     STORAGE_KEYS.SERVER_URL_PROD,
+    STORAGE_KEYS.AUTO_SAVE_X_BOOKMARKS,
   ]);
 
   const env = (result[STORAGE_KEYS.CURRENT_ENV] as EnvKey) || "local";
@@ -179,6 +184,9 @@ async function getSettings() {
     apiKey: result[keys.apiKey] as string | undefined,
     serverUrl:
       (result[keys.serverUrl] as string) || ENVIRONMENTS[env].serverUrl,
+    autoSaveXBookmarks:
+      (result[STORAGE_KEYS.AUTO_SAVE_X_BOOKMARKS] as boolean | undefined) ??
+      true,
   };
 }
 
@@ -223,6 +231,7 @@ async function saveSettings() {
     [STORAGE_KEYS.CURRENT_ENV]: selectedEnv,
     [keys.apiKey]: apiKey,
     [keys.serverUrl]: serverUrl,
+    [STORAGE_KEYS.AUTO_SAVE_X_BOOKMARKS]: autoSaveXBookmarksCheckbox.checked,
   });
 
   await updateStatusDots();
@@ -381,6 +390,7 @@ async function init() {
 
   const settings = await getSettings();
   selectedEnv = settings.env;
+  autoSaveXBookmarksCheckbox.checked = settings.autoSaveXBookmarks;
 
   // Get current tab info
   const tab = await getCurrentTab();
@@ -432,6 +442,7 @@ openSettingsBtn.addEventListener("click", async () => {
   envIndicator.className = `env-indicator env-${settings.env}`;
   apiKeyInput.value = settings.apiKey || "";
   serverUrlInput.value = settings.serverUrl;
+  autoSaveXBookmarksCheckbox.checked = settings.autoSaveXBookmarks;
   showView(settingsView);
 });
 retryBtn.addEventListener("click", () => {
@@ -455,8 +466,16 @@ openSettingsFromSavedBtn.addEventListener("click", async () => {
   envIndicator.className = `env-indicator env-${settings.env}`;
   apiKeyInput.value = settings.apiKey || "";
   serverUrlInput.value = settings.serverUrl;
+  autoSaveXBookmarksCheckbox.checked = settings.autoSaveXBookmarks;
   updateVersionDisplay();
   showView(settingsView);
+});
+
+// Persist the X auto-save toggle immediately (no need to click "Save Settings")
+autoSaveXBookmarksCheckbox.addEventListener("change", async () => {
+  await browser.storage.local.set({
+    [STORAGE_KEYS.AUTO_SAVE_X_BOOKMARKS]: autoSaveXBookmarksCheckbox.checked,
+  });
 });
 
 // Check for updates button
