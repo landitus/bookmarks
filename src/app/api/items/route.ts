@@ -103,15 +103,41 @@ export async function GET(request: NextRequest) {
 }
 
 /**
+ * Create a plain text response (for iOS Shortcuts)
+ */
+function textResponse(message: string, status: number = 200) {
+  return new NextResponse(message, {
+    status,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "text/plain; charset=utf-8",
+    },
+  });
+}
+
+/**
+ * Check if client prefers plain text (e.g., iOS Shortcuts)
+ */
+function wantsPlainText(request: NextRequest): boolean {
+  const accept = request.headers.get("accept") || "";
+  // Check if text/plain is preferred over application/json
+  return accept.includes("text/plain") && !accept.startsWith("application/json");
+}
+
+/**
  * POST /api/items - Create a new bookmark (FAST - returns immediately)
  *
  * Background processing handles content extraction and AI.
  * The item appears instantly with processing_status: 'pending'.
+ *
+ * Supports plain text responses for iOS Shortcuts (send Accept: text/plain header)
  */
 export async function POST(request: NextRequest) {
+  const plainText = wantsPlainText(request);
   const auth = await authenticateRequest(request);
 
   if ("error" in auth) {
+    if (plainText) return textResponse(`Error: ${auth.error}`, auth.status);
     return jsonResponse({ success: false, error: auth.error }, auth.status);
   }
 
@@ -121,18 +147,21 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
+    if (plainText) return textResponse("Error: Invalid request", 400);
     return jsonResponse({ success: false, error: "Invalid JSON body" }, 400);
   }
 
   const { url } = body;
 
   if (!url) {
+    if (plainText) return textResponse("Error: No URL provided", 400);
     return jsonResponse({ success: false, error: "URL is required" }, 400);
   }
 
   try {
     new URL(url);
   } catch {
+    if (plainText) return textResponse("Error: Invalid URL", 400);
     return jsonResponse({ success: false, error: "Invalid URL format" }, 400);
   }
 
@@ -155,6 +184,7 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (existingItem) {
+    if (plainText) return textResponse("Already saved!", 200); // Not an error for Shortcuts
     return jsonResponse(
       { success: false, error: "This bookmark already exists" },
       409
@@ -269,6 +299,7 @@ export async function POST(request: NextRequest) {
   if (insertError) {
     log(`❌ Failed to create item: ${insertError.message}`);
     console.error("Error creating item:", insertError);
+    if (plainText) return textResponse("Error: Failed to save", 500);
     return jsonResponse(
       { success: false, error: "Failed to create bookmark" },
       500
@@ -300,6 +331,10 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  // Return plain text for iOS Shortcuts, JSON for everything else
+  if (plainText) {
+    return textResponse(`Saved: ${item.title}`, 201);
+  }
   return jsonResponse({ success: true, item }, 201);
 }
 

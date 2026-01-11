@@ -131,12 +131,7 @@ export default function AppsPage() {
               Scan this QR code with your phone to copy the API key:
             </p>
             <div className="flex justify-center p-4 bg-white rounded-lg">
-              <QRCodeSVG
-                value={apiKey}
-                size={160}
-                level="M"
-                marginSize={0}
-              />
+              <QRCodeSVG value={apiKey} size={160} level="M" marginSize={0} />
             </div>
             <p className="text-xs text-muted-foreground text-center mt-2">
               Use your camera app or a QR scanner to copy this key
@@ -175,8 +170,8 @@ export default function AppsPage() {
 
             <div className="p-6 space-y-6">
               <p className="text-sm text-muted-foreground">
-                Create an iOS Shortcut to save links directly from the Share Sheet
-                in Safari, Twitter, YouTube, and any other app.
+                Create an iOS Shortcut to save links directly from the Share
+                Sheet in Safari, Twitter, YouTube, and any other app.
               </p>
 
               {/* Step by step instructions */}
@@ -203,7 +198,9 @@ export default function AppsPage() {
                       2
                     </span>
                     <div>
-                      <p className="font-medium">Add &quot;Get URLs from Input&quot;</p>
+                      <p className="font-medium">
+                        Add &quot;Get URLs from Input&quot;
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         Search for this action and add it first
                       </p>
@@ -240,9 +237,29 @@ export default function AppsPage() {
                         <li className="flex items-center gap-2">
                           <ChevronRight className="h-3 w-3" />
                           <span>
-                            Headers: Add <code className="bg-muted px-1 rounded text-xs">Authorization</code> with value{" "}
+                            Headers: Add{" "}
                             <code className="bg-muted px-1 rounded text-xs">
-                              Bearer {apiKey ? apiKey.slice(0, 8) + "..." : "YOUR_API_KEY"}
+                              Authorization
+                            </code>{" "}
+                            →{" "}
+                            <code className="bg-muted px-1 rounded text-xs">
+                              Bearer{" "}
+                              {apiKey
+                                ? apiKey.slice(0, 8) + "..."
+                                : "YOUR_API_KEY"}
+                            </code>
+                          </span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <ChevronRight className="h-3 w-3" />
+                          <span>
+                            Headers: Add{" "}
+                            <code className="bg-muted px-1 rounded text-xs">
+                              Accept
+                            </code>{" "}
+                            →{" "}
+                            <code className="bg-muted px-1 rounded text-xs">
+                              text/plain
                             </code>
                           </span>
                         </li>
@@ -264,9 +281,12 @@ export default function AppsPage() {
                       4
                     </span>
                     <div>
-                      <p className="font-medium">Add &quot;Show Notification&quot;</p>
+                      <p className="font-medium">
+                        Add &quot;Show Notification&quot;
+                      </p>
                       <p className="text-sm text-muted-foreground">
-                        Set title to &quot;Saved to Portable&quot; for confirmation
+                        Set the body to the result from the previous action. It
+                        will show &quot;Saved: Article Title&quot;
                       </p>
                     </div>
                   </li>
@@ -278,8 +298,9 @@ export default function AppsPage() {
                     <div>
                       <p className="font-medium">Enable Share Sheet</p>
                       <p className="text-sm text-muted-foreground">
-                        Tap the shortcut name at top → Details → enable &quot;Show in
-                        Share Sheet&quot; and select &quot;URLs&quot; as input type
+                        Tap the shortcut name at top → Details → enable
+                        &quot;Show in Share Sheet&quot; and select
+                        &quot;URLs&quot; as input type
                       </p>
                     </div>
                   </li>
@@ -289,7 +310,9 @@ export default function AppsPage() {
                       6
                     </span>
                     <div>
-                      <p className="font-medium">Name it &quot;Save to Portable&quot;</p>
+                      <p className="font-medium">
+                        Name it &quot;Save to Portable&quot;
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         This name will appear in your Share Sheet
                       </p>
@@ -324,8 +347,8 @@ export default function AppsPage() {
 
             <div className="p-6 space-y-4">
               <p className="text-sm text-muted-foreground">
-                Add Portable to your home screen for a native app-like experience
-                with full-screen mode and quick access.
+                Add Portable to your home screen for a native app-like
+                experience with full-screen mode and quick access.
               </p>
 
               <ol className="space-y-3">
@@ -378,8 +401,8 @@ export default function AppsPage() {
 
             <div className="p-6 space-y-4">
               <p className="text-sm text-muted-foreground">
-                On Android, install Portable as a Progressive Web App to get both
-                home screen access and native share sheet integration.
+                On Android, install Portable as a Progressive Web App to get
+                both home screen access and native share sheet integration.
               </p>
 
               <ol className="space-y-3">
@@ -396,7 +419,8 @@ export default function AppsPage() {
                     2
                   </span>
                   <p className="text-sm">
-                    Tap the menu (⋮) → &quot;Add to Home screen&quot; or &quot;Install app&quot;
+                    Tap the menu (⋮) → &quot;Add to Home screen&quot; or
+                    &quot;Install app&quot;
                   </p>
                 </li>
                 <li className="flex gap-3">
@@ -404,16 +428,17 @@ export default function AppsPage() {
                     3
                   </span>
                   <p className="text-sm">
-                    Portable will appear on your home screen and in the share sheet
+                    Portable will appear on your home screen and in the share
+                    sheet
                   </p>
                 </li>
               </ol>
 
               <div className="pt-4 border-t">
                 <p className="text-sm text-muted-foreground">
-                  Unlike iOS, Android supports native share sheet integration for
-                  installed web apps. Once installed, you can share links directly
-                  to Portable from any app.
+                  Unlike iOS, Android supports native share sheet integration
+                  for installed web apps. Once installed, you can share links
+                  directly to Portable from any app.
                 </p>
               </div>
             </div>
@@ -432,8 +457,8 @@ export default function AppsPage() {
 
             <div className="p-6 space-y-4">
               <p className="text-sm text-muted-foreground">
-                Save the current page with a single click. The extension uses your
-                API key to authenticate.
+                Save the current page with a single click. The extension uses
+                your API key to authenticate.
               </p>
 
               <div className="flex gap-3">
@@ -444,8 +469,8 @@ export default function AppsPage() {
 
               <p className="text-xs text-muted-foreground">
                 For now, you can load the extension manually from the{" "}
-                <code className="bg-muted px-1 rounded">/extension</code> folder in
-                developer mode.
+                <code className="bg-muted px-1 rounded">/extension</code> folder
+                in developer mode.
               </p>
             </div>
           </section>
